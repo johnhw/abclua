@@ -1,5 +1,14 @@
 ABC Lua 0.1
 
+Simple ABC parsing for Lua. This library can read a reasonable
+subset of ABC and generate tables representing the song structure.
+
+Requires: 
+    Lua 5.2.1 http://www.lua.org
+    LPeg http://www.inf.puc-rio.br/~roberto/lpeg/
+
+License: BSD 3 clause license
+    
 * Copyright (c) 2013, John Williamson
 * All rights reserved.
 *
@@ -25,6 +34,3 @@ ABC Lua 0.1
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.**
  
-ABC parsing for Lua.
-
-License: BSD 3 clause license

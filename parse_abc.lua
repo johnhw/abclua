@@ -251,8 +251,10 @@ function update_timing(song)
     
     for i,v in ipairs(song.internal.tempo) do
         total_note = total_note + (v.num / v.den)
-        
+    
     end                
+    
+    
     rate = 60.0 / (total_note * song.internal.tempo.div_rate)
 
     song.internal.base_note_length = rate / song.internal.note_length
@@ -402,6 +404,8 @@ function parse_abc(str, metadata, internal)
     
     finalise_song(song)
     notes = get_note_stream(song.stream)
+    
+    make_midi(notes, 'skye.mid')
     return song
 end
 
@@ -486,5 +490,7 @@ function parse_abc_file(filename)
 end
 
 -- TODO: 
--- test variant parts
+-- create test suite
+-- styling for playback
+-- abc writing
 parse_abc_file('skye.abc')

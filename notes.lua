@@ -245,8 +245,6 @@ function insert_grace(grace_note, song)
     
     -- insert the grace sequence
     table.insert(song.opus, {event='grace', grace=grace_note, sequence=grace})
-   
-   table_print(grace)
 end
     
 function insert_note(note, song)

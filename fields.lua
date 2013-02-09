@@ -55,6 +55,7 @@ number <- ( [0-9] + )
 qstring <- ( ["] [^"]* ["] )
 ]]
     captures = re.match(l,  tempo_pattern)    
+  
     return captures
 end
 
@@ -176,7 +177,7 @@ function parse_field(f, song)
         end
         
         if match and name=='tempo' then            
-            song.internal.real_tempo = parse_tempo(match[1])
+            song.internal.tempo = parse_tempo(match[1])
             update_timing(song)
         end
         
