@@ -6,6 +6,7 @@ require "lyrics"
 require "chords"
 require "stream"
 require "fields"
+require "write_abc"
 local re = require "re"
 
 
@@ -22,7 +23,7 @@ range_set <- (range (',' range)*)
 range <- ([0-9] ('-' [0-9]) ?)
 slurred_note <- ( (<complete_note>) -> {} / ('(' (<complete_note> +) ')' )  -> {}  ) 
 chord_group <- ( ('[' (<complete_note> +) -> {} ']' ) ) 
-complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: (decoration) :}) ? {:note_def: full_note  :} ({:tie: (tie)  :}) ? ) -> {}
+complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: (decoration +) :}) ? {:note_def: full_note  :} ({:tie: (tie)  :}) ? ) -> {}
 triplet <- ('(' {[1-9]} (':' {[1-9] ?}  (':' {[1-9]} ? ) ?) ?) -> {}
 grace <- ('{' full_note + '}') -> {}
 tie <- ('-')
@@ -34,7 +35,7 @@ note <- (({:accidental: (accidental )  :})? ({:note:  ([a-g]/[A-G]) :}) ({:octav
 decoration <- ('.' / [~] / 'H' / 'L' / 'M' / 'O' / 'P' / 'S' / 'T' / 'u' / 'v' / ('!' [^!] '!') / ('+' [^+] '+'))
 octave <- (( ['] / ',') +)
 accidental <- ( '^' / '^^' / '_' / '__' / '=' )
-duration <- ( {:slashes: ('/' +) ? :} ({:num: ([1-9] +) :} {:den: (('/'  [1-9]+  ) ?) :}))  -> {}
+duration <- ( (({:num: ([1-9] +) :}) ? ({:slashes: ('/' +)  :})?  ({:den: ((  [1-9]+  ) ) :})?))  -> {}
 field <- ( {:contents: '['  field_element  ':'  [^] ] +  ']' :}) -> {}
 field_element <- ([A-Za-z])
 
@@ -68,7 +69,6 @@ function apply_repeats(song, bar)
         -- append any repeats, and variant endings
         if bar.mid_repeat or bar.end_repeat then
         
-           
             add_section(song, bar.end_reps+1)
             
             -- mark that we will now go into a variant mode
@@ -100,17 +100,21 @@ function read_tune_segment(tune_data, song)
             -- store annotations
             if v.free_text then
                 table.insert(song.opus, {event='text', text=v.free_text})
+                table.insert(song.journal, {event='text', text=v.free_text})
             end
             
             -- parse inline fields (e.g. [r:hello!])
             if v.field then                
-                parse_field(v.field.contents, song)
+                -- this automatically writes it to the journal
+                parse_field(v.field.contents, song, true)
                 table.insert(song.opus, {event='metadata', text=v.field})
             end
             
             -- deal with triplet definitions
             if v.triplet then                
+                
                 triplet = parse_triplet(v.triplet, song)
+                table.insert(song.journal, {event='triplet', triplet=triplet})
                 table.insert(song.opus, {event='triplet', triplet=triplet})
                 
                 -- update the internal tuplet state so that timing is correct for the next notes
@@ -121,18 +125,21 @@ function read_tune_segment(tune_data, song)
             -- beam splits
             if v.s then
                 table.insert(song.opus, {event='split'})
+                table.insert(song.journal, {event='split'})
             end
             
             -- linebreaks
             if v.linebreak then
                 table.insert(song.opus, {event='split_line'})
+                table.insert(song.journal, {event='split_line'})
             end
                 
             
             -- deal with bars and repeat symbols
             if v.bar then
                 bar = parse_bar(v.bar)                                
-                table.insert(song.opus, {event='bar', bar=bar})   
+                table.insert(song.opus, {event='bar', bar=bar}) 
+                table.insert(song.journal, {event='bar', bar=bar})                
                 apply_repeats(song, bar)                               
                              
             end
@@ -141,13 +148,18 @@ function read_tune_segment(tune_data, song)
             if v.chord_group then
                 if v.chord_group[1] then
                     table.insert(song.opus, {event='chord_begin'} )
+                    table.insert(song.journal, {event='chord_begin'})                
                     
                     -- insert the individual notes
                     for i,note in ipairs(v.chord_group) do                
-                        insert_note(note, song)                                                            
+                        local cnote = parse_note(note)
+                        insert_note(cnote, song)                
+                        table.insert(song.journal, {event='note', note=cnote})    
                     end
                     
                     table.insert(song.opus, {event='chord_end'})                
+                    table.insert(song.journal, {event='chord_end'})                
+                    
                 end                               
                 
             end
@@ -157,15 +169,19 @@ function read_tune_segment(tune_data, song)
                 -- slur groups
                 if #v.slur>2 then
                     table.insert(song.opus, {event='slur_begin'} )
+                    table.insert(song.journal, {event='slur_begin'} )
                 end
                 
                 -- insert the individual notes
                 for i,note in ipairs(v.slur) do                
-                    insert_note(note, song)                                                            
+                    local cnote = parse_note(note)
+                    insert_note(cnote, song)                                                          
+                    table.insert(song.journal, {event='note', note=cnote})
                 end
                     
                 if #v.slur>2 then
                     table.insert(song.opus, {event='slur_end'} )
+                    table.insert(song.journal, {event='slur_end'} )
                 end
 
                 
@@ -264,12 +280,6 @@ function update_timing(song)
 end    
 
 
-function add_lyrics(song, field)     
-    -- add lyrics to a song        
-    lyrics = parse_lyrics(field)        
-    append_table(song.internal.lyrics, lyrics)
-end
-
 
     
 function parse_abc_line(line, song)
@@ -278,21 +288,14 @@ function parse_abc_line(line, song)
     -- song.internal, which can be used to carry over 
     -- information from line to line
     
-    if re.find(line, matchers.doctype,1) then
-        song.internal.valid_doctype = true
-    end
     
-    -- strip whitespace
+    -- strip whitespace from start and end of line
     line = line:gsub('^%s*', '')
     line = line:gsub('%s*$', '')
     
     -- remove any backquotes
     line = line:gsub('`', '')
     
-    if line:len()==0 then
-        -- blank line found!
-        
-    end
     
     -- strip comments
     line = line:gsub("%%.*", "")
@@ -304,7 +307,6 @@ function parse_abc_line(line, song)
     
         -- try and match notes
         local match = tune_matcher:match(line)
-        --table_print(match)
            
         -- if it was a tune line, then parse it
         -- (if not, it should be a metadata field)
@@ -325,20 +327,7 @@ function parse_abc_line(line, song)
     --       
     -- read metadata fields
     parse_field(line, song)
-    
-    -- read continuation fields
-    contd = re.match(line, [[('+:' %s * {.*}) -> {}]])
-    if contd then                
-        song.metadata[song.internal.last_field] = song.metadata[song.internal.last_field] .. ' ' .. contd[1]
-        
-        -- make sure lyrics continue correctly. Example:
-        -- w: oh this is a li-ne
-        -- +: and th-is fol-lows__
-        if song.internal.last_field=='words' then
-            add_lyrics(song, contd[1])
-        end
-    end
-    
+      
     -- check if we've read the complete header; terminated on a key
     if song.metadata.key and song.internal.in_header then
         song.internal.in_header = false
@@ -372,12 +361,17 @@ function parse_abc(str, metadata, internal)
     -- a song datastructure. 
     -- 
     -- The song contains
+    -- song.journal contains the song as a parsed symbol sequence
+    -- this is one-to-one mappable to the ABC file, and contains events as they are read
+    -- from the file
+    
     -- song.stream: a series of events (e.g. note on, note off)
-    -- indexed by microseconds,
+    --  indexed by microseconds,
     -- song.metadata which contains header data about title, reference number, key etc.
-    -- as plain text
+    --  stored as plain text
     -- song.internal contains all of the parsed song data
     -- song.lyrics contains the lyrics
+    
     
     internal.in_header = true
     internal.has_notes = false
@@ -390,7 +384,7 @@ function parse_abc(str, metadata, internal)
     
     temp_part = {}
     opus = temp_part
-    song = {opus=opus, metadata=metadata, header = {}, internal=internal, temp_part=temp_part}
+    song = {opus=opus, metadata=metadata, header = {}, internal=internal, journal={}, temp_part=temp_part}
     
     lines = split(str, "[\r\n]")
     
@@ -489,8 +483,16 @@ function parse_abc_file(filename)
     return parse_all_abc(contents)
 end
 
--- TODO: 
+-- Does not support:
+-- multiple voices
+-- instruction flag
+-- macros
+
+-- TODO:
 -- create test suite
 -- styling for playback
+-- chords "Cm7" before slurs or chord groups (e.g. "Cm7"[cd#gb])
+-- multi-bar rests (Z3 etc.)
 -- abc writing
 parse_abc_file('skye.abc')
+print(journal_to_abc(song.journal))

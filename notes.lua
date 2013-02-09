@@ -1,11 +1,128 @@
+local pitch_table = {C=0, D=2, E=4, F=5, G=7, A=9, B=11}
 
+function parse_note(note)
+    -- Parse a note structure. 
+    -- Clean up the duration and pitch of notes and any grace notes
+    -- Replace the decoration string with a sequence of decorators
+    
+    -- Replace decorations with sequences
+    if note.decoration then
+        local decoration = {}
+        for c in string.gmatch(note.decoration, '.') do
+            table.insert(decoration, c)
+        end
+        note.decoration = decoration
+    end
+    
+    -- fix the note itself
+    if note.note_def then
+        parse_note_def(note.note_def)
+    end
+    
+    -- and the grace notes
+    if note.grace then
+        for i,v in ipairs(note.grace) do
+            parse_note_def(v)
+        end
+    end
+    table_print(note)
+    return note
+    
+end
 
-local pitch_table = {c=12, d=14, e=16, f=17, g=19, a=21, b=23,
-C=0, D=2, E=4, F=5, G=7, A=9, B=11}
+function parse_note_def(note)
+    -- Canonicalise a note, filling in the full duration field. 
+    -- Remove slashes from the duration
+    -- Fills in full duration field
+    -- Replaces broken with an integer representing the dotted value (e.g. 0 = plain, 1 = once dotted,
+    --  2 = twice, etc.)
+    
+    
+    if note.duration.slashes and not note.duration.den then
+         den = 1
+         local l = string.len(note.duration.slashes)
+         for i = 1,l do
+            den = den * 2
+         end
+         note.duration.den = den
+    end
+    
+    if not note.duration.num then
+        note.duration.num = 1
+    end
+    
+    if not note.duration.den then
+        note.duration.den = 1
+    end
 
-local  key_order_table = {c=1, d=2, e=3, f=4, g=5, a=6, b=7,
-C=1, D=2, E=3, F=4, G=5, A=6, B=7}
+    if note.broken then
+        local shift = 0
+        -- get the overall shift: negative means this note gets shortened
+        for c in note.broken:gmatch"." do
+            
+            if c == '>' then
+                shift = shift + 1
+            end
+            if c == '<' then
+                shift = shift - 1
+            end
+        end
+        note.broken = nil
+        note.duration.broken = shift
+    end
+  
+  -- add octave shifts  
+    octave = 0
+    if note.pitch.octave then
+        for c in note.pitch.octave:gmatch"." do
+            if c == "'" then
+                octave = octave + 1
+            end
+            if c==',' then 
+                octave = octave - 1
+            end
+        end
+    end
+    
+    -- +1 octave for lower case notes
+    if note.pitch.note == string.lower(note.pitch.note) then
+        octave = octave + 1
+        note.pitch.note = string.upper(note.pitch.note)
+    end
+    
+    
+    -- accidentals
+    if note.pitch.accidental == '^' then
+       note.pitch.accidental = 1
+    end
+    
+    if note.pitch.accidental == '^^' then
+       note.pitch.accidental = 2
+    end
+    
+    if note.pitch.accidental == '_' then
+        note.pitch.accidental = -1
+    end
+    
+    if note.pitch.accidental == '__' then
+        note.pitch.accidental = -2
+    end
+    
+    if note.pitch.accidental == '=' then
+        note.pitch.accidental = 0
+    end
 
+    -- tied notes
+    if note.tie then
+        note.tie = true
+    end
+    
+    
+    note.duration.slashes = nil
+    return note
+    
+    
+end
 
 function compute_pitch(note, song)
     -- compute the real pitch (in MIDI notes) of a note event
@@ -22,46 +139,20 @@ function compute_pitch(note, song)
         return -1
     end
     
+   
     local base_pitch = pitch_table[note.pitch.note]
     
-    -- add octave shifts
-    if note.pitch.octave then
-        for c in note.pitch.octave:gmatch"." do
-            if c == "'" then
-                base_pitch = base_pitch + 12
-            end
-            if c==',' then 
-                base_pitch = base_pitch - 12
-            end
-        end
+    
+    if note.octave then
+        base_pitch = base_pitch * note.octave * 12
     end
     
     -- accidentals / keys
-    
-    if note.pitch.accidental then
-        if note.pitch.accidental == '^' then
-            base_pitch = base_pitch + 1
-        end
-        
-        if note.pitch.accidental == '^^' then
-            base_pitch = base_pitch + 2
-        end
-        
-        if note.pitch.accidental == '_' then
-            base_pitch = base_pitch - 1
-        end
-        
-        if note.pitch.accidental == '__' then
-            base_pitch = base_pitch - 2
-        end
-        
-        if note.pitch.accidental == '=' then
-            base_pitch = base_pitch
-        end
-        
+    if note.pitch.accidental  then
+        base_pitch = base_pitch + note.pitch.accidental
     else        
         -- apply key signature sharpening / flattening
-        acc = song.internal.key_data.mapping[string.lower(note.pitch.note)]
+        acc = song.internal.key_mapping[string.lower(note.pitch.note)]
         base_pitch = base_pitch + acc
     end
         
@@ -82,28 +173,9 @@ function compute_duration(note, song)
     
     local length = 1
     
+    -- we are guaranteed to have filled out the num and den fields
     if note.duration then
-    
-        -- use A3/4 notation
-        if note.duration.den and note.duration.num and string.len(note.duration.den)>1 then
-            
-            length = note.duration.num / note.duration.den
-        end
-        
-        -- use A3 notation
-        if note.duration.num then
-            length = note.duration.num + 0
-            
-        end
-        
-        -- use A/ notation
-        if note.duration.slashes then
-            local l = string.len(note.duration.slashes)
-            for i = 1,l do
-                length = length / 2
-            end
-        end
-        
+        length = note.duration.num / note.duration.den
     end
     
     local shift = 1
@@ -123,18 +195,8 @@ function compute_duration(note, song)
     -- a < shortens this note by 0.5, and increases the next by 1.5
     -- vice versa for >
     -- multiple > (e.g. >> or >>>) lengthens by 1.75 (0.25) or 1.875 (0.125) etc.
-    if note.broken then
-        
-        -- get the overall shift: negative means this note gets shortened
-        for c in note.broken:gmatch"." do
-            
-            if c == '>' then
-                shift = shift * 2
-            end
-            if c == '<' then
-                shift = shift * -2
-            end
-        end
+    if note.duration.broken then
+        shift = math.pow(2, math.abs(note.duration.broken))
         
         if shift<0 then
             this_note = 1.0 / -shift
@@ -149,11 +211,8 @@ function compute_duration(note, song)
     else
         song.internal.prev_broken_note = 1
     end
-    
-    
     length = length * song.internal.base_note_length * this_note * prev_note * 1e6 * song.internal.triplet_compress
-    
-    
+   
     return length
    
 end
@@ -244,7 +303,10 @@ function insert_grace(grace_note, song)
     song.internal.base_note_length = preserved_state.base_note_length
     
     -- insert the grace sequence
+    
     table.insert(song.opus, {event='grace', grace=grace_note, sequence=grace})
+    
+
 end
     
 function insert_note(note, song)

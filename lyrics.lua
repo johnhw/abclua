@@ -21,27 +21,22 @@ function parse_lyrics(lyrics)
     lyrics = lyrics:gsub('\\\\-', '`')
 
     local lyrics_pattern = [[
-    lyrics <- ( (({<syllable>} <break>) *)  {<syllable>} ) -> {}
-    break <- ( (%s +) / ('-')  )
+    lyrics <- ( (({:syl: <syllable> :} {:br: <break> :}) -> {} *)  {:syl: (<syllable>)  :} -> {} ) -> {}
+    break <- ( ( %s +)  / ('-')  )
     
-    syllable <- (syl / '|' )
-    syl <- ( '_' / ([^%s-] +) )        
+    syllable <- ( ([^%s-] +) )        
     ]]
     
-    local match = re.match(lyrics, lyrics_pattern)
-    
-    -- fix backquotes
-    for i,v in ipairs(match) do
-        match[i] = match[i]:gsub('`', '-')        
-    end
-    
+    local match = re.match(lyrics, lyrics_pattern) 
     local lyric_sequence = {}
     
     local next_advance = 1 -- always start on first note of the song
     
     -- construct the syllable sequence
-    for i,syl in ipairs(match) do
-                
+    for i,syllable in ipairs(match) do
+        syl = syllable.syl
+        -- fix backquotes
+        syl = syl:gsub('`', '-')
         -- note advance on trailing underscore
         note_count = 1
         for c in syl:gmatch"_" do
@@ -51,7 +46,7 @@ function parse_lyrics(lyrics)
         advance = next_advance
         
         -- bar advance
-        if syl=='|' then
+        if string.sub(syl,-1)=='|' then
             next_advance = 'bar'
         else
             next_advance = note_count
@@ -64,12 +59,9 @@ function parse_lyrics(lyrics)
             syl = syl:gsub('~', ' ')        
         end
                 
-        table.insert(lyric_sequence, {syllable=syl, advance=advance})
+        table.insert(lyric_sequence, {syllable=syl, advance=advance, br=syllable.br})
     end
-    
-        
     return lyric_sequence
-
 end
 
 

@@ -2,7 +2,7 @@
 -- and working out sharps and flats in keys.
 
 require "utils"
-
+local re = require 're'
 
 function midi_to_frequency(midi, reference)
     -- transform a midi note to a frequency (in Hz)
@@ -158,7 +158,6 @@ function create_key_structure(k)
         if k.accidentals then
             for i,v in pairs(k.accidentals) do
                 acc = re.match(v, "({('^'/'^^'/'='/'_'/'__')} {[a-g]}) -> {}")
-                table_print(acc)
                 if acc[1]=='^' then 
                     key_mapping[acc[2]] = 1
                 end
@@ -180,4 +179,23 @@ function create_key_structure(k)
                         
     end
     return key_mapping
+end
+
+
+function apply_key(song, key_data) 
+    -- apply transpose / octave to the song state
+    if key_data.clef then                 
+        if key_data.clef.octave then
+            song.internal.global_transpose = 12 * key_data.clef.octave -- octave shift
+        else
+            song.internal.global_transpose = 0
+        end
+        
+        if key_data.clef.transpose then 
+            song.internal.global_transpose = song.internal.global_transpose + key_data.clef.transpose                
+        end
+    end 
+    
+    -- update key map
+    song.internal.key_mapping = create_key_structure(key_data.naming)
 end

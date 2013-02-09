@@ -32,6 +32,12 @@ fields.voice =  [[('V:' %s * {.*}) -> {}]]
 fields.words =  [[('w:' %s * {.*}) -> {}]]
 fields.end_words =  [[('W:' %s * {.*}) -> {}]]
 fields.transcriber =  [[('Z:' %s * {.*}) -> {}]]
+fields.continuation =  [[('+:' %s * {.*}) -> {}]]
+
+
+
+
+
 
 function parse_tempo(l)
     -- Parse a tempo string
@@ -91,7 +97,7 @@ function parse_key(k)
     k = k:lower()
     captures = re.match(k,  key_pattern)    
     
-    return {naming = captures, mapping=create_key_structure(captures), clef=captures.clef}
+    return {naming = captures,  clef=captures.clef}
     
 end
 
@@ -111,12 +117,13 @@ function parse_meter(m)
     -- Parse a string giving the meter definition
     -- Returns fraction as a two element table
     local captures = re.match(m,  [[
-    meter <- (fraction / cut / common / none) -> {}
+    meter <- (fraction / cut / common / none) 
     common <- ({:num: '' -> '4':} {:den: '' -> '4':} 'C') -> {}
     cut <- ({:num: '' -> '2':} {:den: '' -> '2' :} 'C|' ) -> {}
     none <- ('none' / '')  -> {}    
-    fraction <- ({:num: complex :} '/' {:den: complex :}) -> {}    
-    complex <- ( '(' ? {([0-9]+ '+') * [0-9]+} ')' ? )    
+    fraction <- ({:num: complex :} '/' {:den: [0-9]+ :}) -> {}    
+    complex <- ( '(' ? ((number + '+') * number) ->{} ')' ? )
+    number <- {([0-9]+)}     
     ]])
     
     return captures
@@ -158,78 +165,135 @@ function expand_parts(parts)
     return sym
 end
 
-function parse_field(f, song)
+function is_in(str, tab)
+-- return true if str is in the given table of strings
+    for i,v in ipairs(tab) do
+        if str==v then
+            return true
+        end
+    end
+    return false
+end
+
+function add_lyrics(song, field)
+    -- add lyrics to a song
+    lyrics = parse_lyrics(field)        
+    append_table(song.internal.lyrics, lyrics)
+    table.insert(song.journal, {event='words', lyrics=parse_lyrics(field), field=true})            
+end
+
+function parse_field(f, song, inline)
     -- parse a metadata field, of the form X: stuff
     -- (either as a line on its own, or as an inline [x:stuff] field
-     local name, field, match
+     local name, field, match, field_name
+     
+     -- find matching field
+     field_name = nil
      for name, field in pairs(fields) do
         match = re.match(f, field)         
-        
-        if match then            
-            song.metadata[name] = match[1]    
-            song.internal.last_field = name
+        if match then
+            field_name = name
+            content = match[1]
         end
-                
-        -- update specific tune settings
-        if match and name=='length' then
-            song.internal.note_length = parse_length(match[1])
-            update_timing(song)
-        end
+     end
+     
+     
+     -- not a metadata field at all
+     if not field_name then
+        return
+     end
+     
+    
+    -- continuation
+    if field_name=='continuation' then
+        -- append to metadata field
+        song.metadata[song.internal.last_field] = song.metadata[song.internal.last_field] .. content
         
-        if match and name=='tempo' then            
-            song.internal.tempo = parse_tempo(match[1])
-            update_timing(song)
-        end
-        
-        -- parse lyric definitions
-        if match and name=='words' then                        
-            add_lyrics(song, match[1])            
-        end
-        
-        
-        if match and name=='parts' then            
-            -- parts definition if we are still in the header
-            -- look up the parts and expand them out
-            if song.internal.in_header then
-                parts = match[1]:gsub('\\.', '') -- remove dots
-                song.internal.part_sequence = parse_parts(parts)                
-            else
-                -- otherwise we are starting a new part   
-                -- parts are always one character long, spaces and dots are ignored
-                part = match[1].gsub('%s', '')
-                part = part.gsub('.', '')
-                current_part = string.sub(part,1,1)
-                song.in_variant_part = nil -- clear the variant flag
-                start_new_part(song, current_part)
-            end
-                        
+        -- append plain text if necessary
+        if not is_in(song.internal.last_field, {'length', 'tempo', 'parts', 'meter', 'words', 'key'}) then
+            table.insert(song.journal, {event='append_field_text', name=song.internal.last_field, content=content, inline=inline, field=true})
         end
         
-        if match and name=='meter' then            
-            song.internal.meter_data = parse_meter(match[1])
-        end       
-        
-        if match and name=='key' then            
-            song.internal.key_data = parse_key(match[1])
-            
-            -- apply transpose / octave
-            if song.internal.key_data.clef then
-                                
-                if song.internal.key_data.clef.octave then
-                    song.internal.global_transpose = 12 * song.internal.key_data.clef.octave -- octave shift
-                else
-                    song.internal.global_transpose = 0
-                end
-                
-                if song.internal.key_data.clef.transpose then 
-                    song.internal.global_transpose = song.internal.global_transpose + song.internal.key_data.clef.transpose                
-                end
-            end
+        -- make sure lyrics continue correctly. Example:
+        -- w: oh this is a li-ne
+        -- +: and th-is fol-lows__
+
+        if song.internal.last_field == 'words' then
+            add_lyrics(song, content)
+        end
+        -- other lines cannot be continued! (e.g. no splitting key across multiple lines)
+        -- anything but a continuation
+         
+    else
+        -- if not a parsable field, store it as plain text
+    
+        if not is_in(field_name, {'length', 'tempo', 'words', 'parts', 'meter', 'key'}) then
+            table.insert(song.journal, {event='field_text', name=field_name, content=content, inline=inline, field=true}) 
         end
         
+        song.metadata[field_name] = content    
+        song.internal.last_field = field_name
     end
+    
+    
+    -- update specific tune settings
+    if field_name=='length' then
+        song.internal.note_length = parse_length(content)
+        table.insert(song.journal, {event='note_length', note_length=parse_length(content), inline=inline,  field=true}) 
+        update_timing(song)
+    end
+            
+    -- update tempo
+    if field_name=='tempo' then            
+        song.internal.tempo = parse_tempo(content)
+        table.insert(song.journal, {event='tempo', tempo=parse_tempo(content), inline=inline, field=true})
+        update_timing(song)
+    end
+    
+    -- parse lyric definitions
+    if field_name=='words' then                        
+        add_lyrics(song, content)
+    end
+            
+            
+    if field_name=='parts' then            
+        -- parts definition if we are still in the header
+        -- look up the parts and expand them out
+        if song.internal.in_header then
+            table_print(content)
+            parts = content:gsub('\\.', '') -- remove dots
+            song.internal.part_structure = parse_parts(parts)
+            parts = parse_parts(content)
+            song.internal.part_sequence = expand_parts(song.internal.part_structure)      
+            table.insert(song.journal, {event='parts', parts=parts, sequence=expand_parts(parts), inline=inline, field=true})            
+        else
+            -- otherwise we are starting a new part   
+            -- parts are always one character long, spaces and dots are ignored
+            part = content.gsub('%s', '')
+            part = part.gsub('.', '')
+            current_part = string.sub(part,1,1)
+            song.in_variant_part = nil -- clear the variant flag
+            start_new_part(song, current_part)
+            table.insert(song.journal, {event='new_part', part=part, inline=inline, field=true})            
+        end
+    end
+    
+    -- update meter
+    if field_name=='meter' then            
+        song.internal.meter_data = parse_meter(content)
+        table.insert(song.journal, {event='meter', meter=parse_meter(content), inline=inline, field=true})            
+    end       
+    
+    -- update key
+    if field_name=='key' then            
+        song.internal.key_data = parse_key(content)
+        table.insert(song.journal, {event='key', key=parse_key(content), inline=inline, field=true}) 
+        apply_key(song, song.internal.key_data)
+    end
+ 
 end
-    function parse_parts(m)
+
+function parse_parts(m)
     -- Parse a parts definition that specifies the parts to be played
     -- including any repeats
     -- Returns a fully expanded part list
@@ -240,6 +304,6 @@ end
     element <- [A-Za-z]    
     ]])
     
-    return expand_parts(captures)
+    return captures
     
 end
