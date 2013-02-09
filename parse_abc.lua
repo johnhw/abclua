@@ -73,7 +73,8 @@ function apply_repeats(song, bar)
             
             -- mark that we will now go into a variant mode
             if bar.variant_range then
-                song.internal.in_variant = bar.variant_range
+                -- only allows first element in range to be used (e.g. can't do |1,3 within a repeat)
+                song.internal.in_variant = bar.variant_range[1]
             else
                 song.internal.in_variant = nil
             end            
@@ -194,6 +195,40 @@ end
 
 
 
+function parse_range_list(range_list)
+    -- parses a range identifier
+    -- as a comma separated list of numbers or ranges
+    -- (e.g. "1", "1,2", "2-3", "1-3,5-6")
+    -- Returns each value in this range
+    
+        
+    local range_pattern = [[
+    range_list <- ((<range>) (',' <range>) *) -> {}
+    range <- (   <range_id> / <number> ) -> {}
+    range_id <- (<number> '-' <number>)
+    number <- ({ [0-9]+ }) 
+    ]]    
+    local matches = re.match(range_list, range_pattern)    
+    local sequence = {}    
+    -- append each element of the range list
+    for i,v in ipairs(matches) do
+        -- single number
+        if #v==1 then
+            table.insert(sequence, v[1]+0)
+        end
+        
+        -- range of values
+        if #v==2 then            
+            for j=v[1]+0,v[2]+0 do
+                table.insert(sequence, j)
+            end
+        end    
+    end
+    
+    return sequence
+
+end
+
 
 function parse_bar(bar, song)
 -- Parse a bar symbol and repeat/variant markers. Bars can be
@@ -214,7 +249,10 @@ function parse_bar(bar, song)
         end <- (<plain> (<plain> +))
         just_colons <- ({} <colons> {}) -> {}
         plain <- ('|')
-        thick <- ('[' * ']'* '|' ']' * '[' *)
+        thickthin <- ('[' '|')
+        thinthick <- ('[' '|')
+        double <- ('|' '|')
+        
         variant <- ('[')
         colons <- (':' +) 
     ]]
@@ -233,7 +271,7 @@ function parse_bar(bar, song)
     end
     
     -- thick bars work like repeats with a count of one
-    if type_info.thick then
+    if type_info.thickthin or type_info.thinthick or typeinfo.double then
         type_info.end_reps = 0
         type_info.end_repeat = true
     end
@@ -250,7 +288,8 @@ function parse_bar(bar, song)
         type_info.mid_repeat = type_info.colons -- this is a mid repeat
     end
     
-    type_info.variant_range = bar.variant_range
+    -- convert ranges into a list of integers
+    type_info.variant_range = parse_range_list(bar.variant_range)
     return type_info           
 end
 
@@ -489,6 +528,9 @@ end
 -- macros
 
 -- TODO:
+-- bar symbols
+-- song -> journal -> opus -> stream -> midi
+
 -- create test suite
 -- styling for playback
 -- chords "Cm7" before slurs or chord groups (e.g. "Cm7"[cd#gb])

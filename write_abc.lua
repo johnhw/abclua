@@ -403,6 +403,8 @@ function abc_note(note)
     return note_str
 end
 
+
+
 function abc_bar(bar)
     -- Return a string representing a bar element
     -- a bar can be
@@ -412,7 +414,42 @@ function abc_bar(bar)
     -- |] double thin-thick bar
     -- |: start repeat
     -- :| end repeat
+    -- :|: mid repeat
     -- [n start variant
+    
+    -- just a bar
+    if bar.plain then
+        return '|'
+    end
+    
+    if bar.double then
+        return '||'
+    end
+    
+    if bar.thickthin then
+        return ']|'
+    end
+    
+    if bar.thinthick then
+        return '|['
+    end
+    
+    if bar.start_repeat then
+        return '|'+repeat_string(':', bar.start_reps)
+    end
+    
+    if bar.end_repeat then
+        return repeat_string(':', bar.end_reps)+'|'
+    end
+    
+    if bar.mid_repeat then
+        return repeat_string(':', bar.end_reps)+'|'+repeat_string(':', bar.start_reps)+
+    end
+    
+    if bar.variant then 
+        return '[' + bar.variant_range
+    end
+    
     
 end
 

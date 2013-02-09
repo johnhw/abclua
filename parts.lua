@@ -17,39 +17,6 @@ end
 local variant_tag
 
 
-function parse_range_list(range_list)
-    -- parses a range identifier
-    -- as a comma separated list of numbers or ranges
-    -- (e.g. "1", "1,2", "2-3", "1-3,5-6")
-    -- Returns each value in this range
-    
-        
-    local range_pattern = [[
-    range_list <- ((<range>) (',' <range>) *) -> {}
-    range <- (   <range_id> / <number> ) -> {}
-    range_id <- (<number> '-' <number>)
-    number <- ({ [0-9]+ }) 
-    ]]    
-    local matches = re.match(range_list, range_pattern)    
-    local sequence = {}    
-    -- append each element of the range list
-    for i,v in ipairs(matches) do
-        -- single number
-        if #v==1 then
-            table.insert(sequence, v[1]+0)
-        end
-        
-        -- range of values
-        if #v==2 then            
-            for j=v[1]+0,v[2]+0 do
-                table.insert(sequence, j)
-            end
-        end    
-    end
-    
-    return sequence
-
-end
 
 function start_variant_part(song, bar)
     -- start a variant part. The variant specifier indicates the ranges that 
@@ -58,7 +25,7 @@ function start_variant_part(song, bar)
     -- and registers the sub-part in the variants table
     
     -- parse the variant list
-    endings = parse_range_list(bar.variant_range)
+    endings = bar.variant_range
     
     -- if we are not already in a variant, record the arent part
     if not song.in_variant_part then

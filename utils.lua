@@ -1,3 +1,13 @@
+
+function repeat_string(str, times)
+    -- return the concatenation of a string a given number of times
+    -- e.g. repeat_string('abc', '3') = 'abcabcabc'
+    reps = {}
+    for i=1,times do
+        table.insert(reps, str)
+    end
+    return table.concat(reps)
+end
 -- copy a table completely
 function deepcopy(orig)
     local orig_type = type(orig)
