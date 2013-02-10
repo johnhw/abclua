@@ -71,7 +71,7 @@ function parse_key(k)
     key <- ( {:none: ('none') :} / {:pipe: ('Hp' / 'HP') :} / (
         {:root: ([a-gA-G]):}  ({:flat: ('b'):}) ? ({:sharp: ('#'):}) ?  
         (%s * {:mode: (mode %S*):}) ? 
-        (%s + {:accidentals: (accidentals):}) ?         
+        (%s * {:accidentals: (accidentals):}) ?         
          ({:clef:  ((%s + <clef>) +) -> {}   :})  ?           
         )) -> {} 
         
@@ -113,6 +113,23 @@ function parse_length(l)
     end
 end
 
+
+function get_simplified_meter(meter)
+    -- return meter as a simple num/den form
+    -- with the beat emphasis separate
+    -- by summing up all num elements
+    -- (e.g. (2+3+2)/8 becomes 7/8)
+    -- the beat emphasis is stored as
+    -- emphasis = {1,3,5}
+    local total_num = 0
+    local emphasis = {}
+    for i,v in ipairs(meter.num) do
+        table.insert(emphasis, total_num)
+        total_num = total_num + v
+    end
+    return {num=total_num, den=meter.den, emphasis=emphasis}
+end
+
 function parse_meter(m)
     -- Parse a string giving the meter definition
     -- Returns fraction as a two element table
@@ -125,8 +142,8 @@ function parse_meter(m)
     complex <- ( '(' ? ((number + '+') * number) ->{} ')' ? )
     number <- {([0-9]+)}     
     ]])
-    
-    return captures
+   
+    return get_simplified_meter(captures)
     
 end
 
@@ -207,18 +224,18 @@ function parse_field(f, song, inline)
     -- continuation
     if field_name=='continuation' then
         -- append to metadata field
-        song.metadata[song.internal.last_field] = song.metadata[song.internal.last_field] .. content
+        song.metadata[song.parse.last_field] = song.metadata[song.parse.last_field] .. content
         
         -- append plain text if necessary
-        if not is_in(song.internal.last_field, {'length', 'tempo', 'parts', 'meter', 'words', 'key'}) then
-            table.insert(song.journal, {event='append_field_text', name=song.internal.last_field, content=content, inline=inline, field=true})
+        if not is_in(song.parse.last_field, {'length', 'tempo', 'parts', 'meter', 'words', 'key'}) then
+            table.insert(song.journal, {event='append_field_text', name=song.parse.last_field, content=content, inline=inline, field=true})
         end
         
         -- make sure lyrics continue correctly. Example:
         -- w: oh this is a li-ne
         -- +: and th-is fol-lows__
 
-        if song.internal.last_field == 'words' then
+        if song.parse.last_field == 'words' then
             add_lyrics(song, content)
         end
         -- other lines cannot be continued! (e.g. no splitting key across multiple lines)
@@ -232,7 +249,7 @@ function parse_field(f, song, inline)
         end
         
         song.metadata[field_name] = content    
-        song.internal.last_field = field_name
+        song.parse.last_field = field_name
     end
     
     

@@ -25,7 +25,6 @@ function parse_note(note)
             parse_note_def(v)
         end
     end
-    table_print(note)
     return note
     
 end
@@ -37,6 +36,10 @@ function parse_note_def(note)
     -- Replaces broken with an integer representing the dotted value (e.g. 0 = plain, 1 = once dotted,
     --  2 = twice, etc.)
     
+    -- fill in measure rests
+    if note.measure_rest and not note.measure_rest.bars then
+        note.measure_rest.bars = 1
+    end
     
     if note.duration.slashes and not note.duration.den then
          den = 1
@@ -71,47 +74,50 @@ function parse_note_def(note)
         note.duration.broken = shift
     end
   
-  -- add octave shifts  
-    octave = 0
-    if note.pitch.octave then
-        for c in note.pitch.octave:gmatch"." do
-            if c == "'" then
-                octave = octave + 1
-            end
-            if c==',' then 
-                octave = octave - 1
+  if note.pitch then
+      -- add octave shifts  
+        octave = 0
+        if note.pitch.octave then
+            for c in note.pitch.octave:gmatch"." do
+                if c == "'" then
+                    octave = octave + 1
+                end
+                if c==',' then 
+                    octave = octave - 1
+                end
             end
         end
-    end
-    
-    -- +1 octave for lower case notes
-    if note.pitch.note == string.lower(note.pitch.note) then
-        octave = octave + 1
-        note.pitch.note = string.upper(note.pitch.note)
-    end
-    
-    
-    -- accidentals
-    if note.pitch.accidental == '^' then
-       note.pitch.accidental = 1
-    end
-    
-    if note.pitch.accidental == '^^' then
-       note.pitch.accidental = 2
-    end
-    
-    if note.pitch.accidental == '_' then
-        note.pitch.accidental = -1
-    end
-    
-    if note.pitch.accidental == '__' then
-        note.pitch.accidental = -2
-    end
-    
-    if note.pitch.accidental == '=' then
-        note.pitch.accidental = 0
-    end
+        
+        -- +1 octave for lower case notes
+        if note.pitch.note == string.lower(note.pitch.note) then
+            octave = octave + 1
+            note.pitch.note = string.upper(note.pitch.note)
+        end
+        
+        
+        -- accidentals
+        if note.pitch.accidental == '^' then
+           note.pitch.accidental = 1
+        end
+        
+        if note.pitch.accidental == '^^' then
+           note.pitch.accidental = 2
+        end
+        
+        if note.pitch.accidental == '_' then
+            note.pitch.accidental = -1
+        end
+        
+        if note.pitch.accidental == '__' then
+            note.pitch.accidental = -2
+        end
+        
+        if note.pitch.accidental == '=' then
+            note.pitch.accidental = 0
+        end
 
+    end
+    
     -- tied notes
     if note.tie then
         note.tie = true
@@ -135,7 +141,7 @@ function compute_pitch(note, song)
     --  transpose and octave shift
     
     -- -1 indicates a rest note
-    if note.rest then
+    if note.rest or note.measure_rest then
         return -1
     end
     
@@ -169,9 +175,16 @@ function compute_duration(note, song)
     -- triplet state 
     -- broken state
     -- duration field of the note itself
-    
+    -- bars for multi-measure rests  
     
     local length = 1
+    
+    
+    -- measure rest
+    if note.measure_rest then   
+        -- one bar =  meter ratio * note length (e.g. 1/16 = 16)
+        return (song.internal.meter_data.num / song.internal.meter_data.den) * song.internal.note_length * song.internal.base_note_length * 1e6
+    end
     
     -- we are guaranteed to have filled out the num and den fields
     if note.duration then

@@ -13,7 +13,8 @@ local re = require "re"
 -- Grammar for parsing tune definitions
 tune_pattern = [[
 elements <- ( ({} <element>)  +) -> {}
-element <- ( ({:slur: <slurred_note> :}) / ({:chord_group: <chord_group> :})  / {:bar: (<bar> / <variant>) :} / {:field: field :}  / {:free_text: free :} / {:triplet: triplet :} / {:s: beam_split :} / {:continuation: continuation :}) -> {}
+element <- ( ({:slur: <slurred_note> :}) / ({:chord_group: <chord_group> :})  / {:bar: (<bar> / <variant>) :} / {:field: field :}  / {:free_text: free :} / {:triplet: triplet :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
+
 continuation <- ('\')
 beam_split <- (%s +)
 free <- ( '"' {:text: [^"]* :} '"' ) -> {}
@@ -28,8 +29,9 @@ triplet <- ('(' {[1-9]} (':' {[1-9] ?}  (':' {[1-9]} ? ) ?) ?) -> {}
 grace <- ('{' full_note + '}') -> {}
 tie <- ('-')
 chord <- (["] {[^"]} * ["]) -> {}
-full_note <-  (({:pitch: (note) :} / {:rest: (rest) :}) {:duration: (duration ?)  :}  {:broken: (broken ?)  :})  -> {}
+full_note <-  (({:pitch: (note) :} / {:rest: (rest) :} / {:measure_rest: <measure_rest> :} ) {:duration: (duration ?)  :}  {:broken: (broken ?)  :})  -> {}
 rest <- ( 'z' / 'x' )
+measure_rest <- (('Z' / 'X') ({:bars: ([0-9]+) :}) ? ) -> {}
 broken <- ( ('<' +) / ('>' +) )
 note <- (({:accidental: (accidental )  :})? ({:note:  ([a-g]/[A-G]) :}) ({:octave: (octave)  :}) ? ) -> {}
 decoration <- ('.' / [~] / 'H' / 'L' / 'M' / 'O' / 'P' / 'S' / 'T' / 'u' / 'v' / ('!' [^!] '!') / ('+' [^+] '+'))
@@ -44,30 +46,41 @@ field_element <- ([A-Za-z])
 tune_matcher = re.compile(tune_pattern)
 
 
-
 function is_compound_time(song)
     -- return true if the meter is 6/8, 9/8 or 12/8
     -- and false otherwise
     local meter = song.internal.meter_data
     if meter then
-        if meter.den == 8  then
-            if meter.num == 6 or meter.num==9 or meter.num==12 then
-                return true
-            end
+        if meter.den==8 and (meter.num==6 or meter.num==9 or meter.num==12) then
+            return true
         end
     end
     return false
 end
 
 
+function default_note_length(song)
+    -- return the default note length
+    -- if meter.num/meter.den > 0.75 then 1/8
+    -- else 1/16
+    if song.internal.meter_data then
+        ratio = meter_data.num / meter_data.num
+        if ratio>=0.75 then
+            return 8
+        else
+            return 16
+        end
+    end
+end
+
 function apply_repeats(song, bar)
         -- clear any existing material
-        if bar.start_repeat then
+        if bar.type=='start_repeat' then
             add_section(song, 1)
         end
                                 
         -- append any repeats, and variant endings
-        if bar.mid_repeat or bar.end_repeat then
+        if bar.type=='mid_repeat' or bar.type=='end_repeat' then
         
             add_section(song, bar.end_reps+1)
             
@@ -81,13 +94,15 @@ function apply_repeats(song, bar)
         end
         
         -- part variant; if we see this we go into a new part
-        if bar.variant then
+        if bar.type=='variant' then
             start_variant_part(song, bar)
         end        
 end
 
 function read_tune_segment(tune_data, song)
     -- read the next token in the note stream
+    
+    
     for i,v in ipairs(tune_data) do
    
         -- abc cross reference
@@ -98,6 +113,12 @@ function read_tune_segment(tune_data, song)
             
         else
         
+            if v.measure_rest then
+                bars = v.measure_rest.bars or 1
+                table.insert(song.opus, {event='measure_rest', bars=bars})
+                table.insert(song.journal, {event='measure_rest', bars=bars})
+            end
+            
             -- store annotations
             if v.free_text then
                 table.insert(song.opus, {event='text', text=v.free_text})
@@ -139,7 +160,7 @@ function read_tune_segment(tune_data, song)
             -- deal with bars and repeat symbols
             if v.bar then
                 bar = parse_bar(v.bar)                                
-                table.insert(song.opus, {event='bar', bar=bar}) 
+                table.insert(song.opus, {event='bar', bar=bar})                 
                 table.insert(song.journal, {event='bar', bar=bar})                
                 apply_repeats(song, bar)                               
                              
@@ -241,12 +262,11 @@ function parse_bar(bar, song)
 
     bar_pattern = [[
         bar <- (  
-        {:mid_repeat: <mid_repeat> :} /  {:end_repeat: <end_repeat> :}  / {:start_repeat: <start_repeat> :} / {:end: <end> :}
-        / {:plain: <plain> :} /  {:thick: <thick> :} / {:variant: <variant> :} / {:colons: <just_colons> :} ) -> {}        
+        {:mid_repeat: <mid_repeat> :} /  {:end_repeat: <end_repeat> :}  / {:start_repeat: <start_repeat> :} / {:double: <double> :}
+        / {:plain: <plain> :} /  {:thickthin: <thickthin> :} / {:thinthick: <thinthick> :} / {:variant: <variant> :} / {:colons: <just_colons> :} ) -> {}        
         mid_repeat <- ({}<colons> {}<plain>{} <colons>{}) -> {}
         start_repeat <- (<plain> {} <colons> {} ) -> {}
         end_repeat <- ({}<colons> {} <plain> ) -> {}
-        end <- (<plain> (<plain> +))
         just_colons <- ({} <colons> {}) -> {}
         plain <- ('|')
         thickthin <- ('[' '|')
@@ -256,10 +276,9 @@ function parse_bar(bar, song)
         variant <- ('[')
         colons <- (':' +) 
     ]]
-    
-    
+  
     type_info = re.match(bar.type, bar_pattern)
-    
+      
     -- compute number of colons around bar (which is the number of repeats of this section)
     if type_info.mid_repeat then
         type_info.end_reps = type_info.mid_repeat[2]-type_info.mid_repeat[1]
@@ -271,7 +290,7 @@ function parse_bar(bar, song)
     end
     
     -- thick bars work like repeats with a count of one
-    if type_info.thickthin or type_info.thinthick or typeinfo.double then
+    if type_info.thickthin or type_info.thinthick or type_info.double then
         type_info.end_reps = 0
         type_info.end_repeat = true
     end
@@ -286,15 +305,32 @@ function parse_bar(bar, song)
         type_info.start_reps = type_info.colons[2]-type_info.colons[1] / 2
         type_info.start_reps = type_info.colons[4]-type_info.colons[3] / 2
         type_info.mid_repeat = type_info.colons -- this is a mid repeat
+        type_info.colons = nil
+    end
+    
+    
+    local bar_types = {'mid_repeat', 'end_repeat', 'start_repeat', 'variant',
+    'plain', 'double', 'thickthin', 'thinthick'}
+    
+    local parsed_bar = {}
+    
+    -- set type field
+    for i,v in ipairs(bar_types) do
+        if type_info[v] then
+            parsed_bar.type = v
+        end
     end
     
     -- convert ranges into a list of integers
-    type_info.variant_range = parse_range_list(bar.variant_range)
-    return type_info           
+    if type_info.variant_range then
+        parsed_bar.variant_range = parse_range_list(type_info.variant_range)
+    end
+    
+    parsed_bar.end_reps = type_info.end_reps
+    parsed_bar.start_reps = type_info.start_reps
+    
+    return parsed_bar           
 end
-
-
-
 
 
 
@@ -346,7 +382,7 @@ function parse_abc_line(line, song)
     
         -- try and match notes
         local match = tune_matcher:match(line)
-           
+        
         -- if it was a tune line, then parse it
         -- (if not, it should be a metadata field)
         if match then
@@ -423,7 +459,7 @@ function parse_abc(str, metadata, internal)
     
     temp_part = {}
     opus = temp_part
-    song = {opus=opus, metadata=metadata, header = {}, internal=internal, journal={}, temp_part=temp_part}
+    song = {opus=opus, metadata=metadata, header = {}, internal=internal, journal={}, parse={}, temp_part=temp_part}
     
     lines = split(str, "[\r\n]")
     
@@ -528,7 +564,7 @@ end
 -- macros
 
 -- TODO:
--- bar symbols
+-- accidental rules (rest of measure, except in K:none)
 -- song -> journal -> opus -> stream -> midi
 
 -- create test suite

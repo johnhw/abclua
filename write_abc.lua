@@ -30,20 +30,32 @@ local field_tags = {key = 'K'
 }
 
 function abc_meter(meter)
-    -- join together complex meters
-    local numerator = {}
-    for j,n in ipairs(meter.num) do
-        table.insert(numerator,  n..'+')
+    -- return the string representation of a meter
+    -- e.g. {num=3, den=4} becomes 'M:3/4'
+    -- if there is an explicit emphasis then this produces
+    -- a compound numerator (e.g. M:(2+3+2)/4)
+    local num = ''
+    
+    if #meter.emphasis==1 then
+        -- simple meter
+        num = meter.num
+    else
+        -- join together complex meters from the empahsis table
+        local e = 0
+        num = '(' -- parenthesise complex meters
+        for j,n in ipairs(meter.emphasis) do
+           if j ~= 1 then -- first emphasis is always on 0; skip that
+            num = num .. (n-e) .. '+'
+            e = n
+           end
+        end
+        
+        -- length of last emphasis is however much to make up
+        -- to the total meter length
+        num = num .. (meter.num-e) .. ')'
+           
     end
    
-    -- trim off trailing + sign
-    local num = string.sub(table.concat(numerator), 1, -2)
-  
-    -- bracket numerator if needed 
-    if #numerator>1 then
-        num = '(' .. num .. ')'
-    end
-    
     local ret = string.format('M:%s/%s' , num, meter.den..'')
     return ret
     
@@ -357,6 +369,15 @@ end
 function abc_note_def(note)
     local note_str = ''
     
+    -- measure rests
+    if note.measure_rest then
+        if note.measure_rest.bars==1 then
+            return 'Z'
+        else
+            return 'Z' .. note.measure_rest.bars
+        end
+    end
+    
     -- pitch and duration
     if note.rest then
         note_str = 'z'
@@ -417,41 +438,51 @@ function abc_bar(bar)
     -- :|: mid repeat
     -- [n start variant
     
-    -- just a bar
-    if bar.plain then
-        return '|'
+    local bar_str = ''
+    
+    local type_symbols = {plain='|', double='||', thickthin=']|', thinthick='[|',
+    variant='['}
+    
+    for i,v in pairs(type_symbols) do
+        if bar.type==i then 
+            bar_str = v
+        end
     end
     
-    if bar.double then
-        return '||'
+    if bar.type=='start_repeat' then
+        bar_str= '|' .. repeat_string(':', bar.start_reps)
     end
     
-    if bar.thickthin then
-        return ']|'
+    if bar.type=='end_repeat' then
+        bar_str= repeat_string(':', bar.end_reps) .. '|'
     end
     
-    if bar.thinthick then
-        return '|['
+    if bar.type=='mid_repeat' then
+        bar_str= repeat_string(':', bar.end_reps) .. '|' .. repeat_string(':', bar.start_reps)
     end
     
-    if bar.start_repeat then
-        return '|'+repeat_string(':', bar.start_reps)
+    if bar.type=='variant' then 
+        bar_str = '[' 
     end
     
-    if bar.end_repeat then
-        return repeat_string(':', bar.end_reps)+'|'
+    -- variant indicators (e.g. for parts [4 or for repeats :|1 x x x :|2 x x x ||)
+    if bar.variant_range then
+        -- for part variants, can have multiple indicators
+        if bar.variant then
+            for i,v in ipairs(bar.variant_range) do
+                bar_str = bar_str .. v .. ','
+            end
+            -- remove last comma
+            bar_str = string.sub(bar_str, 1, -1)
+        else
+            -- can only have one variant indicator
+            bar_str = bar_str .. bar.variant_range[1]
+        end
     end
     
-    if bar.mid_repeat then
-        return repeat_string(':', bar.end_reps)+'|'+repeat_string(':', bar.start_reps)+
-    end
-    
-    if bar.variant then 
-        return '[' + bar.variant_range
-    end
-    
-    
+    return bar_str
 end
+
 
 function abc_note_element(element)
     -- Return a string representing a note element 
@@ -496,6 +527,7 @@ function abc_note_element(element)
     if element.event=='bar' then
         return abc_bar(element.bar)
     end
+    
     
     
     return ''
