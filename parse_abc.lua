@@ -567,15 +567,14 @@ end
 -- multiple voices
 -- instruction flag
 -- macros
+-- directives
 
 -- TODO:
--- accidental rules (rest of measure, except in K:none)
 -- song -> journal -> opus -> stream -> midi
 
 -- create test suite
 -- styling for playback
 -- chords "Cm7" before slurs or chord groups (e.g. "Cm7"[cd#gb])
 -- multi-bar rests (Z3 etc.)
--- abc writing
 parse_abc_file('skye.abc')
 print(journal_to_abc(song.journal))
