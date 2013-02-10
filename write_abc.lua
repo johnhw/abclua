@@ -414,6 +414,7 @@ function abc_note(note)
     
     -- chords (e.g. "Cm")
     if note.chord then
+        table_print(note.chord)
         note_str = note_str .. '"' .. note.chord .. '"'
     end
     
@@ -507,7 +508,11 @@ function abc_note_element(element)
     end
     
     if element.event=='chord_begin' then
-        return '['
+        if element.chord then
+            return '"' .. element.chord .. '"' .. '['
+        else
+            return '['
+        end
     end
     
     if element.event=='chord_end' then
@@ -515,8 +520,14 @@ function abc_note_element(element)
     end
     
     if element.event=='slur_begin' then
-        return '('
+        table_print(element)
+        if element.chord then
+            return '"' .. element.chord .. '"' .. '('
+        else
+            return '('
+        end
     end
+    
     if element.event=='slur_end' then
         return ')'
     end

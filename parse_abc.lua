@@ -24,13 +24,13 @@ bar <- ( {:type: ((']' / '[') * ('|' / ':') + (']' / '[') *) :} ({:variant_range
 variant <- {:type: '[' :} {:variant_range: <range_set> :}   -> {}
 range_set <- (range (',' range)*)
 range <- ([0-9] ('-' [0-9]) ?)
-slurred_note <- ( (<complete_note>) -> {} / ('(' (<complete_note> +) ')' )  -> {}  ) 
-chord_group <- ( ('[' (<complete_note> +) -> {} ']' ) ) 
+slurred_note <- ( (<complete_note>) -> {} / ( ({:chord: chord :} ) ? '(' (<complete_note> +) ')' )  -> {}  ) 
+chord_group <- ( ({:chord: chord :} ) ? ('[' (<complete_note> +) ']' ) ) -> {} 
 complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: (decoration +) :}) ? {:note_def: full_note  :} ({:tie: (tie)  :}) ? ) -> {}
 triplet <- ('(' {[1-9]} (':' {[1-9] ?}  (':' {[1-9]} ? ) ?) ?) -> {}
 grace <- ('{' full_note + '}') -> {}
 tie <- ('-')
-chord <- (["] {[^"]} * ["]) -> {}
+chord <- (["] {([^"] *)} ["])
 full_note <-  (({:pitch: (note) :} / {:rest: (rest) :} / {:measure_rest: <measure_rest> :} ) {:duration: (duration ?)  :}  {:broken: (broken ?)  :})  -> {}
 rest <- ( 'z' / 'x' )
 measure_rest <- (('Z' / 'X') ({:bars: ([0-9]+) :}) ? ) -> {}
@@ -51,7 +51,6 @@ tune_matcher = re.compile(tune_pattern)
 
 function read_tune_segment(tune_data, song)
     -- read the next token in the note stream
-    
     
     for i,v in ipairs(tune_data) do
    
@@ -99,7 +98,7 @@ function read_tune_segment(tune_data, song)
         -- chord groups
         if v.chord_group then
             if v.chord_group[1] then
-                table.insert(song.journal, {event='chord_begin'})                
+                table.insert(song.journal, {event='chord_begin', chord=v.chord_group.chord})                
                 
                 -- insert the individual notes
                 for i,note in ipairs(v.chord_group) do                
@@ -113,9 +112,11 @@ function read_tune_segment(tune_data, song)
         
         -- if we have slur groups then there are some notes to parse...
         if v.slur then
+            
             -- slur groups
             if #v.slur>2 then
-                table.insert(song.journal, {event='slur_begin'} )
+                table.insert(song.journal, {event='slur_begin', chord=v.slur.chord} )
+               
             end
             
             -- insert the individual notes
@@ -315,19 +316,16 @@ function parse_abc_file(filename)
     return parse_all_abc(contents)
 end
 
--- copy parsed header fields into header (add end of header token to journal)
-
 -- Does not support:
 -- multiple voices
 -- instruction field
--- macros
 -- directives
 
 -- TODO:
+-- grace notes
 -- create test suite
 -- styling for playback
 -- chords "Cm7" before slurs or chord groups (e.g. "Cm7"[cd#gb])
--- multi-bar rests (Z3 etc.)
 songs = parse_abc_file('skye.abc')
 make_midi(get_note_stream(songs[1].stream), 'skye.mid')
 print(journal_to_abc(songs[1].journal))

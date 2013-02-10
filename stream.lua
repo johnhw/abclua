@@ -28,7 +28,7 @@ function time_stream(stream)
         end
         
         -- chord symbols
-        
+       
         -- chord starts; stop advancing time
         if event.event=='chord_begin' then
             in_chord = true
@@ -37,9 +37,10 @@ function time_stream(stream)
         
         if event.event=='chord_end' then
             in_chord = false
-            event.t = event.t + max_duration -- advance by longest note in chord
+            t = t + max_duration -- advance by longest note in chord
         end
-                        
+       
+       
     end
     
 end
@@ -57,6 +58,7 @@ function get_note_stream(timed_stream)
                 if not notes_on[event.pitch] then 
                     table.insert(out, {event='note_on', t=event.t, pitch=event.pitch})
                     notes_on[event.pitch] = true
+                   
                 end
                 
                 -- don't insert a note off if the note is tied
@@ -131,6 +133,9 @@ function make_midi(note_stream, fname)
     -- Turn a note stream into a MIDI file
      local MIDI = require 'MIDI'
 
+     -- make sure events are in time order
+     table.sort(note_stream, function(a,b) return a.t<b.t end)
+     
      local score = {
         1000,  -- ticks per beat
         {    -- first track

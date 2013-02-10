@@ -88,7 +88,7 @@ function expand_journal(song)
            insert_note(v.note, song)                                         
         end
        
-        -- end of header
+        -- end of header; store metadata so far
         if v.event=='header_end' then
             song.header_metadata = deepcopy(song.metadata)
             song.header_internal = deepcopy(song.internal) 
