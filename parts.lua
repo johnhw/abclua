@@ -1,6 +1,8 @@
 -- Functions for dealing with parts, repeats and sub-patterns
 local re = require "re"
 
+
+
 function start_new_part(song, name)
     -- start a new part with the given name. writes the old part into the part table
     -- and clears the current section

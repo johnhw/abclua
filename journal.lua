@@ -111,6 +111,10 @@ function expand_journal(song)
             song.metadata[v.name] = song.metadata[v.name] .. v.content
         end
         
+        -- new voice
+        if v.event=='voice_change' then
+            start_new_voice(song, v.voice.id)
+        end
          
         if v.field then               
             song.metadata[v.field.name] = v.field.content
@@ -177,6 +181,31 @@ function apply_key(song, key_data)
 end
 
 
+function start_new_voice(song, voice)
+    -- compose old voice into parts
+    if song.internal and song.internal.voice then
+        finalise_song(song)
+        song.voices[song.internal.voice] = {stream=song.stream, internal=song.internal}
+    end
+    
+    -- reset song state
+    -- set up internal state
+    song.internal.lyrics = {}
+    song.internal.current_part = 'default'
+    song.internal.part_map = {}
+    song.internal.pattern_map = {}
+    song.internal.timing = {}
+    
+    song.internal.timing.triplet_state = 0
+    song.internal.timing.triplet_compress = 1
+    song.internal.timing.prev_broken_note = 1
+    song.internal.voice = voice
+    song.temp_part = {}
+    song.opus = song.temp_part
+        
+    update_timing(song) -- make sure default timing takes effect    
+end
+
 function finalise_song(song)
     -- Finalise a song's event stream
     -- Composes the parts, repeats into a single stream
@@ -204,37 +233,31 @@ function journal_to_stream(song, internal, metadata)
     -- Convert a journal into a full
     -- a song datastructure. 
     -- 
-    -- The song contains
-    -- song.stream: a series of events (e.g. note on, note off)
-    --  indexed by microseconds,
-    -- song.metadata which contains header data about title, reference number, key etc.
+    -- song.metadata contains header data about title, reference number, key etc.
     --  stored as plain text
-    -- song.internal contains all of the parsed song data
+   
+    -- The song contains a table of voices
+    -- each voice contains:
+    -- voice.stream: a series of events (e.g. note on, note off)
+    --  indexed by microseconds,
+    -- voice.internal contains all of the parsed song data
    
     
     -- copy any inherited data from the file header
-    song.internal = internal
-    song.metadata = metadata
     
-    -- set up internal state
-    internal.lyrics = {}
-    internal.current_part = 'default'
-    internal.part_map = {}
-    internal.pattern_map = {}
-    internal.timing = {}
-    
-    internal.timing.triplet_state = 0
-    internal.timing.triplet_compress = 1
-    internal.timing.prev_broken_note = 1
-    
-    
-    song.temp_part = {}
-    song.opus = song.temp_part
-    song.internal = internal
-    song.metadata = metadata
-    
-    
-    update_timing(song) -- make sure default timing takes effect    
+    song.default_internal = internal
+    song.internal = deepcopy(song.default_internal)
+   
+    song.voices = {}
+    song.metadata = metadata    
+    start_new_voice(song, 'default')
     expand_journal(song)
-    finalise_song(song)
+    
+    -- finalise the voice
+    start_new_voice(song, nil)
+    
+    -- clean up
+    song.internal = nil
+    song.stream = nil
+    
 end

@@ -37,8 +37,19 @@ fields.transcriber =  [[('Z:' %s * {.*}) -> {}]]
 fields.continuation =  [[('+:' %s * {.*}) -> {}]]
 
 
-
-
+function parse_voice(voice)
+    -- Parse a voice definition string
+    -- Voices of the form V:ID [specifier] [specifier] ...
+    -- Returns a table with an ID and a specifiers table
+    -- e.g. V:tenor becomes {id="tenor", specifiers={}}
+    -- V:tenor clef=treble becomes {id="tenor", specifiers={lhs='clef', rhs='treble'}}
+    voice_pattern = [[
+    voice <- (({:id: [%S]+ :}) %s * {:specifiers: (<specifier> *) -> {} :}) -> {}
+    specifier <- (%s * {:lhs: ([^=] +) :} + '=' {:rhs: [^%s]* :}) -> {} 
+    ]]
+    
+    return re.match(voice, voice_pattern)
+end
 
 
 function parse_tempo(l)
@@ -183,7 +194,7 @@ function parse_field(f, song, inline)
     
    
    
-    local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'macro', 'user'} -- those fields we parse individually
+    local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'macro', 'user', 'voice'} -- those fields we parse individually
     local field = {name=field_name, content=content}
     -- continuation
     if field_name=='continuation' then
@@ -219,10 +230,20 @@ function parse_field(f, song, inline)
     
     -- parse lyric definitions
     if field_name=='words' then                        
-         table.insert(song.journal, {event='words', lyrics=parse_lyrics(content), field=field})            
+         table.insert(song.journal, {event='words', lyrics=parse_lyrics(content), field=field, inline=inline})            
     end
             
-            
+     -- parse voice definitions
+    if field_name=='voice' then  
+        -- in the header this just sets up the voice properties
+        if song.parse.in_header then
+            table.insert(song.journal, {event='voice_def', voice=parse_voice(content), inline=inline, field=field})
+        else
+            table.insert(song.journal, {event='voice_change', voice=parse_voice(content), inline=inline, field=field})
+        end
+    end
+      
+   
     if field_name=='parts' then            
         -- parts definition if we are still in the header
         -- look up the parts and expand them out

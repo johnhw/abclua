@@ -45,31 +45,27 @@ function time_stream(stream)
     
 end
 
-function get_note_stream(timed_stream)
+function get_note_stream(timed_stream, channel)
     -- Extract all play events from a timed stream, as sequence of note on / note off events
     -- take into account ties in computing note offs
     
    local out = {}
    local notes_on = {}
    
-  
+   channel = channel or 1
    for i,event in ipairs(timed_stream) do        
             if event.event=='note' then                
                 if not notes_on[event.pitch] then 
-                    table.insert(out, {event='note_on', t=event.t, pitch=event.pitch})
+                    table.insert(out, {event='note_on', t=event.t, pitch=event.pitch, channel=channel})
                     notes_on[event.pitch] = true
-                   
                 end
                 
                 -- don't insert a note off if the note is tied
                 if not event.note.tie then                    
-                    table.insert(out, {event='note_off', t=event.t+event.duration, pitch=event.pitch})                                    
+                    table.insert(out, {event='note_off', t=event.t+event.duration-1, pitch=event.pitch, channel=channel})                                    
                     notes_on[event.pitch] = false
-                end 
-                
-            
+                end          
             end
-     
     end
     return out
 end
@@ -128,8 +124,25 @@ function print_lyrics_notes(stream)
     
 end
 
+function make_midi(song, fname)
+    -- make a midi file from a song
+    -- merge all of the voices into a single event stream
+    local channel = 0
+    
+    merged_stream = {}
+    
+    -- merge in each voice
+    for i,v in pairs(song.voices) do
+        channel = channel + 1        
+        append_table(merged_stream, get_note_stream(v.stream, channel)) 
+    end
+    
+    -- this will automatically sort the event order
+    make_midi_from_note_stream(merged_stream, fname)
+    
+end
 
-function make_midi(note_stream, fname)
+function make_midi_from_note_stream(note_stream, fname)
     -- Turn a note stream into a MIDI file
      local MIDI = require 'MIDI'
 
@@ -148,7 +161,7 @@ function make_midi(note_stream, fname)
     local dtime
     for i,event in ipairs(note_stream) do
         dtime = (event.t - last_t)/1000.0 -- microseconds to milliseconds
-        table.insert(score[2], {event.event, dtime, 1, event.pitch, 100})
+        table.insert(score[2], {event.event, dtime, event.channel, event.pitch, 100})
         last_t = event.t
     end
      

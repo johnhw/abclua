@@ -209,6 +209,19 @@ function abc_lyrics(lyrics)
 end
 
 
+function abc_voice(voice)
+    -- return the ABC string represenation of a voice. Has
+    -- an ID, and a set of optional specifiers 
+    str = 'V:'..voice.id
+    
+    for i,v in ipairs(voice.specifiers) do
+        str = str..' '..v.lhs..'='..v.rhs
+    end
+    
+    return str
+    
+end
+
 function abc_field(v)
     -- abc out a field entry (either inline [x:stuff] or 
     -- as its own line 
@@ -227,7 +240,13 @@ function abc_field(v)
     if v.event=='meter' then
         return abc_meter(v.meter)
     end
-    
+ 
+    -- voice definitions
+    if v.event=='voice_def' or v.event=='voice_change' then
+        return abc_voice(v.voice)
+    end
+  
+ 
     if v.event=='key' then
         return abc_key(v.key) 
     end
@@ -545,7 +564,7 @@ function abc_note_element(element)
     if element.event=='bar' then
         return abc_bar(element.bar)
     end
-    
+ 
     
     return ''
     

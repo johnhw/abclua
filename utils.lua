@@ -8,6 +8,8 @@ function repeat_string(str, times)
     end
     return table.concat(reps)
 end
+
+
 -- copy a table completely
 function deepcopy(orig)
     local orig_type = type(orig)

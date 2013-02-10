@@ -148,6 +148,8 @@ function parse_abc_line(line, song)
     -- remove any backquotes
     line = line:gsub('`', '')
     
+    -- replace stylesheet directives with I: information fields
+    line = line:gsub("^%%%%", "I:")
     
     -- strip comments
     line = line:gsub("%%.*", "")
@@ -300,21 +302,19 @@ end
 function parse_abc_file(filename)
     -- Read a file and send it for parsing. Returns the 
     -- corresponding song table.
-    f = io.open(filename, 'r')
-    contents = f:read('*a')
+    local f = io.open(filename, 'r')
+    local contents = f:read('*a')
     return parse_all_abc(contents)
 end
 
 -- Does not support:
--- multiple voices
 -- instruction field
--- directives
 
 -- TODO:
 -- grace notes
 -- create test suite
 -- styling for playback
--- chords "Cm7" before slurs or chord groups (e.g. "Cm7"[cd#gb])
+
 songs = parse_abc_file('skye.abc')
-make_midi(get_note_stream(songs[1].stream), 'skye.mid')
+make_midi(songs[1], 'skye.mid')
 print(journal_to_abc(songs[1].journal))
