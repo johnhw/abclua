@@ -183,7 +183,7 @@ function parse_field(f, song, inline)
     
    
    
-    local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'macro'} -- those fields we parse individually
+    local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'macro', 'user'} -- those fields we parse individually
     local field = {name=field_name, content=content}
     -- continuation
     if field_name=='continuation' then
@@ -241,6 +241,12 @@ function parse_field(f, song, inline)
         end
     end
     
+    
+    if field_name=='user' then
+        -- user macro (not transposable)
+        macro = parse_macro(content)
+        table.insert(song.parse.user_macros, macro)
+    end
     
     if field_name=='macro' then
         -- we DON'T insert macros into the journal. Instead

@@ -5,14 +5,6 @@ function parse_note(note)
     -- Clean up the duration and pitch of notes and any grace notes
     -- Replace the decoration string with a sequence of decorators
     
-    -- Replace decorations with sequences
-    if note.decoration then
-        local decoration = {}
-        for c in string.gmatch(note.decoration, '.') do
-            table.insert(decoration, c)
-        end
-        note.decoration = decoration
-    end
     
     -- fix the note itself
     if note.note_def then

@@ -39,6 +39,16 @@ function transpose_macro(lhs, note, rhs)
 end
 
 
+function apply_macros(macros, line)
+    
+    -- expand macros in the line
+    for i,v in ipairs(macros) do
+        line = line:gsub(v.lhs, v.rhs)
+    end
+    return line
+end
+    
+
 function parse_macro(macro)
     -- take a raw ABC string block and expand any macros defined it
     -- expansion takes place *before* any other parsing

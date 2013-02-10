@@ -26,7 +26,7 @@ range_set <- (range (',' range)*)
 range <- ([0-9] ('-' [0-9]) ?)
 slurred_note <- ( (<complete_note>) -> {} / ( ({:chord: chord :} ) ? '(' (<complete_note> +) ')' )  -> {}  ) 
 chord_group <- ( ({:chord: chord :} ) ? ('[' (<complete_note> +) ']' ) ) -> {} 
-complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: (decoration +) :}) ? {:note_def: full_note  :} ({:tie: (tie)  :}) ? ) -> {}
+complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: {(decoration +)}->{} :}) ? {:note_def: full_note  :} ({:tie: (tie)  :}) ? ) -> {}
 triplet <- ('(' {[1-9]} (':' {[1-9] ?}  (':' {[1-9]} ? ) ?) ?) -> {}
 grace <- ('{' full_note + '}') -> {}
 tie <- ('-')
@@ -36,7 +36,7 @@ rest <- ( 'z' / 'x' )
 measure_rest <- (('Z' / 'X') ({:bars: ([0-9]+) :}) ? ) -> {}
 broken <- ( ('<' +) / ('>' +) )
 note <- (({:accidental: (accidental )  :})? ({:note:  ([a-g]/[A-G]) :}) ({:octave: (octave)  :}) ? ) -> {}
-decoration <- ('.' / [~] / 'H' / 'L' / 'M' / 'O' / 'P' / 'S' / 'T' / 'u' / 'v' / ('!' [^!] '!') / ('+' [^+] '+'))
+decoration <- ('.' / [~] / 'H' / 'L' / 'M' / 'O' / 'P' / 'S' / 'T' / 'u' / 'v' / ('!' ([^!] *) '!') / ('+' ([^+] *) '+'))
 octave <- (( ['] / ',') +)
 accidental <- ( '^' / '^^' / '_' / '__' / '=' )
 duration <- ( (({:num: ([1-9] +) :}) ? ({:slashes: ('/' +)  :})?  ({:den: ((  [1-9]+  ) ) :})?))  -> {}
@@ -97,7 +97,7 @@ function read_tune_segment(tune_data, song)
         
         -- chord groups
         if v.chord_group then
-            if v.chord_group[1] then
+            if v.chord_group[1] or v.chord_group.chord then
                 table.insert(song.journal, {event='chord_begin', chord=v.chord_group.chord})                
                 
                 -- insert the individual notes
@@ -113,8 +113,9 @@ function read_tune_segment(tune_data, song)
         -- if we have slur groups then there are some notes to parse...
         if v.slur then
             
-            -- slur groups
-            if #v.slur>2 then
+            -- slur groups (only put the group in if there
+            -- are more than elements, or there is an associated chord name)
+            if #v.slur>1 or v.slur.chord then
                 table.insert(song.journal, {event='slur_begin', chord=v.slur.chord} )
                
             end
@@ -134,18 +135,6 @@ function read_tune_segment(tune_data, song)
     
 end
 
-function apply_macros(macros, line)
-    
-    
-    -- expand macros in the line
-    for i,v in ipairs(macros) do
-        line = line:gsub(v.lhs, v.rhs)
-    end
-                
-    print(line)
-    return line
-end
-    
 function parse_abc_line(line, song)
     -- Parse one line of ABC, updating the song
     -- datastructure. Temporary state is held in
@@ -177,9 +166,9 @@ function parse_abc_line(line, song)
         if match then
             
             -- check for macros
-            if #song.parse.macros>0 then
+            if #song.parse.macros>0 or #song.parse.user_macros>0  then
                 expanded_line = apply_macros(song.parse.macros, line)
-                
+                expanded_line = apply_macros(song.parse.user_macros, expanded_line)
                 if expanded_line ~= line then
                     -- macros changed this line; must now re-parse the line
                     match = tune_matcher:match(expanded_line)
@@ -224,7 +213,7 @@ function parse_abc(str)
     lines = split(str, "[\r\n]")
     song = {}
     song.journal = {}
-    song.parse = {in_header=true, has_notes=false, macros={}}
+    song.parse = {in_header=true, has_notes=false, macros={}, user_macros={}}
     for i,line in pairs(lines) do 
         parse_abc_line(line, song)
     end

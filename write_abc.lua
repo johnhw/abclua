@@ -414,13 +414,12 @@ function abc_note(note)
     
     -- chords (e.g. "Cm")
     if note.chord then
-        table_print(note.chord)
         note_str = note_str .. '"' .. note.chord .. '"'
     end
     
     -- decorations (e.g. . for legato)
     if note.decoration then
-        note_str = note_str ..  note.decoration
+        note_str = note_str ..  table.concat(note.decoration)
     end
     
     -- pitch and duration
@@ -520,7 +519,6 @@ function abc_note_element(element)
     end
     
     if element.event=='slur_begin' then
-        table_print(element)
         if element.chord then
             return '"' .. element.chord .. '"' .. '('
         else
