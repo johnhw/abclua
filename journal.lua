@@ -106,9 +106,13 @@ function expand_journal(song)
             song.internal.accidental = nil -- clear any lingering accidentals             
         end
             
-        
-        if v.event=='append_text_field' then      
-            song.metadata[v.name] = song.metadata[v.name] .. v.content
+       
+        if v.event=='append_field_text' then       
+            song.metadata[v.field.name] = song.metadata[v.field.name] .. ' ' .. v.content
+        else
+            if v.field then               
+                song.metadata[v.field.name] = v.field.content
+            end
         end
         
         -- new voice
@@ -116,9 +120,6 @@ function expand_journal(song)
             start_new_voice(song, v.voice.id)
         end
          
-        if v.field then               
-            song.metadata[v.field.name] = v.field.content
-        end
         
         if v.event=='note_length' then
              song.internal.note_length = v.note_length
@@ -187,7 +188,7 @@ function start_new_voice(song, voice)
         finalise_song(song)
         song.voices[song.internal.voice] = {stream=song.stream, internal=song.internal}
     end
-    
+
     -- reset song state
     -- set up internal state
     song.internal.lyrics = {}
@@ -252,7 +253,6 @@ function journal_to_stream(song, internal, metadata)
     start_new_voice(song, nil)
     
     -- clean up
-    song.internal = nil
     song.stream = nil
     
 end

@@ -201,7 +201,9 @@ function parse_field(f, song, inline)
         
         -- append plain text if necessary
         if not is_in(song.parse.last_field, parsable) then
-            table.insert(song.journal, {event='append_field_text', name=song.parse.last_field, content=content, inline=inline, field=field})
+            
+            table.insert(song.journal, {event='append_field_text', name=song.parse.last_field, content=content, inline=inline, field={name=song.parse.last_field, content=content}})
+            
         end
         
          if song.parse.last_field=='words' then
@@ -211,6 +213,7 @@ function parse_field(f, song, inline)
     else
         -- if not a parsable field, store it as plain text
     
+        song.parse.last_field = field_name
         if not is_in(field_name, parsable) then
             table.insert(song.journal, {event='field_text', name=field_name, content=content, inline=inline, field=field}) 
         end

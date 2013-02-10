@@ -227,12 +227,17 @@ end
 function parse_all_abc(str)
          
     -- split file into sections
+   
+    
+    str = str..'\n'
     local section_pattern = [[
-     abc_tunes <- ((tune break +) * (tune)) -> {}
-     break <- ([ ] * %nl )
-     tune <- {   (line +)}
+     abc_tunes <- (section (break section) * last_line ?) -> {}
+     break <- (([ ] * %nl)  )
+     section <- { (line +)  }
      line <- ( ([^%nl] +  %nl) )
+     last_line <- ( ([^%nl]+) )
     ]] 
+    
     
     -- tunes must begin with a field (although there
     -- can be directives or comments first)
@@ -246,6 +251,11 @@ function parse_all_abc(str)
         
     ]]
     
+    -- malformed file
+    if not sections or #sections==0 then
+        return {}
+    end
+   
     -- only include patterns with a field in them; ignore 
     -- free text blocks
     for i,v in ipairs(sections) do
@@ -277,12 +287,14 @@ function parse_all_abc(str)
     journal_to_stream(first_tune,  deepcopy(default_internal), deepcopy(default_metadata))
     table.insert(songs, first_tune)
     
+  
     -- if no notes, is a global header for this whole file
-    if not first_tune.has_notes then
+    if not first_tune.parse.has_notes then
         default_metadata = first_tune.metadata
         default_internal = first_tune.internal
     end
     
+   
     -- add remaining tunes, using file header as default, if needed
     for i,v in ipairs(tunes) do
         -- don't add first tune twice
@@ -314,5 +326,8 @@ end
 -- tolerant error handling
 
 songs = parse_abc_file('skye.abc')
-make_midi(songs[1], 'skye.mid')
-print(journal_to_abc(songs[1].journal))
+for i,v in ipairs(songs) do
+    make_midi(songs[1], 'skye.mid')
+    print(journal_to_abc(v.journal))
+    table_print(v.metadata)
+end
