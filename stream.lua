@@ -51,8 +51,9 @@ function get_note_stream(timed_stream)
    local out = {}
    local notes_on = {}
    
+  
    for i,event in ipairs(timed_stream) do        
-            if event.event=='note' then
+            if event.event=='note' then                
                 if not notes_on[event.pitch] then 
                     table.insert(out, {event='note_on', t=event.t, pitch=event.pitch})
                     notes_on[event.pitch] = true
@@ -134,7 +135,7 @@ function make_midi(note_stream, fname)
         1000,  -- ticks per beat
         {    -- first track
             {'set_tempo', 0, 1000000},
-            {'patch_change', 0, 1, 73},            
+            {'patch_change', 0, 1, 41},            
         },  
      }
      

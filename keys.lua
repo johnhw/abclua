@@ -227,21 +227,3 @@ function create_key_structure(k)
     return key_mapping
 end
 
-
-function apply_key(song, key_data) 
-    -- apply transpose / octave to the song state
-    if key_data.clef then                 
-        if key_data.clef.octave then
-            song.internal.global_transpose = 12 * key_data.clef.octave -- octave shift
-        else
-            song.internal.global_transpose = 0
-        end
-        
-        if key_data.clef.transpose then 
-            song.internal.global_transpose = song.internal.global_transpose + key_data.clef.transpose                
-        end
-    end 
-    
-    -- update key map
-    song.internal.key_mapping = create_key_structure(key_data.naming)
-end

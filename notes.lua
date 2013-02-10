@@ -153,7 +153,6 @@ function compute_pitch(note, song)
         base_pitch = base_pitch + note.pitch.octave * 12
     end
     
-    
     -- accidental in K:none applies only to following notes
     -- otherwise applies to whole measure
     -- accidental is cleared when a bar is encountered
@@ -196,7 +195,8 @@ function compute_duration(note, song)
     -- measure rest
     if note.measure_rest then   
         -- one bar =  meter ratio * note length (e.g. 1/16 = 16)
-        return (song.internal.meter_data.num / song.internal.meter_data.den) * song.internal.note_length * song.internal.timing.base_note_length * 1e6
+        note_length = song.internal.note_length or default_note_length(song)
+        return (song.internal.meter_data.num / song.internal.meter_data.den) * note_length * song.internal.timing.base_note_length * 1e6
     end
     
     -- we are guaranteed to have filled out the num and den fields
@@ -245,6 +245,28 @@ end
 
 
 
+function apply_triplet(song, triplet)
+    -- set the triplet fields in the song
+    
+    if triplet.q == 'n' then
+        -- check if compound time -- if so
+        -- the default timing for (5 (7 and (9 changes
+        if is_compound_time(song) then
+            q = 3
+        else    
+            q = 2
+        end
+    else
+        q = triplet.q
+    end
+    p = triplet.p
+    r = triplet.r 
+    
+    -- set compression and number of notes to apply this to
+    song.internal.timing.triplet_compress = triplet.p / triplet.q
+    song.internal.timing.triplet_state = triplet.r
+              
+end
 
 function parse_triplet(triplet, song)
 -- parse a triplet/tuplet definition, which specifies the contraction of the following
@@ -281,20 +303,13 @@ function parse_triplet(triplet, song)
         r = p
     end
 
-    -- check if compound time -- if so
-    -- the default timing for (5 (7 and (9 changes
-    if is_compound_time(song) then
-        n = 3
-    else    
-        n = 2
-    end
     
     if p>9 then
         warn("Bad triplet length (p>9)")
     end
     
     -- default to choosing q from the table
-    q_table = {-1,3,2,3,n,2,n,3,n}
+    q_table = {-1,3,2,3,'n',2,'n',3,'n'}
     if q==-1 then
         q = q_table[p]
     end
@@ -344,7 +359,6 @@ function insert_note(note, song)
             insert_grace(note.grace, song)
         end
         
-        
         -- insert the note events
         if pitch==-1 then
             -- rest
@@ -355,10 +369,7 @@ function insert_note(note, song)
             table.insert(song.opus, {event='note', pitch=pitch, duration=duration, note = note})
             
         end
-
-        
-        
-       
+   
         -- update tuplet counter; if back to zero, reset triplet compression
         if song.internal.timing.triplet_state>0 then 
             song.internal.timing.triplet_state = song.internal.timing.triplet_state - 1

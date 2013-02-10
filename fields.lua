@@ -156,13 +156,6 @@ function is_in(str, tab)
     return false
 end
 
-function add_lyrics(song, field)
-    -- add lyrics to a song
-    lyrics = parse_lyrics(field)        
-    append_table(song.internal.lyrics, lyrics)
-    table.insert(song.journal, {event='words', lyrics=parse_lyrics(field), field=true})            
-end
-
 function parse_field(f, song, inline)
     -- parse a metadata field, of the form X: stuff
     -- (either as a line on its own, or as an inline [x:stuff] field
@@ -178,98 +171,78 @@ function parse_field(f, song, inline)
         end
      end
      
-     
      -- not a metadata field at all
      if not field_name then
         return
-     end
-     
+     end    
     
+   
+    field = {name=field_name, content=content}
     -- continuation
     if field_name=='continuation' then
-        -- append to metadata field
-        song.metadata[song.parse.last_field] = song.metadata[song.parse.last_field] .. content
         
         -- append plain text if necessary
         if not is_in(song.parse.last_field, {'length', 'tempo', 'parts', 'meter', 'words', 'key'}) then
-            table.insert(song.journal, {event='append_field_text', name=song.parse.last_field, content=content, inline=inline, field=true})
+            table.insert(song.journal, {event='append_field_text', name=song.parse.last_field, content=content, inline=inline, field=field})
         end
         
-        -- make sure lyrics continue correctly. Example:
-        -- w: oh this is a li-ne
-        -- +: and th-is fol-lows__
-
-        if song.parse.last_field == 'words' then
-            add_lyrics(song, content)
-        end
-        -- other lines cannot be continued! (e.g. no splitting key across multiple lines)
-        -- anything but a continuation
+         if song.parse.last_field=='words' then
+             table.insert(song.journal, {event='words', lyrics=parse_lyrics(content), field=field})            
+         end
          
     else
         -- if not a parsable field, store it as plain text
     
         if not is_in(field_name, {'length', 'tempo', 'words', 'parts', 'meter', 'key'}) then
-            table.insert(song.journal, {event='field_text', name=field_name, content=content, inline=inline, field=true}) 
+            table.insert(song.journal, {event='field_text', name=field_name, content=content, inline=inline, field=field}) 
         end
-        
-        song.metadata[field_name] = content    
-        song.parse.last_field = field_name
+
     end
     
     
     -- update specific tune settings
     if field_name=='length' then
-        song.internal.note_length = parse_length(content)
-        table.insert(song.journal, {event='note_length', note_length=parse_length(content), inline=inline,  field=true}) 
-        update_timing(song)
+        table.insert(song.journal, {event='note_length', note_length=parse_length(content), inline=inline,  field=field}) 
     end
             
     -- update tempo
     if field_name=='tempo' then            
-        song.internal.tempo = parse_tempo(content)
-        table.insert(song.journal, {event='tempo', tempo=parse_tempo(content), inline=inline, field=true})
-        update_timing(song)
+        table.insert(song.journal, {event='tempo', tempo=parse_tempo(content), inline=inline, field=field})
     end
     
     -- parse lyric definitions
     if field_name=='words' then                        
-        add_lyrics(song, content)
+         table.insert(song.journal, {event='words', lyrics=parse_lyrics(content), field=field})            
     end
             
             
     if field_name=='parts' then            
         -- parts definition if we are still in the header
         -- look up the parts and expand them out
-        if song.internal.in_header then
-            table_print(content)
+        if song.parse.in_header then
             parts = content:gsub('\\.', '') -- remove dots
-            song.internal.part_structure = parse_parts(parts)
             parts = parse_parts(content)
-            song.internal.part_sequence = expand_parts(song.internal.part_structure)      
-            table.insert(song.journal, {event='parts', parts=parts, sequence=expand_parts(parts), inline=inline, field=true})            
+            table.insert(song.journal, {event='parts', parts=parts, inline=inline, field=field})            
         else
             -- otherwise we are starting a new part   
             -- parts are always one character long, spaces and dots are ignored
             part = content.gsub('%s', '')
             part = part.gsub('.', '')
-            current_part = string.sub(part,1,1)
-            song.in_variant_part = nil -- clear the variant flag
-            start_new_part(song, current_part)
-            table.insert(song.journal, {event='new_part', part=part, inline=inline, field=true})            
+            part = string.sub(part,1,1)
+            
+            table.insert(song.journal, {event='new_part', part=part, inline=inline, field=field})            
         end
     end
     
     -- update meter
     if field_name=='meter' then            
-        song.internal.meter_data = parse_meter(content)
-        table.insert(song.journal, {event='meter', meter=parse_meter(content), inline=inline, field=true})            
+        table.insert(song.journal, {event='meter', meter=parse_meter(content), inline=inline, field=field})            
     end       
     
     -- update key
     if field_name=='key' then            
-        song.internal.key_data = parse_key(content)
-        table.insert(song.journal, {event='key', key=parse_key(content), inline=inline, field=true}) 
-        apply_key(song, song.internal.key_data)
+        table.insert(song.journal, {event='key', key=parse_key(content), inline=inline, field=field}) 
+        song.parse.found_key = true -- key marks the end of the header
     end
  
 end

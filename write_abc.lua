@@ -538,34 +538,32 @@ function abc_note_element(element)
     end
     
     
-    
     return ''
     
 end
  
+function abc_element(element)
+    -- return the abc representation of journal element
+    if element.field then
+        field = abc_field(element)
+        if element.inline then
+            return '['..field..']'
+        else
+            return field..'\n'
+        end
+    else
+        return abc_note_element(element)
+    
+    end
+    
+end
+
 function journal_to_abc(journal)
 -- return the journal out as a valid ABC string
     local output = {}
     
     for i,v in ipairs(journal) do
-    
-        
-        if v.field then 
-            if v.inline then
-                table.insert(output, '[')
-            end
-        
-            table.insert(output, abc_field(v))
-            
-            if v.inline then
-                table.insert(output, ']')
-            else
-                table.insert(output, '\n')
-            end
-        else
-           
-            table.insert(output, abc_note_element(v))
-        end
+         table.insert(output, abc_element(v))
     end
     -- concatenate into a single string
     return table.concat(output)
