@@ -44,10 +44,7 @@ field <- ( {:contents: '['  field_element  ':'  [^] ] +  ']' :}) -> {}
 field_element <- ([A-Za-z])
 
 ]]
-
 tune_matcher = re.compile(tune_pattern)
-
-
 
 function read_tune_segment(tune_data, song)
     -- read the next token in the note stream
@@ -203,8 +200,6 @@ function parse_abc_line(line, song)
         song.parse.in_header = false
         table.insert(song.journal, {event='header_end'})
     end
-
-  
 end    
 
     
@@ -217,9 +212,11 @@ function parse_abc(str)
     song.journal = {}
     song.parse = {in_header=true, has_notes=false, macros={}, user_macros={}}
     for i,line in pairs(lines) do 
-        parse_abc_line(line, song)
+        success = pcall(parse_abc_line, line, song)
+        if not success then
+            warn('Parse error reading line '  .. line)
+        end
     end
-    
     
     
     return song 
@@ -314,6 +311,7 @@ end
 -- grace notes
 -- create test suite
 -- styling for playback
+-- tolerant error handling
 
 songs = parse_abc_file('skye.abc')
 make_midi(songs[1], 'skye.mid')

@@ -224,12 +224,7 @@ function finalise_song(song)
     
 end
 
-
-
-
 function journal_to_stream(song, internal, metadata)
-
-    
     -- Convert a journal into a full
     -- a song datastructure. 
     -- 
