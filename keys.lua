@@ -88,6 +88,10 @@ local inverse_key_note_table = invert_table(key_note_table)
 -- offsets for the common modes
 mode_offsets = {maj=0, min=3, mix=5, dor=10, phr=8, lyd=7, loc=1}
 
+
+
+
+
 function compute_mode(offset)
     -- compute a mapping from notes in a given mode to the corresponding major key
     -- e.g. compute_mode(3) gives the relative major keys of each possible minor key
@@ -101,6 +105,42 @@ function compute_mode(offset)
     return notes
 end
 
+function parse_key(k)
+    -- Parse a key definition, in the format <root>[b][#][mode] [accidentals] [expaccidentals]
+    key_pattern = [[
+    key <- ( {:none: ('none') :} / {:pipe: ('Hp' / 'HP') :} / (
+        {:root: ([a-gA-G]):}  ({:flat: ('b'):}) ? ({:sharp: ('#'):}) ?  
+        (%s * {:mode: (mode %S*):}) ? 
+        (%s * {:accidentals: (accidentals):}) ?         
+         ({:clef:  ((%s + <clef>) +) -> {}   :})  ?           
+        )) -> {} 
+        
+    clef <-  (({:clef: clefs :} / clef_def /  middle  / transpose / octave / stafflines )  ) 
+    
+    
+    clef_def <- ('clef=' {:clef: <clefs> :} (%s + number) ? (%s + ( '+8' / '-8' )) ? ) 
+    clefs <- ('alto' / 'bass' / 'none' / 'perc' / 'tenor' / 'treble' )
+    middle <- ('middle=' {:middle: <number> :})
+    transpose <- ('transpose=' {:transpose: <number> :}) 
+    octave <- ('octave=' {:octave: <number> :}) 
+    stafflines <- ('stafflines=' {:stafflines: <number> :})
+    
+    
+    number <- ('-' ? '+' ? [0-9]+)
+    
+    mode <- ( ({'maj'}) / ({'aeo'}) / ({'ion'}) / ({'mix'}) / ({'dor'}) / ({'phr'}) / ({'lyd'}) /
+          ({'loc'}) /  ({'exp'}) / ({'min'}) / {'m'}) 
+    accidentals <- ( {accidental} (%s+ {accidental}) * ) -> {}
+    accidental <- ( ('^' / '_' / '__' / '^^' / '=') [a-g] )
+]]
+
+    k = k:lower()
+    captures = re.match(k,  key_pattern)    
+    
+    return {naming = captures,  clef=captures.clef}
+    
+end
+
 
 function create_key_structure(k)
     -- Create a key structure, which lists each note as written (e.g. A or B)
@@ -112,6 +152,12 @@ function create_key_structure(k)
     for i,v in pairs(key_table['c']) do                        
             key_mapping[major[i]] = v
     end        
+    
+    -- none = c major, all accidentals must be specified
+    if k.none then
+        return key_mapping
+    end
+    
     
     -- Pipe notation (Hp or HP): F sharp and G sharp
     if k.pipe then

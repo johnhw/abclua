@@ -92,6 +92,15 @@ function abc_key(key)
     local acc = ''
     local name = key.naming
     
+    -- no key
+    if key.naming.none then
+        return 'K:none' 
+    end
+    
+    if key.naming.pipe then
+        return 'K:HP'
+    end
+    
     -- root and modal modifier
     local root = string.upper(key.naming.root) 
     if key.naming.mode then     
@@ -306,23 +315,23 @@ function abc_pitch(note_pitch)
     if note_pitch.accidental then
         -- accidentals
         if note_pitch.accidental==1 then
-            pitch = '^' + pitch
+            pitch = '^' .. pitch
         end
         
         if note_pitch.accidental==2 then
-            pitch = '^^' + pitch
+            pitch = '^^' .. pitch
         end
         
         if note_pitch.accidental==-1 then
-            pitch = '_' + pitch
+            pitch = '_' .. pitch
         end
         
         if note_pitch.accidental==-2 then
-            pitch = '__' + pitch
+            pitch = '__' .. pitch
         end
         
         if note_pitch.accidental==0 then
-            pitch = '=' + pitch
+            pitch = '=' .. pitch
         end  
     end
     return pitch

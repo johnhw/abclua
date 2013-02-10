@@ -65,42 +65,6 @@ qstring <- ( ["] [^"]* ["] )
     return captures
 end
 
-function parse_key(k)
-    -- Parse a key definition, in the format <root>[b][#][mode] [accidentals] [expaccidentals]
-    key_pattern = [[
-    key <- ( {:none: ('none') :} / {:pipe: ('Hp' / 'HP') :} / (
-        {:root: ([a-gA-G]):}  ({:flat: ('b'):}) ? ({:sharp: ('#'):}) ?  
-        (%s * {:mode: (mode %S*):}) ? 
-        (%s * {:accidentals: (accidentals):}) ?         
-         ({:clef:  ((%s + <clef>) +) -> {}   :})  ?           
-        )) -> {} 
-        
-    clef <-  (({:clef: clefs :} / clef_def /  middle  / transpose / octave / stafflines )  ) 
-    
-    
-    clef_def <- ('clef=' {:clef: <clefs> :} (%s + number) ? (%s + ( '+8' / '-8' )) ? ) 
-    clefs <- ('alto' / 'bass' / 'none' / 'perc' / 'tenor' / 'treble' )
-    middle <- ('middle=' {:middle: <number> :})
-    transpose <- ('transpose=' {:transpose: <number> :}) 
-    octave <- ('octave=' {:octave: <number> :}) 
-    stafflines <- ('stafflines=' {:stafflines: <number> :})
-    
-    
-    number <- ('-' ? '+' ? [0-9]+)
-    
-    mode <- ( ({'maj'}) / ({'aeo'}) / ({'ion'}) / ({'mix'}) / ({'dor'}) / ({'phr'}) / ({'lyd'}) /
-          ({'loc'}) /  ({'exp'}) / ({'min'}) / {'m'}) 
-    accidentals <- ( {accidental} (%s+ {accidental}) * ) -> {}
-    accidental <- ( ('^' / '_' / '__' / '^^' / '=') [a-g] )
-]]
-
-    k = k:lower()
-    captures = re.match(k,  key_pattern)    
-    
-    return {naming = captures,  clef=captures.clef}
-    
-end
-
 
 function parse_length(l)
     -- Parse a string giving note length, as a fraction "1/n" (or plain "1")

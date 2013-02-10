@@ -140,8 +140,8 @@ function read_tune_segment(tune_data, song)
                 table.insert(song.opus, {event='triplet', triplet=triplet})
                 
                 -- update the internal tuplet state so that timing is correct for the next notes
-                song.internal.triplet_compress = triplet.p / triplet.q
-                song.internal.triplet_state = triplet.r
+                song.internal.timing.triplet_compress = triplet.p / triplet.q
+                song.internal.timing.triplet_state = triplet.r
             end
             
             -- beam splits
@@ -162,8 +162,9 @@ function read_tune_segment(tune_data, song)
                 bar = parse_bar(v.bar)                                
                 table.insert(song.opus, {event='bar', bar=bar})                 
                 table.insert(song.journal, {event='bar', bar=bar})                
+                
                 apply_repeats(song, bar)                               
-                             
+                song.internal.accidental = nil -- clear any lingering accidentals             
             end
             
             -- chord groups
@@ -222,7 +223,6 @@ function parse_range_list(range_list)
     -- (e.g. "1", "1,2", "2-3", "1-3,5-6")
     -- Returns each value in this range
     
-        
     local range_pattern = [[
     range_list <- ((<range>) (',' <range>) *) -> {}
     range <- (   <range_id> / <number> ) -> {}
@@ -245,6 +245,7 @@ function parse_range_list(range_list)
             end
         end    
     end
+    
     
     return sequence
 
@@ -277,8 +278,9 @@ function parse_bar(bar, song)
         colons <- (':' +) 
     ]]
   
+  
     type_info = re.match(bar.type, bar_pattern)
-      
+    
     -- compute number of colons around bar (which is the number of repeats of this section)
     if type_info.mid_repeat then
         type_info.end_reps = type_info.mid_repeat[2]-type_info.mid_repeat[1]
@@ -322,8 +324,8 @@ function parse_bar(bar, song)
     end
     
     -- convert ranges into a list of integers
-    if type_info.variant_range then
-        parsed_bar.variant_range = parse_range_list(type_info.variant_range)
+    if bar.variant_range then     
+         parsed_bar.variant_range = parse_range_list(bar.variant_range)
     end
     
     parsed_bar.end_reps = type_info.end_reps
@@ -339,19 +341,17 @@ function update_timing(song)
     local total_note = 0
     local rate = 0
    
-    
     for i,v in ipairs(song.internal.tempo) do
         total_note = total_note + (v.num / v.den)
     
     end                
     
-    
     rate = 60.0 / (total_note * song.internal.tempo.div_rate)
 
-    song.internal.base_note_length = rate / song.internal.note_length
+    song.internal.timing.base_note_length = rate / song.internal.note_length
     
     -- grace notes assumed to be 32nds
-    song.internal.grace_note_length = rate / 32
+    song.internal.timing.grace_note_length = rate / 32
 end    
 
 
@@ -454,8 +454,12 @@ function parse_abc(str, metadata, internal)
     internal.current_part = 'default'
     internal.part_map = {}
     internal.pattern_map = {}
-    internal.triplet_state = 0
-    internal.triplet_compress = 1
+    internal.timing = {}
+    
+    internal.timing.triplet_state = 0
+    internal.timing.triplet_compress = 1
+    internal.timing.prev_broken_note = 1
+    
     
     temp_part = {}
     opus = temp_part
@@ -475,6 +479,7 @@ function parse_abc(str, metadata, internal)
     notes = get_note_stream(song.stream)
     
     make_midi(notes, 'skye.mid')
+    print_notes(song.stream)
     return song
 end
 
