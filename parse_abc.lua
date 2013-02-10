@@ -325,9 +325,3 @@ end
 -- styling for playback
 -- tolerant error handling
 
-songs = parse_abc_file('skye.abc')
-for i,v in ipairs(songs) do
-    make_midi(songs[1], 'skye.mid')
-    print(journal_to_abc(v.journal))
-    table_print(v.metadata)
-end
