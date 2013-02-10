@@ -48,6 +48,7 @@ field_element <- ([A-Za-z])
 tune_matcher = re.compile(tune_pattern)
 
 
+
 function read_tune_segment(tune_data, song)
     -- read the next token in the note stream
     
@@ -132,7 +133,17 @@ function read_tune_segment(tune_data, song)
     
 end
 
-
+function apply_macros(macros, line)
+    
+    
+    -- expand macros in the line
+    for i,v in ipairs(macros) do
+        line = line:gsub(v.lhs, v.rhs)
+    end
+                
+    print(line)
+    return line
+end
     
 function parse_abc_line(line, song)
     -- Parse one line of ABC, updating the song
@@ -155,13 +166,29 @@ function parse_abc_line(line, song)
     -- read tune
     --
     if not song.parse.in_header then
+        
         -- try and match notes
         local match = tune_matcher:match(line)
+        
         
         -- if it was a tune line, then parse it
         -- (if not, it should be a metadata field)
         if match then
-
+            
+            -- check for macros
+            if #song.parse.macros>0 then
+                expanded_line = apply_macros(song.parse.macros, line)
+                
+                if expanded_line ~= line then
+                    -- macros changed this line; must now re-parse the line
+                    match = tune_matcher:match(expanded_line)
+                    if not match then
+                        warn('Macro expansion produced invalid output '..line..expanded_line)
+                        return -- if macro expansion broke the parsing, ignore this line
+                    end
+                end
+            end
+            
             -- we found tune notes; this isn't a file header
             song.parse.has_notes = true
             
@@ -196,7 +223,7 @@ function parse_abc(str)
     lines = split(str, "[\r\n]")
     song = {}
     song.journal = {}
-    song.parse = {in_header=true, has_notes=false}
+    song.parse = {in_header=true, has_notes=false, macros={}}
     for i,line in pairs(lines) do 
         parse_abc_line(line, song)
     end
@@ -302,6 +329,5 @@ end
 -- chords "Cm7" before slurs or chord groups (e.g. "Cm7"[cd#gb])
 -- multi-bar rests (Z3 etc.)
 songs = parse_abc_file('skye.abc')
-print_notes(songs[1].stream)
 make_midi(get_note_stream(songs[1].stream), 'skye.mid')
 print(journal_to_abc(songs[1].journal))

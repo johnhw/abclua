@@ -1,5 +1,7 @@
 -- Routines for parsing metadata in headers and inline inside songs
 local re = require "re"
+require "macro"
+
 -- create the various pattern matchers
 matchers = {}
 matchers.doctype = [[ doctype <- ('%abc' '-'? {[0-9.]+} %nl) -> {}]]
@@ -69,13 +71,14 @@ end
 function parse_length(l)
     -- Parse a string giving note length, as a fraction "1/n" (or plain "1")
     -- Returns integer representing denominator.
-    captures = re.match(l,  "('1' ('/' {[0-9] +}) ?)")    
+    local captures = re.match(l,  "('1' ('/' {[0-9] +}) ?)")    
     if captures then
         return captures+0
     else
         return 1    
     end
 end
+
 
 
 function get_simplified_meter(meter)
@@ -156,6 +159,8 @@ function is_in(str, tab)
     return false
 end
 
+
+
 function parse_field(f, song, inline)
     -- parse a metadata field, of the form X: stuff
     -- (either as a line on its own, or as an inline [x:stuff] field
@@ -177,12 +182,14 @@ function parse_field(f, song, inline)
      end    
     
    
-    field = {name=field_name, content=content}
+   
+    local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'macro'} -- those fields we parse individually
+    local field = {name=field_name, content=content}
     -- continuation
     if field_name=='continuation' then
         
         -- append plain text if necessary
-        if not is_in(song.parse.last_field, {'length', 'tempo', 'parts', 'meter', 'words', 'key'}) then
+        if not is_in(song.parse.last_field, parsable) then
             table.insert(song.journal, {event='append_field_text', name=song.parse.last_field, content=content, inline=inline, field=field})
         end
         
@@ -193,7 +200,7 @@ function parse_field(f, song, inline)
     else
         -- if not a parsable field, store it as plain text
     
-        if not is_in(field_name, {'length', 'tempo', 'words', 'parts', 'meter', 'key'}) then
+        if not is_in(field_name, parsable) then
             table.insert(song.journal, {event='field_text', name=field_name, content=content, inline=inline, field=field}) 
         end
 
@@ -231,6 +238,25 @@ function parse_field(f, song, inline)
             part = string.sub(part,1,1)
             
             table.insert(song.journal, {event='new_part', part=part, inline=inline, field=field})            
+        end
+    end
+    
+    
+    if field_name=='macro' then
+        -- we DON'T insert macros into the journal. Instead
+        -- we expand them as we find them
+        macro = parse_macro(content)
+        
+        -- transposing macro
+        if re.find(macro.lhs, "'n'") then
+            notes = {'a', 'b', 'c', 'd', 'e', 'f', 'g'} 
+            for i,v in ipairs(notes) do
+                table.insert(song.parse.macros, transpose_macro(macro.lhs, v, macro.rhs)) 
+                table.insert(song.parse.macros, transpose_macro(macro.lhs, string.upper(v), macro.rhs)) 
+            end
+        else
+            -- non-transposing macro
+            table.insert(song.parse.macros, macro)
         end
     end
     

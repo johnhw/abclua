@@ -239,6 +239,7 @@ function compute_duration(note, song)
     end
     length = length * song.internal.timing.base_note_length * this_note * prev_note * 1e6 * song.internal.timing.triplet_compress
    
+  
     return length
    
 end
