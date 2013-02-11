@@ -383,10 +383,12 @@ render_grace_notes = render_grace_notes
 
 -- TODO:
 -- convert midi to abc (quantize, find key, map notes, specify chord channel (and match chords))
--- directives table from I: fields
--- filter events
+-- render decorations
+-- match against instrument notes (penalties for notes)
+-- abc-include
+-- move all patterns outside of functions and precompile
+-- fix spaces in inline fields
 
--- grace notes
 -- styling for playback
 -- extend test suite
 

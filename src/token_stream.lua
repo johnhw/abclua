@@ -173,7 +173,7 @@ function expand_token_stream(song)
         end
         
         if v.event=='instruction' then
-            apply_directive(song, directive.directive, directive.arguments)
+            apply_directive(song, v.directive, v.arguments)
         end
          
         

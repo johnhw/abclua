@@ -290,9 +290,12 @@ function test_directives()
     directives = [[
     I:gracenote 1/64
     I:pagesize A4
+    I:abc-version 2.0
     K:g
+    A B [R:this is a] G
     ]]
     songs = abclua.parse_all_abc(directives)
+    table_print(songs[1].token_stream)
     print(abclua.token_stream_to_abc(songs[1].token_stream))
 end
 

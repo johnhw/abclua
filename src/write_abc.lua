@@ -227,9 +227,25 @@ function abc_new_part(part)
     return 'P:'..part
 end
 
-function abc_directive(directive)
+
+function abc_directive(directive, inline)
     -- Return the ABC notation for a directive (I: or %%)
-    local str = 'I:'..directive.directive
+    -- Uses %% for all non-standard directives and I: only
+    -- for standard ones. Forces I: if in inline mode
+    local standard_directives = {'abc-charset', 'abc-version', 'abc-include', 'abc-creator'}
+    local str
+    
+    if not directive then
+        return ''
+    end
+    
+    if is_in(directive.directive, standard_directives) or inline then
+        str = 'I:'..directive.directive
+    else
+         str = '%%'..directive.directive
+    end
+    
+    -- append space separated arguments
     for i,v in ipairs(directive.arguments) do
         str = str .. ' ' .. v
     end
@@ -270,7 +286,7 @@ function abc_field(v)
     end
     
     if v.event=='instruction' then
-        return abc_directive(v.directive)
+        return abc_directive(v.directive, v.inline)
     end
 
     
