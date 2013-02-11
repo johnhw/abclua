@@ -1,4 +1,4 @@
-require "parse_abc"
+require "abclua"
 
 skye=[[
 % this is a comment
@@ -23,10 +23,10 @@ B>GB | B3 | A>EA | A3 | G>EG | G2 G | E3 | D3 ||
 ]]
 
 function test_fragments()
-    tokens = parse_abc_fragment('A>bA')
+    tokens = abclua.parse_abc_fragment('A>bA')
     table_print(tokens)
 
-    events = fragment_to_stream(tokens)
+    events = abclua.fragment_to_stream(tokens)
     table_print(events)
 end
 
@@ -37,9 +37,9 @@ function test_triplets()
     A A A z | (3 A A A A z | A A A z | (5:3:5 A A A A A z 
     ]]
 
-    songs = parse_all_abc(triplets)
+    songs = abclua.parse_all_abc(triplets)
     table_print(songs[1].voices['default'].stream)
-    make_midi(songs[1], 'triplets.mid')
+    abclua.make_midi(songs[1], 'triplets.mid')
 end
 
 function test_parts()
@@ -55,27 +55,27 @@ function test_parts()
     P:C
     a a a [2 a'
     ]]
-    songs = parse_all_abc(parts)
+    songs = abclua.parse_all_abc(parts)
     
     --table_print(songs[1].token_stream)
     --table_print(songs[1].voices['default'].stream)
-    make_midi(songs[1], 'parts.mid')
+    abclua.make_midi(songs[1], 'parts.mid')
     print_notes(songs[1].voices['default'].stream)
 end
     
 function test_skye()
-    local songs = parse_all_abc(skye)
+    local songs = abclua.parse_all_abc(skye)
     for i,v in ipairs(songs) do
-        make_midi(songs[1], 'skye.mid')
-        print(token_stream_to_abc(v.token_stream))
+        abclua.make_midi(songs[1], 'skye.mid')
+        print(abclua.token_stream_to_abc(v.token_stream))
     end 
 end
 
 function test_file()
-    local songs = parse_abc_file('tests/p_hardy.abc')
+    local songs = abclua.parse_abc_file('tests/p_hardy.abc')
     for i,v in ipairs(songs) do
-        make_midi(songs[1], 'song1.mid')
-        print(token_stream_to_abc(v.token_stream))
+        abclua.make_midi(songs[1], 'song1.mid')
+        print(abclua.token_stream_to_abc(v.token_stream))
     end 
 end
 

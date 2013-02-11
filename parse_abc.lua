@@ -373,6 +373,18 @@ function fragment_to_stream(tokens, context)
 end
 
 
+-- module exports
+abclua = {
+name="abclua",
+parse_all_abc = parse_all_abc,
+parse_abc = parse_abc,
+parse_abc_fragment = parse_abc_fragment,
+fragment_to_stream = fragment_to_stream,
+parse_abc_file = parse_abc_file,
+print_notes = print_notes,
+token_stream_to_abc = token_stream_to_abc,
+make_midi = make_midi}
+
 
 
 -- TODO:
