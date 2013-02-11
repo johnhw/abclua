@@ -75,6 +75,13 @@ ab = {0,-1,-1,0,0,-1,-1},
 db = {0,-1,-1,0,-1,-1,-1},
 gb = {-1,-1,-1,0,-1,-1,-1},
 cb = {-1,-1,-1,-1,-1,-1,-1},
+
+-- not real keys, but sound correct
+as = {0,0,-1,0,0,0,0},
+ds = {0,0,-1,0,0,-1,-1},
+gs = {0,-1,-1,0,0,-1,-1},
+fs = {-1,-1,-1,0,-1,-1,-1},
+bs = {-1,-1,-1,-1,-1,-1,-1},
 }
 
 
@@ -143,7 +150,7 @@ function create_key_structure(k)
     -- Create a key structure, which lists each note as written (e.g. A or B)
     -- and maps it to the correct semitone in the interval
     
-    local key_mapping = {}
+    local key_mapping = {}    
     
     -- default: C major if no signature
     for i,v in pairs(key_table['c']) do                        
@@ -188,8 +195,11 @@ function create_key_structure(k)
             
             -- get the modal offset
             local modal_root = root            
-            local major_mapping = compute_mode(mode_offsets[k.mode])
-            root = major_mapping[root] -- get relative major key                        
+            
+            if mode_offsets[k.mode] then
+                local major_mapping = compute_mode(mode_offsets[k.mode])
+                root = major_mapping[root] -- get relative major key                        
+            end            
         end
                 
       

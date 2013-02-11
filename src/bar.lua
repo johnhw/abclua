@@ -45,13 +45,13 @@ function parse_bar(bar, song)
     local bar_pattern = [[
         bar <- (  
         {:mid_repeat: <mid_repeat> :} /  {:end_repeat: <end_repeat> :}  / {:start_repeat: <start_repeat> :} / {:double: <double> :}
-        /  {:thickthin: <thickthin> :} / {:thinthick: <thinthick> :} /  / {:plain: <plain> :} / {:variant: <variant> :} / {:just_colons: <just_colons> :} ) -> {}        
+        /  {:thickthin: <thickthin> :} / {:thinthick: <thinthick> :} /  {:plain: <plain> :} / {:variant: <variant> :} / {:just_colons: <just_colons> :} ) -> {}        
         mid_repeat <- ({}<colons> {}<plain>{} <colons>{}) -> {}
         start_repeat <- (<plain> {} <colons> {} ) -> {}
         end_repeat <- ({}<colons> {} <plain> ) -> {}
         just_colons <- ({} ':' <colons>  {}) -> {}
         plain <- ('|')
-        thickthin <- (('['/']') '|')
+        thickthin <- (('[' / ']') '|')
         thinthick <- ('|' ('[' / ']') )
         double <- ('|' '|')
         
@@ -59,7 +59,7 @@ function parse_bar(bar, song)
         colons <- (':' +) 
     ]]
     
-  
+    
     local type_info = re.match(bar.type, bar_pattern)
     
     -- compute number of colons around bar (which is the number of repeats of this section)
@@ -112,6 +112,8 @@ function parse_bar(bar, song)
     
     parsed_bar.end_reps = type_info.end_reps
     parsed_bar.start_reps = type_info.start_reps
+    
+    
     
     return parsed_bar           
 end

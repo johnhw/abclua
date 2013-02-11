@@ -1,6 +1,21 @@
 local pitch_table = {C=0, D=2, E=4, F=5, G=7, A=9, B=11}
 
 
+function default_note_length(song)
+    -- return the default note length
+    -- if meter.num/meter.den > 0.75 then 1/8
+    -- else 1/16
+    if song.context.meter_data then
+        local ratio = song.context.meter_data.num / song.context.meter_data.num
+        if ratio>=0.75 then
+            return 8
+        else
+            return 16
+        end
+    end
+    return 8
+end
+
 function parse_note_def(note)
     -- Canonicalise a note, filling in the full duration field. 
     -- Remove slashes from the duration

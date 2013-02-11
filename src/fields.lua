@@ -189,7 +189,7 @@ function parse_field(f, song, inline)
     -- parse a metadata field, of the form X: stuff
     -- (either as a line on its own, or as an inline [x:stuff] field
      local name, field, match, field_name, content
-     
+          
      -- find matching field
      local field_name = nil
      for name, field in pairs(fields) do

@@ -1,7 +1,7 @@
 -- Grammar for parsing tune definitions
 local tune_pattern = [[
 elements <- ( ( <element>)  +) -> {}
-element <- ( ({:slur: <slurred_note> :}) / ({:chord_group: <chord_group> :})  / {:bar: (<bar> / <variant>) :} / {:field: field :}  / {:free_text: free :} / {:triplet: triplet :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
+element <- (  {:field: field :}  / ({:slur: <slurred_note> :}) / ({:chord_group: <chord_group> :})  / {:bar: (<bar> / <variant>) :}   / {:free_text: free :} / {:triplet: triplet :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
 
 continuation <- ('\')
 beam_split <- (%s +)
@@ -10,8 +10,10 @@ bar <- ( {:type: ((']' / '[') * ('|' / ':') + (']' / '[') *) :} ({:variant_range
 variant <- ({:type: '[' :} {:variant_range: <range_set> :})   -> {}
 range_set <- (range (',' range)*)
 range <- ([0-9] ('-' [0-9]) ?)
-slurred_note <- ( (<complete_note>) -> {} / ( ({:chord: chord :} ) ? '(' (<complete_note> +) ')' )  -> {}  ) 
-chord_group <- ( ({:chord: chord :} ) ? ('[' (<complete_note> +) ']' ) ) -> {} 
+slurred_note <- ( ((<complete_note>) -> {}) / ( ({:chord: chord :} ) ? '(' ((<complete_note> %s*)+) ')' )  -> {}  ) 
+
+
+chord_group <- ( ({:chord: chord :} ) ? ('[' ((<complete_note> %s*) +) ']' ) ) -> {} 
 complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: {(decoration +)}->{} :}) ? {:note_def: full_note  :} ({:tie: (tie)  :}) ? ) -> {}
 triplet <- ('(' {[1-9]} (':' {[1-9] ?}  (':' {[1-9]} ? ) ?) ?) -> {}
 grace <- ('{' full_note + '}') -> {}
@@ -26,7 +28,8 @@ decoration <- ('.' / [~] / 'H' / 'L' / 'M' / 'O' / 'P' / 'S' / 'T' / 'u' / 'v' /
 octave <- (( ['] / ',') +)
 accidental <- (  '^^' /  '__' /  '^' / '_' / '=' )
 duration <- ( (({:num: ([1-9] +) :}) ? ({:slashes: ('/' +)  :})?  ({:den: ((  [1-9]+  ) ) :})?))  -> {}
-field <- ( {:contents: '['  field_element  ':'  [^] ] +  ']' :}) -> {}
+
+field <- (  '['  {:contents: field_element  ':'  [^] ] + :} ']' ) -> {}
 field_element <- ([A-Za-z])
 
 ]]
@@ -36,7 +39,7 @@ function read_tune_segment(tune_data, song)
     -- read the next token in the note stream
     
     for i,v in ipairs(tune_data) do
-   
+        
         if v.measure_rest then
             local bars = v.measure_rest.bars or 1
             table.insert(song.token_stream, {event='measure_rest', bars=bars})
@@ -54,7 +57,7 @@ function read_tune_segment(tune_data, song)
         
         -- parse inline fields (e.g. [r:hello!])
         if v.field then                
-            -- this automatically writes it to the token_stream
+            -- this automatically writes it to the token_stream            
             parse_field(v.field.contents, song, true)
         end
         
@@ -101,8 +104,7 @@ function read_tune_segment(tune_data, song)
         end
         
         -- if we have slur groups then there are some notes to parse...
-        if v.slur then
-            
+        if v.slur then            
             if v.slur.chord then
                 table.insert(song.token_stream, {event='chord', chord=v.slur.chord})                                
             end
@@ -154,12 +156,10 @@ function parse_abc_line(line, song)
         
         -- try and match notes
         local match = tune_matcher:match(line)
-        
-        
+                
         -- if it was a tune line, then parse it
         -- (if not, it should be a metadata field)
-        if match then
-            
+        if match then            
             -- check for macros
             if #song.parse.macros>0 or #song.parse.user_macros>0  then
                 local expanded_line = apply_macros(song.parse.macros, line)

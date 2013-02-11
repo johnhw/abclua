@@ -1,20 +1,6 @@
 -- Functions from transforming a parsed token_stream stream into a song structure and then an event stream
 
 
-function default_note_length(song)
-    -- return the default note length
-    -- if meter.num/meter.den > 0.75 then 1/8
-    -- else 1/16
-    if song.context.meter_data then
-        local ratio = song.context.meter_data.num / song.context.meter_data.num
-        if ratio>=0.75 then
-            return 8
-        else
-            return 16
-        end
-    end
-    return 8
-end
 
 
 function update_timing(song)

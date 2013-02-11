@@ -9,10 +9,13 @@ Requires:
 Optional:    
     MIDI.lua    http://www.pjb.com.au/comp/lua/MIDI.html
 
-NOTE: You can use this file just by requiring abclua_all.lua. For developers, 
-the individual sub-components are in separate lua files in src.
+NOTE: You can use this file just by requiring abclua_all.lua. If you just
+want to be able to parse or generate ABC, use abclua_all.lua.
 
-If you want to modify the source, modify the files in src and rebuild abclua.lua by
+For developers, the individual sub-components are in separate lua files in src. 
+Require "abclua" instead of "abclua_all" to load the files with these subcomponents.
+
+If you want to modify the source, modify the files in src and rebuild abclua_all.lua by
 running "lua make_abclua.lua". Do *not* edit abclua.lua directly!
 
 Example:
