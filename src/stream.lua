@@ -124,49 +124,88 @@ function print_lyrics_notes(stream)
     
 end
 
-function make_midi_from_note_stream(note_stream, fname)
-    -- Turn a note stream into a MIDI file
-     local MIDI = require 'MIDI'
+function note_stream_to_opus(note_stream)
+    -- make sure events are in time order
+    table.sort(note_stream, function(a,b) return a.t<b.t end)
+    
+    local last_t = 0
+    score = {}
+    local dtime
+    for i,event in ipairs(note_stream) do
+        dtime = (event.t - last_t)/1000.0 -- microseconds to milliseconds
+        table.insert(score, {event.event, dtime, event.channel, event.pitch, 100})
+        last_t = event.t
+    end
+    return score
+end
 
-     -- make sure events are in time order
-     table.sort(note_stream, function(a,b) return a.t<b.t end)
-     
+function stream_to_opus(stream, channel, patch)
+    -- return the opus form of a single note stream song, with millisecond timing    
+    channel = channel or 1
+    patch = patch or 41 -- default to violin
+    
+    local note_stream = get_note_stream(stream, channel)
      local score = {
         1000,  -- ticks per beat
         {    -- first track
             {'set_tempo', 0, 1000000},
-            {'patch_change', 0, 1, 0},            
+            {'patch_change', 0, channel, patch},            
         },  
-     }
-     
-    local last_t = 0
-    local dtime
-    for i,event in ipairs(note_stream) do
-        dtime = (event.t - last_t)/1000.0 -- microseconds to milliseconds
-        table.insert(score[2], {event.event, dtime, event.channel, event.pitch, 100})
-        last_t = event.t
+     }     
+    append_table(score[2], note_stream_to_opus(note_stream))
+    return score  
+end
+
+function song_to_opus(song, patches)
+    -- return the opus form of all the voices song, with millisecond timing
+    -- one channel per voice
+    
+    patches = patches or {}
+    local channel = 0    
+    local merged_stream = {}
+    local score = {1000,
+        {    
+            {'set_tempo', 0, 1000000},        
+        },          
+    }    
+    -- set the patch for each channel
+    for i=1,#song.voices do
+        if patches[i] then
+            table.insert(score[2], 'patch_change', 0, i, patches[i])
+        else
+            table.insert(score[2], 'patch_change', 0, i, 41)
+        end
     end
-     
+    
+    -- merge in each voice
+    for i,v in pairs(song.voices) do
+        channel = channel + 1        
+        append_table(merged_stream, get_note_stream(v.stream, channel))         
+    end
+        
+   append_table(score[2], note_stream_to_opus(merged_stream))
+   return score
+end
+
+
+function make_midi_from_stream(stream, fname)
+    -- Turn a note stream into a MIDI file
+     local MIDI = require 'MIDI'
+
+     opus = stream_to_opus(stream)
      local midifile = assert(io.open(fname,'wb'))
-     midifile:write(MIDI.opus2midi(score))
+     midifile:write(MIDI.opus2midi(opus))
      midifile:close()
 end
 
 function make_midi(song, fname)
     -- make a midi file from a song
     -- merge all of the voices into a single event stream
-    local channel = 0
+    local MIDI = require 'MIDI'
+    local opus = song_to_opus(song)
     
-    local merged_stream = {}
-    
-    -- merge in each voice
-    for i,v in pairs(song.voices) do
-        channel = channel + 1        
-        append_table(merged_stream, get_note_stream(v.stream, channel)) 
-    end
-    
-    -- this will automatically sort the event order
-    make_midi_from_note_stream(merged_stream, fname)
-    
+    local midifile = assert(io.open(fname,'wb'))
+    midifile:write(MIDI.opus2midi(opus))
+    midifile:close()    
 end
 

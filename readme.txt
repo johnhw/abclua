@@ -9,7 +9,7 @@ Requires:
 Optional:    
     MIDI.lua    http://www.pjb.com.au/comp/lua/MIDI.html
 
-NOTE: You can use this file just by requiring abclua.lua. For developers, 
+NOTE: You can use this file just by requiring abclua_all.lua. For developers, 
 the individual sub-components are in separate lua files in src.
 
 If you want to modify the source, modify the files in src and rebuild abclua.lua by
@@ -17,7 +17,7 @@ running "lua make_abclua.lua". Do *not* edit abclua.lua directly!
 
 Example:
 
-require "abclua"
+require "abclua_all"
 require "MIDI" -- Peter J. Billam's MIDI.lua
 tunes = abclua.parse_abc_file('skye.abc')
 opus = abclua.song_to_opus(tunes[1])
