@@ -1,6 +1,6 @@
 -- concatenates entire source into one lua file
 
-local files = {"utils", "keys", "parts",  "lyrics", "chords", "stream", "macro", "fields", "bar", "notes", "write_abc", "token_stream", "parse_abc"}
+local files = {"utils", "keys", "parts",  "lyrics", "chords", "stream", "macro", "directives", "fields", "bar", "notes", "write_abc", "token_stream", "parse_abc"}
 
 local out = io.open('abclua_all.lua', 'w')
 

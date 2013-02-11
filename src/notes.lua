@@ -331,7 +331,7 @@ function parse_triplet(triplet, song)
     return {p=p, q=q, r=r}
 end
 
-function insert_grace(grace_note, song)
+function expand_grace(song, grace_note)
     -- insert a grace note sequence into a song
     -- grace notes have their own separate timing (i.e. no carryover of
     -- broken note state or of triplet state)
@@ -357,7 +357,8 @@ function insert_grace(grace_note, song)
     
     -- insert the grace sequence
     
-    table.insert(song.opus, {event='grace', grace=grace_note, sequence=grace})
+    return grace
+    
     
 
 end
@@ -370,7 +371,7 @@ function insert_note(note, song)
        
         -- insert grace notes before the main note, if there are any
         if note.grace then
-            insert_grace(note.grace, song)
+            note.grace.sequence = expand_grace(song, note.grace) 
         end
         
         -- insert the note events

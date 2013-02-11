@@ -229,6 +229,7 @@ function get_default_context()
     key_data = { naming={root='C', mode='maj'}, clef={}},
     key_mapping = {c=0,d=0,e=0,f=0,g=0,a=0,b=0},
     global_transpose = 0,
+    grace_length = {num=1, den=32}
     })
 end
     
@@ -374,7 +375,8 @@ song_to_opus = song_to_opus,
 stream_to_opus = stream_to_opus,
 make_midi = make_midi,
 make_midi_from_stream = make_midi_from_stream,
-trim_event_stream = trim_event_stream
+trim_event_stream = trim_event_stream,
+render_grace_notes = render_grace_notes
 }
 
 

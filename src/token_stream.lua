@@ -16,7 +16,8 @@ function update_timing(song)
     rate = 60.0 / (total_note * song.context.tempo.div_rate)
     song.context.timing.base_note_length = rate / note_length
     -- grace notes assumed to be 32nds
-    song.context.timing.grace_note_length = rate / 32
+    
+    song.context.timing.grace_note_length = rate / (song.context.grace_length.num / song.context.grace_length.den)
 end    
 
 
@@ -169,6 +170,10 @@ function expand_token_stream(song)
         -- new voice
         if v.event=='voice_change' then
             start_new_voice(song, v.voice.id)
+        end
+        
+        if v.event=='instruction' then
+            apply_directive(song, directive.directive, directive.arguments)
         end
          
         

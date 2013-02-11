@@ -227,6 +227,15 @@ function abc_new_part(part)
     return 'P:'..part
 end
 
+function abc_directive(directive)
+    -- Return the ABC notation for a directive (I: or %%)
+    local str = 'I:'..directive.directive
+    for i,v in ipairs(directive.arguments) do
+        str = str .. ' ' .. v
+    end
+    return str
+end
+
 function abc_field(v)
     -- abc out a field entry (either inline [x:stuff] or 
     -- as its own line 
@@ -259,6 +268,11 @@ function abc_field(v)
     if v.event=='tempo' then
         return abc_tempo(v.tempo)
     end
+    
+    if v.event=='instruction' then
+        return abc_directive(v.directive)
+    end
+
     
     if v.event=='parts' then
         return abc_parts(v.parts)
@@ -583,6 +597,7 @@ end
 function abc_element(element)    
     -- return the abc representation of token_stream element
     if element.field then
+
         local field = abc_field(element)
         if element.inline then
             return '['..field..']'

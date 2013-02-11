@@ -52,6 +52,18 @@ B>GB | B3 | A>EA | A3 | G>EG | G2 G | E3 | D3 ||
     
 end
 
+function test_grace_notes()
+    grace = [[
+X:1
+K:G
+DED | ABA | DED |
+{ed}DED | {fgA}ABA | {ed}DE{fA}D |
+]]
+    songs = abclua.parse_all_abc(grace)
+    grace_stream = abclua.render_grace_notes(songs[1].voices['default'].stream)
+    abclua.make_midi_from_stream(grace_stream, 'out/grace.mid')        
+    
+end
 
 function test_trimming()
     -- test event trimming into time windows
@@ -257,6 +269,33 @@ function test_voices()
     print(abclua.token_stream_to_abc(songs[1].token_stream))
 end
 
+function test_clefs()
+    -- Test clef definitions on the key line
+    clefs = [[
+    X:1    
+    K:G clef=alto
+    K:G bass
+    K:G clef=treble-8
+    K:G clef=treble t=-4
+    K:G clef=treble transpose=-4
+    K:G middle=3 transpose=-4 octave=2 bass
+    K:G clef=treble-8
+    ]]
+    songs = abclua.parse_all_abc(clefs)
+    print(abclua.token_stream_to_abc(songs[1].token_stream))
+end
+
+
+function test_directives()
+    directives = [[
+    I:gracenote 1/64
+    I:pagesize A4
+    K:g
+    ]]
+    songs = abclua.parse_all_abc(directives)
+    print(abclua.token_stream_to_abc(songs[1].token_stream))
+end
+
 function test_decorations()
     -- Test chords, grace notes and decorations
     decorations = [[
@@ -296,11 +335,14 @@ function test_file()
     end 
 end
 
+test_directives()
+-- test_clefs()
 -- test_decorations()
 -- test_inline()
 -- test_keys()
---test_trimming()
-test_chord_names()
+-- test_trimming()
+-- test_grace_notes()
+-- test_chord_names()
 -- test_voices()
 -- test_rhythms()
 -- test_accidentals()

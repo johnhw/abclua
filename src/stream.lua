@@ -162,6 +162,36 @@ function zero_time_stream(stream)
     
 end
 
+
+function render_grace_notes(stream)
+    -- Return a copy of the stream with grace notes rendered in 
+    -- as ordinary notes. These notes will cut into the following note 
+    local out = {}
+    for i,v in ipairs(stream) do
+        if v.event=='note' and v.note.grace then
+        
+            local sequence = v.note.grace.sequence
+             
+            local duration = 0 -- total duration of the grace notes
+            for j,n in ipairs(sequence) do
+                
+                table.insert(out, {event='note', t=duration+v.t, duration=n.duration, pitch=n.pitch, note=n.grace})
+                duration = duration + n.duration
+            end            
+            
+            -- cut into the time of the next note, and push it along
+            local cut_note = deepcopy(v)
+            cut_note.duration = cut_note.duration - duration
+            cut_note.t = cut_note.t + duration
+            table.insert(out, cut_note) 
+        else
+            table.insert(out, v)
+        end
+    end    
+    return out
+end
+
+
 function trim_event_stream(stream,  mode, start_time, end_time)
     -- return a copy of the stream, including only events that fall inside
     -- [start_time:end_time] (given in microseconds)
@@ -292,14 +322,14 @@ end
 
 
 
-
-function get_chord_stream(stream, channel)
+function get_chord_stream(stream, octave)
     -- extract all the named chords from a stream (e.g. "Cm7" or "Dmaj") and write 
     -- them in as note events in a stream
    local out = {}
    local notes_on = {}
    local t
    local channel = channel or 1
+   octave = octave or 5
    
    for i,event in ipairs(stream) do        
         
@@ -309,14 +339,14 @@ function get_chord_stream(stream, channel)
             t = event.t
             -- turn off last chord!
             for j, n in ipairs(notes_on) do
-                table.insert(out, {event='note_off', t=t, channel=channel})                                           
+                table.insert(out, {event='note_off', t=t, channel})                                           
                 notes_on = {}
             end
             
             -- get the notes for this chord and put them in the sequence
-            notes = voice_chord(create_chord(chord))
+            notes = voice_chord(create_chord(chord), octave)
             for j, n in ipairs(notes) do
-                 table.insert(out, {event='note_on', t=t, pitch=n, channel=channel})                           
+                 table.insert(out, {event='note_on', t=t, pitch=n, channel})                           
                  notes_on[n] = true
             end                    
         end
@@ -328,24 +358,29 @@ function get_chord_stream(stream, channel)
             notes_on = {}
     end            
     
-    
     return out 
 end
 
 
+function merge_streams(streams)
+    -- merge a list of streams into one single, ordered stream
+    local merged_stream = {}
+    
+    for i,v in pairs(streams) do
+        append_table(merged_stream, v)         
+    end    
+    table.sort(merged_stream, function(a,b) return a.t<b.t end)
+    return merged_stream    
+end
+
 -- sort out stream functions
 
-function stream_to_opus(stream, channel, patch)
+function stream_to_opus(stream,  patch)
     -- return the opus form of a single note stream song, with millisecond timing    
     channel = channel or 1
     patch = patch or 41 -- default to violin
     
     local note_stream = get_note_stream(stream, channel)
-    -- local chord_stream = get_chord_stream(stream)
-    -- set_property(chord_stream, 'channel', 15)
-    -- set_property(chord_stream, 'velocity', 40)
-    
-    note_stream = merge_streams({note_stream, chord_stream})
     
      local score = {
         1000,  -- ticks per beat
@@ -358,16 +393,6 @@ function stream_to_opus(stream, channel, patch)
     return score  
 end
 
-function merge_streams(streams)
-    -- merge a list of streams into one single, ordered stream
-    local merged_stream = {}
-    
-    for i,v in pairs(streams) do
-        append_table(merged_stream, v)         
-    end    
-    table.sort(merged_stream, function(a,b) return a.t<b.t end)
-    return merged_stream    
-end
 
 function song_to_opus(song, patches)
     -- return the opus form of all the voices song, with millisecond timing

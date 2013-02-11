@@ -119,18 +119,18 @@ function parse_key(k)
          ({:clef:  ((%s + <clef>) +) -> {}   :})  ?           
         )) -> {} 
         
-    clef <-  (({:clef: clefs :} / clef_def /  middle  / transpose / octave / stafflines )  ) 
+    clef <-  (({:clef: clefs :}  / clef_def /  middle  / transpose / octave / stafflines / custom )  ) 
     
-    
-    clef_def <- ('clef=' {:clef: <clefs> :} (%s + number) ? (%s + ( '+8' / '-8' )) ? ) 
+    custom <- ([^:] + ':' [^=] + '=' [%S] +)
+    clef_def <- ('clef=' {:clef: <clefs> :} [0-9] ? ({:plus8: (  '+8' / '-8' ) :})  ? ) 
     clefs <- ('alto' / 'bass' / 'none' / 'perc' / 'tenor' / 'treble' )
     middle <- ('middle=' {:middle: <number> :})
-    transpose <- ('transpose=' {:transpose: <number> :}) 
+    transpose <- (('transpose='/'t=')  {:transpose: <number> :}) 
     octave <- ('octave=' {:octave: <number> :}) 
     stafflines <- ('stafflines=' {:stafflines: <number> :})
     
     
-    number <- ('-' ? '+' ? [0-9]+)
+    number <- ( ('+' / '-') ? [0-9]+)
     
     mode <- ( ({'maj'}) / ({'aeo'}) / ({'ion'}) / ({'mix'}) / ({'dor'}) / ({'phr'}) / ({'lyd'}) /
           ({'loc'}) /  ({'exp'}) / ({'min'}) / {'m'}) 
@@ -139,7 +139,23 @@ function parse_key(k)
 ]]
 
     k = k:lower()
-    local captures = re.match(k,  key_pattern)    
+    local captures = re.match(k,  key_pattern)
+
+    --replace +8 / -8 with a straightforward transpose
+    if captures.clef and captures.clef.plus8 then
+        if captures.clef.plus8=='-8' then
+            captures.clef.octave = (captures.clef.octave or 0) + 1
+        else
+            captures.clefoctave = (captures.clef.octave or 0) - 1 
+        end
+        captures.clef.plus8 = nil
+    end
+    
+    -- replace transpose with t
+    if captures.clef and captures.clef.t then
+        captures.clef.transpose = captures.clef.t
+        captures.clef.t = nil
+    end
     
     return {naming = captures,  clef=captures.clef}
     

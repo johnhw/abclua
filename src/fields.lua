@@ -214,8 +214,7 @@ function parse_field(f, song, inline)
      end    
         
    
-   
-    local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'macro', 'user', 'voice'} -- those fields we parse individually
+    local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'macro', 'user', 'voice', 'instruction'} -- those fields we parse individually
     local field = {name=field_name, content=content}
     -- continuation
     if field_name=='continuation' then
@@ -255,6 +254,12 @@ function parse_field(f, song, inline)
     -- parse lyric definitions
     if field_name=='words' then                        
          table.insert(song.token_stream, {event='words', lyrics=parse_lyrics(content), field=field, inline=inline})            
+    end
+    
+     -- parse lyric definitions
+    if field_name=='instruction' then                       
+         directive = parse_directive(content)
+         table.insert(song.token_stream, {event='instruction', directive=directive, field=field, inline=inline})            
     end
             
      -- parse voice definitions
