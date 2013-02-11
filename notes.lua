@@ -34,7 +34,7 @@ function parse_note_def(note)
     end
     
     if note.duration.slashes and not note.duration.den then
-         den = 1
+         local den = 1
          local l = string.len(note.duration.slashes)
          for i = 1,l do
             den = den * 2
@@ -69,7 +69,7 @@ function parse_note_def(note)
   if note.pitch then
       -- add octave shifts  
       
-        octave = 0
+        local octave = 0
         if note.pitch.octave then
             for c in note.pitch.octave:gmatch"." do
                 if c == "'" then
@@ -162,7 +162,7 @@ function compute_pitch(note, song)
         base_pitch = base_pitch + accidental
     else        
         -- apply key signature sharpening / flattening
-        acc = song.internal.key_mapping[string.lower(note.pitch.note)]
+        local acc = song.internal.key_mapping[string.lower(note.pitch.note)]
         base_pitch = base_pitch + acc
     end
         
@@ -187,7 +187,7 @@ function compute_duration(note, song)
     -- measure rest
     if note.measure_rest then   
         -- one bar =  meter ratio * note length (e.g. 1/16 = 16)
-        note_length = song.internal.note_length or default_note_length(song)
+        local note_length = song.internal.note_length or default_note_length(song)
         return (song.internal.meter_data.num / song.internal.meter_data.den) * note_length * song.internal.timing.base_note_length * 1e6
     end
     
@@ -240,6 +240,7 @@ end
 
 function apply_triplet(song, triplet)
     -- set the triplet fields in the song
+    local p,q,r
     
     if triplet.q == 'n' then
         -- check if compound time -- if so
@@ -302,7 +303,7 @@ function parse_triplet(triplet, song)
     end
     
     -- default to choosing q from the table
-    q_table = {-1,3,2,3,'n',2,'n',3,'n'}
+    local q_table = {-1,3,2,3,'n',2,'n',3,'n'}
     if q==-1 then
         q = q_table[p]
     end

@@ -52,7 +52,7 @@ function get_note_stream(timed_stream, channel)
    local out = {}
    local notes_on = {}
    
-   channel = channel or 1
+   local channel = channel or 1
    for i,event in ipairs(timed_stream) do        
             if event.event=='note' then                
                 if not notes_on[event.pitch] then 
@@ -73,7 +73,7 @@ end
 
 function print_notes(stream)
     -- print out the notes, as a sequence of pitches
-    notes = {}
+    local notes = {}
     
     for i,event in ipairs(stream) do        
         if event.event == 'note' then                      
@@ -98,7 +98,7 @@ end
 function print_lyrics_notes(stream)
     -- print out the notes and lyrics, as a sequence of pitches interleaved with 
     -- syllables
-    notes = {}
+    local notes = {}
     
     for i,event in ipairs(stream) do        
     
@@ -129,7 +129,7 @@ function make_midi(song, fname)
     -- merge all of the voices into a single event stream
     local channel = 0
     
-    merged_stream = {}
+    local merged_stream = {}
     
     -- merge in each voice
     for i,v in pairs(song.voices) do

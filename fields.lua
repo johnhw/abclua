@@ -3,7 +3,7 @@ local re = require "re"
 require "macro"
 
 -- create the various pattern matchers
-matchers = {}
+local matchers = {}
 matchers.doctype = [[ doctype <- ('%abc' '-'? {[0-9.]+} %nl) -> {}]]
 
 local fields = {}
@@ -43,7 +43,7 @@ function parse_voice(voice)
     -- Returns a table with an ID and a specifiers table
     -- e.g. V:tenor becomes {id="tenor", specifiers={}}
     -- V:tenor clef=treble becomes {id="tenor", specifiers={lhs='clef', rhs='treble'}}
-    voice_pattern = [[
+    local voice_pattern = [[
     voice <- (({:id: [%S]+ :}) %s * {:specifiers: (<specifier> *) -> {} :}) -> {}
     specifier <- (%s * {:lhs: ([^=] +) :} + '=' {:rhs: [^%s]* :}) -> {} 
     ]]
@@ -58,22 +58,22 @@ function parse_tempo(l)
     -- div_rate is in units per second
     -- the numbered elements specify the unit lengths to be played up to that point
     -- each element has a "num" and "den" field to specify the numerator and denominator
-    tempo_pattern = [[
+    local tempo_pattern = [[
 tempo <- (
 ({:name: qstring :} %s +) ?
     ( 
-    (  (  (div (%s + div) *)  )  '=' {:div_rate: number:} )  /
+    (  (  (div (%s + div) *)  )  %s * '=' %s * {:div_rate: number:} )  /
     (  'C=' {:div_rate: number:} ) /
     (  {:div_rate: number :} ) 
     ) 
 (%s + {:name: qstring :}) ?
 ) -> {}
 
-div <- ({:num: number:} '/' {:den: number:}) -> {}
+div <- ({:num: number:} %s * '/' %s * {:den: number:}) -> {}
 number <- ( [0-9] + )
 qstring <- ( ["] [^"]* ["] )
 ]]
-    captures = re.match(l,  tempo_pattern)    
+    local captures = re.match(l,  tempo_pattern)    
   
     return captures
 end
@@ -116,7 +116,7 @@ function parse_meter(m)
     common <- ({:num: '' -> '4':} {:den: '' -> '4':} 'C') -> {}
     cut <- ({:num: '' -> '2':} {:den: '' -> '2' :} 'C|' ) -> {}
     none <- ('none' / '')  -> {}    
-    fraction <- ({:num: complex :} '/' {:den: [0-9]+ :}) -> {}    
+    fraction <- ({:num: complex :} %s * '/' %s * {:den: [0-9]+ :}) -> {}    
     complex <- ( '(' ? ((number + '+') * number) ->{} ')' ? )
     number <- {([0-9]+)}     
     ]])
@@ -175,10 +175,10 @@ end
 function parse_field(f, song, inline)
     -- parse a metadata field, of the form X: stuff
     -- (either as a line on its own, or as an inline [x:stuff] field
-     local name, field, match, field_name
+     local name, field, match, field_name, content
      
      -- find matching field
-     field_name = nil
+     local field_name = nil
      for name, field in pairs(fields) do
         match = re.match(f, field)         
         if match then
@@ -187,27 +187,35 @@ function parse_field(f, song, inline)
         end
      end
      
+            
      -- not a metadata field at all
      if not field_name then
-        return
+        -- in the header, treat lines without a tag as continuations
+        if song.parse.in_header then
+            field_name = 'continuation' 
+            content = f                
+        else
+            -- otherwise it was probably a tune line
+            return
+        end
      end    
-    
+        
    
    
     local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'macro', 'user', 'voice'} -- those fields we parse individually
     local field = {name=field_name, content=content}
     -- continuation
     if field_name=='continuation' then
-        
-        -- append plain text if necessary
-        if not is_in(song.parse.last_field, parsable) then
+        if song.parse.last_field then
+            -- append plain text if necessary
+            if not is_in(song.parse.last_field, parsable) then            
+                table.insert(song.journal, {event='append_field_text', name=song.parse.last_field, content=content, inline=inline, field={name=song.parse.last_field, content=content}})
+                
+            end
             
-            table.insert(song.journal, {event='append_field_text', name=song.parse.last_field, content=content, inline=inline, field={name=song.parse.last_field, content=content}})
-            
-        end
-        
-         if song.parse.last_field=='words' then
-             table.insert(song.journal, {event='words', lyrics=parse_lyrics(content), field=field})            
+             if song.parse.last_field=='words' then
+                 table.insert(song.journal, {event='words', lyrics=parse_lyrics(content), field=field})            
+             end
          end
          
     else
@@ -251,16 +259,17 @@ function parse_field(f, song, inline)
         -- parts definition if we are still in the header
         -- look up the parts and expand them out
         if song.parse.in_header then
-            parts = content:gsub('\\.', '') -- remove dots
+            local parts = content:gsub('\\.', '') -- remove dots
             parts = parse_parts(content)
             table.insert(song.journal, {event='parts', parts=parts, inline=inline, field=field})            
         else
+            
             -- otherwise we are starting a new part   
             -- parts are always one character long, spaces and dots are ignored
-            part = content.gsub('%s', '')
-            part = part.gsub('.', '')
+            local part = content:gsub('%s', '')
+            part = part:gsub('.', '')
             part = string.sub(part,1,1)
-            
+                        
             table.insert(song.journal, {event='new_part', part=part, inline=inline, field=field})            
         end
     end
@@ -268,18 +277,18 @@ function parse_field(f, song, inline)
     
     if field_name=='user' then
         -- user macro (not transposable)
-        macro = parse_macro(content)
+        local macro = parse_macro(content)
         table.insert(song.parse.user_macros, macro)
     end
     
     if field_name=='macro' then
         -- we DON'T insert macros into the journal. Instead
         -- we expand them as we find them
-        macro = parse_macro(content)
+        local macro = parse_macro(content)
         
         -- transposing macro
         if re.find(macro.lhs, "'n'") then
-            notes = {'a', 'b', 'c', 'd', 'e', 'f', 'g'} 
+            local notes = {'a', 'b', 'c', 'd', 'e', 'f', 'g'} 
             for i,v in ipairs(notes) do
                 table.insert(song.parse.macros, transpose_macro(macro.lhs, v, macro.rhs)) 
                 table.insert(song.parse.macros, transpose_macro(macro.lhs, string.upper(v), macro.rhs)) 
@@ -308,7 +317,7 @@ function parse_parts(m)
     -- including any repeats
     -- Returns a fully expanded part list
     
-    captures = re.match(m,  [[
+    local captures = re.match(m,  [[
     parts <- (part +) -> {}
     part <- ( ({element}  / ( '(' part + ')' ) )  {:repeat: [0-9]* :}) -> {}    
     element <- [A-Za-z]    

@@ -212,7 +212,7 @@ end
 function abc_voice(voice)
     -- return the ABC string represenation of a voice. Has
     -- an ID, and a set of optional specifiers 
-    str = 'V:'..voice.id
+    local str = 'V:'..voice.id
     
     for i,v in ipairs(voice.specifiers) do
         str = str..' '..v.lhs..'='..v.rhs
@@ -220,6 +220,11 @@ function abc_voice(voice)
     
     return str
     
+end
+
+function abc_new_part(part)
+    -- return the abc definition of a new part
+    return 'P:'..part
 end
 
 function abc_field(v)
@@ -259,6 +264,11 @@ function abc_field(v)
         return abc_parts(v.parts)
     end
     
+    if v.event=='new_part' then
+        return abc_new_part(v.part)
+    end
+    
+    
     if v.event=='words' then
         return abc_lyrics(v.lyrics)
     end
@@ -266,6 +276,8 @@ function abc_field(v)
     if v.event=='note_length' then
         return abc_note_length(v.note_length)
     end
+    
+    
 end
 
 
@@ -309,8 +321,9 @@ function abc_pitch(note_pitch)
     -- get the string represenation of a pitch table
     -- pitch; lowercase = +1 octave
     
+ 
     -- root note
-    pitch = note_pitch.note
+    local pitch = note_pitch.note
     
     -- octave shifts
     if note_pitch.octave then
@@ -320,13 +333,13 @@ function abc_pitch(note_pitch)
         -- increase octave with '
         if note_pitch.octave>1 then
             for i=2,note_pitch.octave do
-                pitch = pitch + "'"
+                pitch = pitch .. "'"
             end
         end 
         -- decrease octave with ,
         if note_pitch.octave<0 then
             for i=1,-note_pitch.octave do
-                pitch = pitch + ","
+                pitch = pitch .. ","
             end
         end
     end
@@ -525,12 +538,13 @@ function abc_note_element(element)
         return '\n'
     end
     
+    if element.event=='chord' then
+            return '"' .. element.chord .. '"'
+    end
+    
+    
     if element.event=='chord_begin' then
-        if element.chord then
-            return '"' .. element.chord .. '"' .. '['
-        else
-            return '['
-        end
+            return '['        
     end
     
     if element.event=='chord_end' then
@@ -538,18 +552,14 @@ function abc_note_element(element)
     end
     
     if element.event=='slur_begin' then
-        if element.chord then
-            return '"' .. element.chord .. '"' .. '('
-        else
-            return '('
-        end
+        return '('        
     end
     
     if element.event=='slur_end' then
         return ')'
     end
     
-    if element.event=='text' then
+    if element.event=='text' then     
         return '"' .. element.text .. '"'
     end
     
@@ -570,10 +580,10 @@ function abc_note_element(element)
     
 end
  
-function abc_element(element)
+function abc_element(element)    
     -- return the abc representation of journal element
     if element.field then
-        field = abc_field(element)
+        local field = abc_field(element)
         if element.inline then
             return '['..field..']'
         else

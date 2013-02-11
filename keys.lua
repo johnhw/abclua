@@ -86,7 +86,7 @@ local inverse_note_table = invert_table(note_table)
 local inverse_key_note_table = invert_table(key_note_table)
 
 -- offsets for the common modes
-mode_offsets = {maj=0, min=3, mix=5, dor=10, phr=8, lyd=7, loc=1}
+local mode_offsets = {maj=0, min=3, mix=5, dor=10, phr=8, lyd=7, loc=1}
 
 
 
@@ -107,7 +107,7 @@ end
 
 function parse_key(k)
     -- Parse a key definition, in the format <root>[b][#][mode] [accidentals] [expaccidentals]
-    key_pattern = [[
+    local key_pattern = [[
     key <- ( {:none: ('none') :} / {:pipe: ('Hp' / 'HP') :} / (
         {:root: ([a-gA-G]):}  ({:flat: ('b'):}) ? ({:sharp: ('#'):}) ?  
         (%s * {:mode: (mode %S*):}) ? 
@@ -135,7 +135,7 @@ function parse_key(k)
 ]]
 
     k = k:lower()
-    captures = re.match(k,  key_pattern)    
+    local captures = re.match(k,  key_pattern)    
     
     return {naming = captures,  clef=captures.clef}
     
@@ -170,7 +170,7 @@ function create_key_structure(k)
                     
     else
         -- find the matching key        
-        root = k.root
+        local root = k.root
         if k.flat then
             root = root..'b'
         end
@@ -203,7 +203,7 @@ function create_key_structure(k)
         -- add accidentals
         if k.accidentals then
             for i,v in pairs(k.accidentals) do
-                acc = re.match(v, "({('^'/'^^'/'='/'_'/'__')} {[a-g]}) -> {}")
+                local acc = re.match(v, "({('^'/'^^'/'='/'_'/'__')} {[a-g]}) -> {}")
                 if acc[1]=='^' then 
                     key_mapping[acc[2]] = 1
                 end

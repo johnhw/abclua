@@ -132,6 +132,8 @@ local common_chords =
 ["maj9"] = { 0, 4, 7, 11, 14, },
 }
 
+
+
 -- Table mapping notes to semitones
 local note_table = {
 c=0,
@@ -157,32 +159,61 @@ bb=10,
 bs=12
 }
 
-function create_chord(chord)
--- takes a chord defintion string (e.g. "Gm" or "Fm7" or "Asus2") and returns the notes in it
--- as a table of pitches (with C=0)
-
+function match_chord(chord)
+    -- Matches chord definitions, returning the root note
+    -- the chord type, and the notes in that chord (as semitone offsets)
     -- convert sharp signs to s and lowercase
+        
     chord = chord:gsub('#', 's')
     chord = string.lower(chord)
     
     
-    chord_pattern = [[
+    local chord_pattern = [[
         chord <- ({:root: root :} ({:type: %S +:}) ? ) -> {}
         root <- ([a-g] ('b' / 's') ?)
     ]]
     
     local match = re.match(chord, chord_pattern)
-    table_print(match)
+    if not match or not match.root then
+        return nil
+    end
+    
     local base_pitch = note_table[match.root]
     match.type = match.type or 'maj' -- default to major chord
     
-    local chord_offsets = chords[match.type]
-    
-    notes = {}
-    for i,v in ipairs(chord_offsets) do
-        table.insert(notes, v+base_pitch)
+    if chords[match.type] then
+        local chord_offsets = chords[match.type]
+    else    
+        return nil -- not a valid chord
     end
     
+    return {chord_type=match.type, base_pitch=base_pitch, notes=chord_offsets}
+   
+end
+
+
+function is_chord(str)
+    -- Return true if this string is a valid chord identifier
+    if match_chord(str) then
+        return true
+    else
+        return false
+    end
+end
+    
+function create_chord(chord)
+-- takes a chord defintion string (e.g. "Gm" or "Fm7" or "Asus2") and returns the notes in it
+-- as a table of pitches (with C=0)
+
+    
+    local match = match_chord(chord)
+    local notes = {}
+    
+    if match then      
+        for i,v in ipairs(match.notes) do
+            table.insert(notes, v+match.base_pitch)
+        end
+    end
     return notes
     
 end
@@ -194,7 +225,7 @@ function voice_chord(notes, octave)
     
     local base = octave * 12
     
-    out_notes = {}    
+    local out_notes = {}    
 
     -- add original notes
     for i,v in ipairs(notes) do 
@@ -202,7 +233,7 @@ function voice_chord(notes, octave)
     end
     
     -- root at octave above and below
-    root = notes[1]
+    local root = notes[1]
     table.insert(out_notes, root+base-12)
     table.insert(out_notes, root+base+12)
     
@@ -219,7 +250,7 @@ end
 
 function test_chords()
     
-    test_chords = {'Gm', 'G', 'F#min7', 'dM9', 'bbmin'}
+    local test_chords = {'Gm', 'G', 'F#min7', 'dM9', 'bbmin'}
     for i,v in ipairs(test_chords) do
         print(v)
         table_print(voice_chord(create_chord(v), 5))

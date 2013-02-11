@@ -34,16 +34,16 @@ function parse_lyrics(lyrics)
     
     -- construct the syllable sequence
     for i,syllable in ipairs(match) do
-        syl = syllable.syl
+        local syl = syllable.syl
         -- fix backquotes
         syl = syl:gsub('`', '-')
         -- note advance on trailing underscore
-        note_count = 1
+        local note_count = 1
         for c in syl:gmatch"_" do
             note_count = note_count + 1
         end
         
-        advance = next_advance
+        local advance = next_advance
         
         -- bar advance
         if string.sub(syl,-1)=='|' then
@@ -69,7 +69,7 @@ function insert_lyrics(lyrics, stream)
     -- Takes a lyrics structure and an event stream, and inserts the lyric
     -- events into the stream accordingly. Returns a new event stream
     -- with the lyrics in place
-    new_stream = {}
+    local new_stream = {}
     
     -- return immediately if there are no lyrics to insert
     if not lyrics or #lyrics<1 then       

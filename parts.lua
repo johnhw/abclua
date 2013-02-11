@@ -16,7 +16,9 @@ function start_new_part(song, name)
     song.opus = song.temp_part   
 end
 
-local variant_tag
+
+-- variant tag
+local variant_tag = 0
 
 
 
@@ -27,7 +29,7 @@ function start_variant_part(song, bar)
     -- and registers the sub-part in the variants table
     
     -- parse the variant list
-    endings = bar.variant_range
+    local endings = bar.variant_range
     
     -- if we are not already in a variant, record the arent part
     if not song.in_variant_part then

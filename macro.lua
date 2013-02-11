@@ -29,7 +29,7 @@ function transpose_macro(lhs, note, rhs)
 -- and any letters h..z in rhs with relatively offset pitches
 
     local lhs = lhs:gsub('n', note)
-    rhs = rhs:gsub('([h-zH-Z])', function (s)
+    local rhs = rhs:gsub('([h-zH-Z])', function (s)
     -- only allow lowercase values
     s = string.lower(s)
     relative = string.byte(s) - string.byte('n')

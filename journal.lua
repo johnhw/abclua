@@ -3,9 +3,8 @@
 function update_timing(song)
     -- Update the base note length (in seconds), given the current L and Q settings
     local total_note = 0
-    local rate = 0
-    
-    note_length = song.internal.note_length or default_note_length(song)
+    local rate = 0    
+    local note_length = song.internal.note_length or default_note_length(song)
     
     for i,v in ipairs(song.internal.tempo) do
         total_note = total_note + (v.num / v.den)
@@ -37,7 +36,7 @@ function default_note_length(song)
     -- if meter.num/meter.den > 0.75 then 1/8
     -- else 1/16
     if song.internal.meter_data then
-        ratio = song.internal.meter_data.num / song.internal.meter_data.num
+        local ratio = song.internal.meter_data.num / song.internal.meter_data.num
         if ratio>=0.75 then
             return 8
         else

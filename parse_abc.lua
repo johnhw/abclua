@@ -13,7 +13,7 @@ local re = require "re"
 
 
 -- Grammar for parsing tune definitions
-tune_pattern = [[
+local tune_pattern = [[
 elements <- ( ( <element>)  +) -> {}
 element <- ( ({:slur: <slurred_note> :}) / ({:chord_group: <chord_group> :})  / {:bar: (<bar> / <variant>) :} / {:field: field :}  / {:free_text: free :} / {:triplet: triplet :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
 
@@ -44,7 +44,7 @@ field <- ( {:contents: '['  field_element  ':'  [^] ] +  ']' :}) -> {}
 field_element <- ([A-Za-z])
 
 ]]
-tune_matcher = re.compile(tune_pattern)
+local tune_matcher = re.compile(tune_pattern)
 
 function read_tune_segment(tune_data, song)
     -- read the next token in the note stream
@@ -52,13 +52,18 @@ function read_tune_segment(tune_data, song)
     for i,v in ipairs(tune_data) do
    
         if v.measure_rest then
-            bars = v.measure_rest.bars or 1
+            local bars = v.measure_rest.bars or 1
             table.insert(song.journal, {event='measure_rest', bars=bars})
         end
         
         -- store annotations
         if v.free_text then
-            table.insert(song.journal, {event='text', text=v.free_text})
+            -- could be a standalone chord
+            if is_chord(v.free_text.text) then
+                table.insert(song.journal, {event='chord', chord=v.free_text.text})
+            else
+                table.insert(song.journal, {event='text', text=v.free_text.text})
+            end
         end
         
         -- parse inline fields (e.g. [r:hello!])
@@ -68,10 +73,8 @@ function read_tune_segment(tune_data, song)
         end
         
         -- deal with triplet definitions
-        if v.triplet then                
-            
-            triplet = parse_triplet(v.triplet, song)
-            table.insert(song.journal, {event='triplet', triplet=triplet})
+        if v.triplet then                                        
+            table.insert(song.journal, {event='triplet', triplet=parse_triplet(v.triplet, song)})
             
         end
         
@@ -87,20 +90,24 @@ function read_tune_segment(tune_data, song)
             
         
         -- deal with bars and repeat symbols
-        if v.bar then
-            bar = parse_bar(v.bar)                                
-            table.insert(song.journal, {event='bar', bar=bar})                      
+        if v.bar then            
+            table.insert(song.journal, {event='bar', bar=parse_bar(v.bar)  })                      
         end
         
         -- chord groups
         if v.chord_group then
-            if v.chord_group[1] or v.chord_group.chord then
-                table.insert(song.journal, {event='chord_begin', chord=v.chord_group.chord})                
-                
+        
+            -- textual chords
+            if v.chord_group.chord then
+                table.insert(song.journal, {event='chord', chord=v.chord_group.chord})                                
+            end
+            
+            if v.chord_group[1] then
+                table.insert(song.journal, {event='chord_begin'})                                
                 -- insert the individual notes
                 for i,note in ipairs(v.chord_group) do                
                     local cnote = parse_note(note)
-                    table.insert(song.journal, {event='note', note=cnote})    
+                    table.insert(song.journal, {event='note', note=cnote})                        
                 end
                 table.insert(song.journal, {event='chord_end'})                                
             end                               
@@ -110,20 +117,24 @@ function read_tune_segment(tune_data, song)
         -- if we have slur groups then there are some notes to parse...
         if v.slur then
             
+            if v.slur.chord then
+                table.insert(song.journal, {event='chord', chord=v.slur.chord})                                
+            end
+            
             -- slur groups (only put the group in if there
             -- are more than elements, or there is an associated chord name)
-            if #v.slur>1 or v.slur.chord then
-                table.insert(song.journal, {event='slur_begin', chord=v.slur.chord} )
+            if #v.slur>1  then
+                table.insert(song.journal, {event='slur_begin'} )
                
             end
             
             -- insert the individual notes
             for i,note in ipairs(v.slur) do                
-                local cnote = parse_note(note)
+                local cnote = parse_note(note)                
                 table.insert(song.journal, {event='note', note=cnote})
             end
                 
-            if #v.slur>2 then
+            if #v.slur>1 then
                 table.insert(song.journal, {event='slur_end'} )
             end
 
@@ -136,8 +147,7 @@ function parse_abc_line(line, song)
     -- Parse one line of ABC, updating the song
     -- datastructure. Temporary state is held in
     -- information from line to line
-    
-    
+        
     -- strip whitespace from start and end of line
     line = line:gsub('^%s*', '')
     line = line:gsub('%s*$', '')
@@ -146,7 +156,7 @@ function parse_abc_line(line, song)
     line = line:gsub('`', '')
     
     -- replace stylesheet directives with I: information fields
-    line = line:gsub("^%%%%", "I:")
+    line = line:gsub("^%%%%", "I:")    
     
     -- strip comments
     line = line:gsub("%%.*", "")
@@ -166,7 +176,7 @@ function parse_abc_line(line, song)
             
             -- check for macros
             if #song.parse.macros>0 or #song.parse.user_macros>0  then
-                expanded_line = apply_macros(song.parse.macros, line)
+                local expanded_line = apply_macros(song.parse.macros, line)
                 expanded_line = apply_macros(song.parse.user_macros, expanded_line)
                 if expanded_line ~= line then
                     -- macros changed this line; must now re-parse the line
@@ -207,12 +217,12 @@ end
 function parse_abc(str)
     -- parse and ABC file and return a song with a filled in journal field
     -- representing all of the tokens in the stream
-    lines = split(str, "[\r\n]")
-    song = {}
+    local lines = split(str, "[\r\n]")
+    local song = {}
     song.journal = {}
     song.parse = {in_header=true, has_notes=false, macros={}, user_macros={}}
     for i,line in pairs(lines) do 
-        success = pcall(parse_abc_line, line, song)
+        local success = pcall(parse_abc_line, line, song)
         if not success then
             warn('Parse error reading line '  .. line)
         end
@@ -224,6 +234,17 @@ end
     
 
 
+function get_default_internal()
+    return   deepcopy({
+    tempo = {div_rate=120, [1]={num=1, den=8}}, 
+    use_parts = false,
+    meter_data = {num=4, den=4},
+    key_data = {0,0,0,0,0,0,0,0},
+    global_transpose = 0,
+    })
+end
+    
+    
 function parse_all_abc(str)
          
     -- split file into sections
@@ -245,8 +266,8 @@ function parse_all_abc(str)
     local tunes = {}
     local tune_pattern = [[
         tune <- (comment * field + line *)
-        comment <- ('%' line)
-        field <- ([a-zA-Z] ':' line)
+        comment <- ('%' [^%] line)
+        field <- ([a-zA-Z] ':' line) / ('%%' line)
         line <- ( ([^%nl] +  %nl) )
         
     ]]
@@ -265,15 +286,9 @@ function parse_all_abc(str)
     end
     
     -- set defaults for the whole tune
-    default_metadata = {}
+    local default_metadata = {}
     
-    default_internal = {
-    tempo = {div_rate=120, [1]={num=1, den=8}}, 
-    use_parts = false,
-    meter_data = {num=4, den=4},
-    key_data = {0,0,0,0,0,0,0,0},
-    global_transpose = 0,
-    }
+    local default_internal = get_default_internal()
     
     -- no tunes!
     if #tunes<1 then
@@ -283,7 +298,7 @@ function parse_all_abc(str)
     local songs = {}
     
     -- first tune might be a file header
-    first_tune = parse_abc(tunes[1]) 
+    local first_tune = parse_abc(tunes[1]) 
     journal_to_stream(first_tune,  deepcopy(default_internal), deepcopy(default_metadata))
     table.insert(songs, first_tune)
     
@@ -299,7 +314,7 @@ function parse_all_abc(str)
     for i,v in ipairs(tunes) do
         -- don't add first tune twice
         if i~=1 then
-            tune = parse_abc(v) 
+            local tune = parse_abc(v) 
             journal_to_stream(tune, deepcopy(default_internal), deepcopy(default_metadata))    
             table.insert(songs, tune)
         end
@@ -317,7 +332,14 @@ function parse_abc_file(filename)
 end
 
 -- Does not support:
--- instruction field
+
+-- fix part handling
+-- function for parsing an abc fragement (e.g. parse_abc_fragment('Ab')
+-- function for rendering a journal fragment in a context (extract_abc(song, fragment))
+-- convert midi to abc (quantize, find key, map notes, specify chord channel (and match chords))
+--directives table from I: fields
+--check for misused globals
+
 
 -- TODO:
 -- grace notes

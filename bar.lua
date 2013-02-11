@@ -44,7 +44,7 @@ function parse_bar(bar, song)
 -- repeat middle (:||: or :: or :|:)
 -- variant markers [range
 
-    bar_pattern = [[
+    local bar_pattern = [[
         bar <- (  
         {:mid_repeat: <mid_repeat> :} /  {:end_repeat: <end_repeat> :}  / {:start_repeat: <start_repeat> :} / {:double: <double> :}
         / {:plain: <plain> :} /  {:thickthin: <thickthin> :} / {:thinthick: <thinthick> :} / {:variant: <variant> :} / {:just_colons: <just_colons> :} ) -> {}        
@@ -62,7 +62,7 @@ function parse_bar(bar, song)
     ]]
   
   
-    type_info = re.match(bar.type, bar_pattern)
+    local type_info = re.match(bar.type, bar_pattern)
     
     -- compute number of colons around bar (which is the number of repeats of this section)
     if type_info.mid_repeat then

@@ -2,7 +2,7 @@
 function repeat_string(str, times)
     -- return the concatenation of a string a given number of times
     -- e.g. repeat_string('abc', '3') = 'abcabcabc'
-    reps = {}
+    local reps = {}
     for i=1,times do
         table.insert(reps, str)
     end
@@ -54,7 +54,7 @@ end
 
 function invert_table(t)
     -- invert a table so that values map to keys
-    n = {}
+    local n = {}
     for i,v in pairs(t) do
         n[v] = i
     end
