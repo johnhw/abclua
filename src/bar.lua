@@ -45,14 +45,14 @@ function parse_bar(bar, song)
     local bar_pattern = [[
         bar <- (  
         {:mid_repeat: <mid_repeat> :} /  {:end_repeat: <end_repeat> :}  / {:start_repeat: <start_repeat> :} / {:double: <double> :}
-        / {:plain: <plain> :} /  {:thickthin: <thickthin> :} / {:thinthick: <thinthick> :} / {:variant: <variant> :} / {:just_colons: <just_colons> :} ) -> {}        
+        /  {:thickthin: <thickthin> :} / {:thinthick: <thinthick> :} /  / {:plain: <plain> :} / {:variant: <variant> :} / {:just_colons: <just_colons> :} ) -> {}        
         mid_repeat <- ({}<colons> {}<plain>{} <colons>{}) -> {}
         start_repeat <- (<plain> {} <colons> {} ) -> {}
         end_repeat <- ({}<colons> {} <plain> ) -> {}
         just_colons <- ({} ':' <colons>  {}) -> {}
         plain <- ('|')
-        thickthin <- ('[' '|')
-        thinthick <- ('[' '|')
+        thickthin <- (('['/']') '|')
+        thinthick <- ('|' ('[' / ']') )
         double <- ('|' '|')
         
         variant <- ('[')

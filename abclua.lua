@@ -9,7 +9,6 @@ require "src/parts"
 require "src/notes"
 require "src/bar"
 require "src/stream"
-require "src/parse_abc"
 require "src/token_stream"
 require "src/write_abc"
-
+require "src/parse_abc"

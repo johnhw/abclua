@@ -95,6 +95,146 @@ function print_notes(stream)
 end
 
 
+function filter_event_stream(stream, includes)
+    -- return a copy of the stream, keeping only those specified events in the stream
+    local filtered = {}
+    
+    if #stream=={} then
+        return {}
+    end
+    
+    if type(includes)=='string' then        
+        for i,v in ipairs(stream) do
+            if v.event==includes then
+                table.insert(filtered, v.event)            
+            end
+        end       
+    end
+    
+    if type(includes)=='table' then        
+        for i,v in ipairs(stream) do
+            for j,n in ipairs(includes) do 
+                if v.event==n then
+                table.insert(filtered, v.event)            
+                end
+            end
+        end       
+    end    
+    return filtered   
+end
+
+function duration_stream(stream)
+    -- return the duration of the stream, from the first event, to
+    -- the end of the last note
+    if #stream==0 then
+        return 0
+    end
+    
+    local end_time = stream[-1].t
+    -- must add on duration to avoid chopping last note
+    if stream[-1].duration then
+        end_time = end_time + stream[-1].duration
+    end
+    return end_time
+end
+
+function zero_time_stream(stream)
+    -- fix the time of the first element of the stream to t=0, and shift
+    -- the rest of the stream to match
+    -- Modifies the stream in place -- copy it if you don't want to modify the 
+    -- original data
+    if #stream=={} then
+        return {}
+    end
+    
+    local t = stream[1].t
+    for i,v in ipairs(stream) do
+        stream.t = stream.t - t
+    end
+    
+end
+
+function trim_event_stream(stream,  mode, start_time, end_time)
+    -- return a copy of the stream, including only events that fall inside
+    -- [start_time:end_time] (given in microseconds)
+    -- mode can be = 'starts' which returns event that start in the given period
+    --               'ends' which returns events that end in the given period
+    --               'any' which returns events that overlap the period at all
+    --               'within' which returns that are wholly in the period
+    --               'trim' which is like any, but trims notes to fit the given time
+    -- start_time and end_time are optional (default to start and end of the tune)   
+    
+    if #stream=={} then
+        return {}
+    end
+    
+    local filtered = {}
+    start_time = start_time or nil
+    end_time = end_time or duration_stream(stream)         
+    
+    
+    for i,v in ipairs(stream) do
+        local start_t = v.t
+        local end_t = v.t
+        
+        -- notes and rests occupy time
+        if v.event == 'note' or v.event=='rest' then
+            end_t = v.t + v.duration
+        end
+        
+        -- work out if this event starts or stops in this interval
+        local start_in = (start_t>=start_time and  start_t<=end_time) 
+        local end_in = (end_t>=start_time and end_t<=end_time)
+        
+        if mode=='any' then
+            if start_in or end_in  then
+                table.insert(filtered, v)
+            end
+        end
+        
+        if mode=='starts' then
+            if start_in then
+                table.insert(filtered, v)
+            end
+        end
+        
+        if mode=='ends' then
+            if end_in then
+                table.insert(filtered, v)
+            end
+        end
+        
+        if mode=='within' then
+            if start_in and end_in then
+                table.insert(filtered, v)
+            end
+        end
+        
+        if mode == 'trim' then
+             if start_in or end_in  then
+                -- must copy event to avoid changing the original
+                local event = deepcopy(v)
+                
+                -- starts, but is too long
+                if start_in and not end_in then
+                    v.duration = end_time - v.t
+                end
+                
+                -- starts before, but ends in
+                if end_in and not start_in then
+                    v.duration = (v.t+v.duration)-start_time
+                    v.t = start_time                    
+                end
+             end
+        end
+        
+    end
+end
+    
+    
+    
+
+
 function print_lyrics_notes(stream)
     -- print out the notes and lyrics, as a sequence of pitches interleaved with 
     -- syllables

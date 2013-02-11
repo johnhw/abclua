@@ -55,7 +55,7 @@ function apply_repeats(song, bar)
         end
                                 
         -- append any repeats, and variant endings
-        if bar.type=='mid_repeat' or bar.type=='end_repeat' then
+        if bar.type=='mid_repeat' or bar.type=='end_repeat' or bar.type=='double' or bar.type=='thickthin' or bar.type=='thinthick' then
         
             add_section(song, bar.end_reps+1)
             
@@ -105,9 +105,9 @@ function finalise_song(song)
     song.opus = nil
     song.temp_part = nil 
  
-    -- time the stream and add lyrics
-    time_stream(song.stream)
+    -- time the stream and add lyrics    
     song.stream = insert_lyrics(song.context.lyrics, song.stream)
+    time_stream(song.stream)
     
 end
 

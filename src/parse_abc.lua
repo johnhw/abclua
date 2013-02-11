@@ -24,7 +24,7 @@ broken <- ( ('<' +) / ('>' +) )
 note <- (({:accidental: (accidental )  :})? ({:note:  ([a-g]/[A-G]) :}) ({:octave: (octave)  :}) ? ) -> {}
 decoration <- ('.' / [~] / 'H' / 'L' / 'M' / 'O' / 'P' / 'S' / 'T' / 'u' / 'v' / ('!' ([^!] *) '!') / ('+' ([^+] *) '+'))
 octave <- (( ['] / ',') +)
-accidental <- ( '^' / '^^' / '_' / '__' / '=' )
+accidental <- (  '^^' /  '__' /  '^' / '_' / '=' )
 duration <- ( (({:num: ([1-9] +) :}) ? ({:slashes: ('/' +)  :})?  ({:den: ((  [1-9]+  ) ) :})?))  -> {}
 field <- ( {:contents: '['  field_element  ':'  [^] ] +  ']' :}) -> {}
 field_element <- ([A-Za-z])
@@ -368,18 +368,21 @@ parse_abc_fragment = parse_abc_fragment,
 fragment_to_stream = fragment_to_stream,
 parse_abc_file = parse_abc_file,
 print_notes = print_notes,
+print_lyrics_notes = print_lyrics_notes,
 token_stream_to_abc = token_stream_to_abc,
+song_to_opus = song_to_opus,
+stream_to_opus = stream_to_opus,
 make_midi = make_midi}
 
 
 
 -- TODO:
--- test part handling and triplets
 -- convert midi to abc (quantize, find key, map notes, specify chord channel (and match chords))
 -- directives table from I: fields
+-- filter events
 
 -- grace notes
 -- styling for playback
--- create test suite
+-- extend test suite
 
 
