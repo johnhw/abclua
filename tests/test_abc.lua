@@ -19,8 +19,71 @@ K:G
 D>ED | G G | A>BA | d3 | B>AB | E2 E | D2- | D3 :|:     
 B>GB | B3 | A>EA | A3 | G>EG | G2 G | E3 | E3 | 
 B>GB | B3 | A>EA | A3 | G>EG | G2 G | E3 | D3 || 
-|: D>ED | G2 G | A>BA | d3 | B>AB | E2- :|1 E | D2 |  D3 :|2 E | F2 | G3 :|  
+|: D>ED  | G2 G | A>BA | d3 | B>AB | E2- :|1 E | D2 |  D3 :|2 E | F2 | G3 :|  
 ]]
+
+
+function test_chord_names()
+
+skye_chords=[[
+% this is a comment
+X:437
+T:Over the Sea to Skye
+T:The Skye Boat Song 
+S:Childhood memories
+V:tenor
+H:Written a long time ago
+about Skye, an island off
+Scotland
+Z:Nigel Gatherer
++:and friends
+Q:1/4=140 
+M:3/4
+L:1/4
+K:G
+"Dmin"D>ED | "Gmaj"G G | "Gm7"A>BA | "Dmin"d3 | "Bmaj"B>AB | E2 E | D2- | D3 :|:     
+B>GB | B3 | A>EA | A3 | G>EG | G2 G | E3 | E3 | 
+B>GB | B3 | A>EA | A3 | G>EG | G2 G | E3 | D3 || 
+|: D>ED  | G2 G | A>BA | d3 | B>AB | E2- :|1 E | D2 |  D3 :|2 E | F2 | G3 :|  
+]]
+
+    songs = abclua.parse_all_abc(skye_chords)
+    abclua.make_midi_from_stream(songs[1].voices['default'].stream, 'out/skye_chords.mid')        
+    
+end
+
+
+function test_trimming()
+    -- test event trimming into time windows
+    local songs = abclua.parse_all_abc(skye)
+            
+    stream = songs[1].voices['default'].stream
+    abclua.make_midi_from_stream(stream, 'out/skye_untrimmed.mid')
+    
+    -- trim events that start within 3-6 seconds
+    start_stream = trim_event_stream(stream, 'starts', 3e6, 6e6)    
+    abclua.make_midi_from_stream(start_stream, 'out/skye_starts.mid')
+    
+    -- trim events that start within 3-6 seconds
+    end_stream = trim_event_stream(stream, 'ends', 3e6, 6e6)    
+    abclua.make_midi_from_stream(end_stream, 'out/skye_ends.mid')
+    
+    -- trim events that start or end within 3-6 seconds
+    any_stream = trim_event_stream(stream, 'any', 3e6, 6e6)    
+    abclua.make_midi_from_stream(any_stream, 'out/skye_any.mid')
+    
+    -- trim events that start and end within 3-6 seconds
+    within_stream = trim_event_stream(stream, 'within', 3e6, 6e6)    
+    abclua.make_midi_from_stream(within_stream, 'out/skye_within.mid')
+    
+    -- trim events that start and end any time 3-6 seconds, but cut
+    -- the events to fit exactly
+    trim_stream = trim_event_stream(stream, 'trim', 3e6, 6e6)    
+    abclua.make_midi_from_stream(trim_stream, 'out/skye_trim.mid')
+            
+    
+end
+
 
 function test_fragments()
     -- Test that parsing fragments produces sensible
@@ -38,14 +101,12 @@ function test_inline()
     inline = [[
     X:1
     K:G
-    A B [CEG] A B [K:G] A B F
+    A B [CEG] A B [K:G] A B F [R:remarkable]
     ]]
     
     songs = abclua.parse_all_abc(inline)    
     print(abclua.token_stream_to_abc(songs[1].token_stream))
-    abclua.make_midi(songs[1], 'out/inline.mid')
-    
-    
+    abclua.make_midi(songs[1], 'out/inline.mid')        
 end
 
 function test_keys()
@@ -53,35 +114,31 @@ function test_keys()
     keys = [[
     X:1
     K:none
-    CDEFGAB z4
+    CDEFGABc z4
     K:C
-    CDEFGAB z4
+    CDEFGABc z4
     K:D
-    DEFGABc z4
-    K:D#
-    DEFGABc z4    
+    DEFGABcd z4
+    K:E
+    EFGABcde z4    
     K:G
-    GABcdef z4
-    K:Gb
-    CDEFGAB z4
+    GABcdefg z4
     K:Gdor
-    CDEFGAB z4
+    GABcdefg z4
     K:Gloc
-    CDEFGAB z4 [K:Gphr]
-    CDEFGAB z4
+    GABcdefg z4 [K:Gphy]
+    GABcdefg z4
     K:G ^c _g
-    CDEFGAB z4
+    GABcdefg z4
     [K:G]
-    CDEFGAB z4        
+    GABcdefg z4        
     K:G exp ^f
-    CDEFGAB z4        
+    GABcdefg z4        
     ]]
     
     songs = abclua.parse_all_abc(keys)    
-    table_print(songs[1].token_stream)
+    print(abclua.token_stream_to_abc(songs[1].token_stream))
     abclua.make_midi(songs[1], 'out/keys.mid')
-    
-    
 end
 
 function test_triplets()
@@ -93,6 +150,7 @@ function test_triplets()
     ]]
 
     songs = abclua.parse_all_abc(triplets)    
+    print(abclua.token_stream_to_abc(songs[1].token_stream))
     abclua.make_midi(songs[1], 'out/triplets.mid')
 end
 
@@ -122,7 +180,7 @@ function test_accidentals()
     ]]
     
     songs = abclua.parse_all_abc(accs)          
-    abclua.print_notes(songs[1].voices['default'].stream)
+    print(abclua.token_stream_to_abc(songs[1].token_stream))
     abclua.make_midi(songs[1], 'out/accidentals.mid')
 end
 
@@ -137,6 +195,7 @@ function test_lyrics()
     ]]
 
     songs = abclua.parse_all_abc(lyrics)    
+    print(abclua.token_stream_to_abc(songs[1].token_stream))
     abclua.print_lyrics_notes(songs[1].voices['default'].stream)
     
 end
@@ -176,7 +235,7 @@ function test_rhythms()
     ]]
     songs = abclua.parse_all_abc(rhythms)
     abclua.make_midi(songs[1], 'out/rhythms.mid')
-    abclua.print_notes(songs[1].voices['default'].stream)
+    print(abclua.token_stream_to_abc(songs[1].token_stream))
 end
 
 
@@ -195,10 +254,28 @@ function test_voices()
     ]]
     songs = abclua.parse_all_abc(voices)
     abclua.make_midi(songs[1], 'out/voices.mid')    
+    print(abclua.token_stream_to_abc(songs[1].token_stream))
+end
+
+function test_decorations()
+    -- Test chords, grace notes and decorations
+    decorations = [[
+    X:1    
+    K:G
+    C D ~F .G +fermata+D !legato!G 
+    {cg}D {ab}C {f2fe}G
+    "Cm7"C G "Dmaj"D A D
+    {cg}"Cm7"+fermata+~=D    
+    ]]
+    songs = abclua.parse_all_abc(decorations)
+    abclua.make_midi(songs[1], 'out/decorations.mid')    
+    print(abclua.token_stream_to_abc(songs[1].token_stream))
 end
 
     
 function test_skye()
+    -- test a simple tune
+
     local songs = abclua.parse_all_abc(skye)
     for i,v in ipairs(songs) do
         abclua.make_midi(songs[1], 'out/skye.mid')        
@@ -219,8 +296,11 @@ function test_file()
     end 
 end
 
-test_inline()
---test_keys()
+-- test_decorations()
+-- test_inline()
+-- test_keys()
+--test_trimming()
+test_chord_names()
 -- test_voices()
 -- test_rhythms()
 -- test_accidentals()

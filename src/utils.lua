@@ -8,6 +8,12 @@ function repeat_string(str, times)
     return table.concat(reps)
 end
 
+-- set a field of the whole table
+function set_property(t, key, value)
+    for i,v in pairs(t) do
+        v[key] = value
+    end
+end
 
 -- copy a table completely
 function deepcopy(orig)

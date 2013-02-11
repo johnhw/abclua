@@ -138,6 +138,14 @@ function duration_stream(stream)
     return end_time
 end
 
+function start_time_stream(stream)
+    -- return the time of the first event
+    if #stream==0 then
+        return 0
+    end    
+    return stream[1].t
+end
+
 function zero_time_stream(stream)
     -- fix the time of the first element of the stream to t=0, and shift
     -- the rest of the stream to match
@@ -217,18 +225,21 @@ function trim_event_stream(stream,  mode, start_time, end_time)
                 
                 -- starts, but is too long
                 if start_in and not end_in then
-                    v.duration = end_time - v.t
+                    event.duration = end_time - event.t
                 end
                 
                 -- starts before, but ends in
                 if end_in and not start_in then
-                    v.duration = (v.t+v.duration)-start_time
-                    v.t = start_time                    
+                    event.duration = (event.t+event.duration)-start_time
+                    event.t = start_time                    
                 end
+                table.insert(filtered, event)
              end
         end
         
     end
+    
+    return filtered
 end
     
     
@@ -273,11 +284,56 @@ function note_stream_to_opus(note_stream)
     local dtime
     for i,event in ipairs(note_stream) do
         dtime = (event.t - last_t)/1000.0 -- microseconds to milliseconds
-        table.insert(score, {event.event, dtime, event.channel, event.pitch, 100})
+        table.insert(score, {event.event, dtime, event.channel or 1, event.pitch, event.velocity or 127})
         last_t = event.t
     end
     return score
 end
+
+
+
+
+function get_chord_stream(stream, channel)
+    -- extract all the named chords from a stream (e.g. "Cm7" or "Dmaj") and write 
+    -- them in as note events in a stream
+   local out = {}
+   local notes_on = {}
+   local t
+   local channel = channel or 1
+   
+   for i,event in ipairs(stream) do        
+        
+        if (event.event=='note' and event.note.chord) or event.event=='chord' then                
+            local chord = event.note.chord or event.chord
+            
+            t = event.t
+            -- turn off last chord!
+            for j, n in ipairs(notes_on) do
+                table.insert(out, {event='note_off', t=t, channel=channel})                                           
+                notes_on = {}
+            end
+            
+            -- get the notes for this chord and put them in the sequence
+            notes = voice_chord(create_chord(chord))
+            for j, n in ipairs(notes) do
+                 table.insert(out, {event='note_on', t=t, pitch=n, channel=channel})                           
+                 notes_on[n] = true
+            end                    
+        end
+    end
+    
+    -- turn off last chord
+    for j, n in ipairs(notes_on) do
+            table.insert(out, {event='note_off', t=t, channel=channel})                                           
+            notes_on = {}
+    end            
+    
+    
+    return out 
+end
+
+
+-- sort out stream functions
 
 function stream_to_opus(stream, channel, patch)
     -- return the opus form of a single note stream song, with millisecond timing    
@@ -285,6 +341,12 @@ function stream_to_opus(stream, channel, patch)
     patch = patch or 41 -- default to violin
     
     local note_stream = get_note_stream(stream, channel)
+    -- local chord_stream = get_chord_stream(stream)
+    -- set_property(chord_stream, 'channel', 15)
+    -- set_property(chord_stream, 'velocity', 40)
+    
+    note_stream = merge_streams({note_stream, chord_stream})
+    
      local score = {
         1000,  -- ticks per beat
         {    -- first track
@@ -296,9 +358,21 @@ function stream_to_opus(stream, channel, patch)
     return score  
 end
 
+function merge_streams(streams)
+    -- merge a list of streams into one single, ordered stream
+    local merged_stream = {}
+    
+    for i,v in pairs(streams) do
+        append_table(merged_stream, v)         
+    end    
+    table.sort(merged_stream, function(a,b) return a.t<b.t end)
+    return merged_stream    
+end
+
 function song_to_opus(song, patches)
     -- return the opus form of all the voices song, with millisecond timing
     -- one channel per voice
+    
     
     patches = patches or {}
     local channel = 0    

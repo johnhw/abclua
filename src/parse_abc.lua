@@ -372,7 +372,10 @@ print_lyrics_notes = print_lyrics_notes,
 token_stream_to_abc = token_stream_to_abc,
 song_to_opus = song_to_opus,
 stream_to_opus = stream_to_opus,
-make_midi = make_midi}
+make_midi = make_midi,
+make_midi_from_stream = make_midi_from_stream,
+trim_event_stream = trim_event_stream
+}
 
 
 

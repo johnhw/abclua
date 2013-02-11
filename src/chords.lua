@@ -179,8 +179,9 @@ function match_chord(chord)
     local base_pitch = note_table[match.root]
     match.type = match.type or 'maj' -- default to major chord
     
+    local chord_offsets
     if chords[match.type] then
-        local chord_offsets = chords[match.type]
+        chord_offsets = chords[match.type]
     else    
         return nil -- not a valid chord
     end

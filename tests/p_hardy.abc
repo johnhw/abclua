@@ -1,0 +1,4060 @@
+%abc
+%%abc-alias Paul Hardy's Session Tunebook
+%%abc-creator ABCexplorer 1.3.5 [10/02/2009]
+%%vskip 2cm
+%%textfont * 36
+%%center Paul Hardy's Session Tunebook
+%%vskip 2cm
+%%textfont * 24
+%%center Introduction
+%%vskip 1cm
+%%textfont * 14
+%%begintext justify
+%%This tunebook contains tunes that I have learned to play on my English concertina,
+%%that are played at folk music sessions, particularly in the areas around Cambridge, England and
+%%Redlands, California. They should also be playable on fiddle, whistle, dulcimer, etc. 
+%%endtext
+%%text
+%%begintext justify
+%%Most are traditional tunes from the British Isles, many of Celtic origin, particularly Irish
+%%dance tunes, but others are from an eclectic mix of sources.
+%%Many have been adapted from Internet resources, originally in abc or midi formats.
+%%Others have been learned by ear or handouts from various sessions in the UK and US.
+%%All are believed free of current copyright (unless noted explicitly), or else appear to have been
+%%placed in the public domain. Please let me know if you are the owner of any that are under access
+%%restrictions and I'll remove them.
+%%endtext
+%%text
+%%begintext justify
+%%I have tried to choose the simple versions of most tunes, without much decoration and interpretation,
+%%so add your own triplets, grace notes and variations. I have also included guitar chords, 
+%%based on computer generated ones if not present at the tune's source.
+%%endtext
+%%text
+%%begintext justify
+%%This tunebook has been prepared using the abcm2ps software, with help from abcmus, Melody Assistant,
+%%and ABCexplorer. A big thank you goes to those creative and dedicated people who give their time to
+%%create and maintain low-cost or free and open source software for abc music editing and output.
+%%endtext
+%%text
+%%begintext justify
+%%Particular thanks also go to Greenshoots (www.greenshootsmusic.org.uk) for the slow sessions near
+%%Cambridge in England that let me learn many of these tunes; the concertina sessions at Chiltinas
+%%near Bedford in England that gave me confidence; the Ceili House Band in Redlands in California
+%%that opened my eyes and ears to the range of Irish music; to the celtic jam sessions at
+%%Green Valley Lake in the nearby San Bernadino Mountains that broadened my repertoire; and the
+%%Ceol Galore young musician practice sessions in my home village of Comberton that are carrying
+%%traditional music forward to the next generation.
+%%endtext
+%%text
+%%begintext justify
+%%The current version of this tunebook, in ABC and in PDF forms, is downloadable from
+%%Paul's web site at www.paulhardy.net.
+%%endtext
+%%text
+%%text
+%%center Paul Hardy (paul@paulhardy.net)
+%%vskip 1cm
+%%center Original version of July 2004, this version of 10 February 2009.
+%%vskip 2cm
+%%multicol start
+%%leftmargin 7cm
+%%EPS ..\concertina_bw256.eps
+%%multicol end
+%%newpage
+% --------------------------------- A ---------------------------------------
+
+X:1001
+T:Aiken Drum
+T:Willie Wood
+T:There's a Man Came to our Town
+R:Reel
+C:Trad. Before 1820
+O:Scotland
+M:4/4
+L:1/8
+Q:1/4=140
+K:D
+de|"D"f2 f2 gfed|"G"B4 d3 B|"D"A3 B d2 A2|"E7"f2 e2 "A7"e2 de|
+"D"f2 f2 gfed|"G"B4 d3 B|"A7"A2 A2 B2 c2|"D"d6:|
+|:de|"D"f2 f2 f2 ed|"G"g2 g2 b3 g|"D"f2 a2 f2 d2|"Em"f2 e2 "A7"e2 de|
+"D"f2 f2 gfed|"G"B4 d3 B|"A7"A2 A2 B2 c2|"D"d6:|
+
+X:1002
+T:Abbots Bromley Horn Dance
+R:Jig
+C:Trad.
+O:England (Thaxted)
+M:6/8
+L:1/8
+Q:1/8=150
+K:Em
+e|"Em"B2e G2e|B2e E2G|"B7"F>GA "Em"G>AB|"B7"A>GF "Em"G2 e|
+"Em"B2e G2e|B2e E2G|"B7"F>GA "Em"G>AB|"B7"A>GF "Em"E2 e||
+"Am"c2e cde|A2c ABc|"D"FGA "Em"GFE|"D"DEF "Em"B,2g|
+"C"e2g efg|c2e cde|"D"dcB "B7"AGF|"Em"E3 E2 A||
+|:"Em"B>cB "Am"c3|"Em"B>cB "Am"e3|"Em"B>cB "B7"A>GF|"Em"G2F E2 (3F/G/A/|
+"Em"B>cB "Am"c3|"Em"B>cB "Am"e3|"Em"B>cB "B7"A>GF|"Em"E3 E3:|
+
+X:1003
+T:Amazing Grace
+R:Waltz
+C:Carrell and Clayton 1831
+N:Words by Newton 1779
+O:England
+M:3/4
+L:1/4
+Q:1/4=100
+K:G
+D|"G"G2 B/G/|B2 "D7"A|"Em"G2 "C"E|"G"D2 D|G2 B/G/|B2 "D7"A/B/|("D"d3|d)zB|
+"G"d2 B/G/|B2A|"C"G2 E|"G"D2 D|"Em"G2 (3B/A/G/|"D"B2 A|("G"G3|G2)|]
+
+X:1004
+T:American patrol
+R:March
+C:F. W. Meacham 1885
+N:Made popular by Glen Miller
+O:USA
+M:4/4
+L:1/8
+Q:1/4=160
+K:G
+(3DEF|"G"G2 G2 G3/2F/G3/2A/|B B2 (BB3/2)A/B3/2c/|d2 d3/2^c/ d3/2c/d3/2g/|d4 "D"z2 B2|
+"C"c c2 B "Am"A2 c2|"G"B B2 A G2 B2|"Am"A2 E2 "Bm"F2 G2|"D"A3/2^G/A3/2B/ A2 (3DEF|
+"G"G2 G2 G3/2F/G3/2A/|B B2 (BB3/2)A/B3/2c/|d2 d3/2^c/ d3/2c/d3/2g/|(d4 d3/2)B/c3/2d/|
+"C"e2 d2 c2 B2|"D"A2 G2 "Bm"F2 G2|"Am"A2 B3/2c/ "G"B2 A2|G2 D3/2E/ "D"F3/2G/A3/2B/||
+"C"c2 c2 c3 B|c3/2B/ c4 ^c2|"G"d2 d3/2e/ d3/2c/B3/2c/|d4 "C"e2 d2|
+"C"c2 c3/2B/ c3/2B/c3/2B/|c3/2B/ c4 ^c2|"G"d2 d3/2e/ "G"d3/2c/B3/2c/|
+"G"d2 G2 B2 d2|"C"e2 e2 g3 e|"G"d2 d3/2e/ d3/2c/ B2|"C"c2 c2 "Bm"F2 c2|"G"B B2 c B3/2A/ G2|
+"C"e2 e2 g3 e|"G"d2 d3/2e/ d3/2c/ B2|"C"c2 c2 "D"F3/2D/F3/2A/|G3/2D/ F2 "G"G2|]
+
+X:1005
+T:Ar Eirinn
+T:For Ireland, I Won't Say Her Name
+R:Waltz
+C:Trad.
+O:Ireland
+M:3/4
+L:1/8
+Q:1/4=90
+K:G
+GA|"G"B2D3D|"Am7"E2G3A|"G"B6-|B4GA|B2D3D|"Em"E2G3B|"D"A6-|A4GA|
+"G"B2D3D|"C"Ec3BA|"G"B4AG|"C"E2"D"D3D|"C"EG3"D"A2|"G"BAG4-|G4Bc|
+"G"d2B2BA|G3Bd2|"C"e6|"Em"g4e2|"G"d2B2BA|"Em"G3ABG|"D"A6-|A4dc|"G"B2D3D|
+"C"E2c3A|"G"B4AG|"C"E2"D"D2D2|"Am7"EG3"D"A2|"G"BAG4-|G4|]
+
+X:1006
+T:Archibald MacDonald of Keppoch
+R:Air
+C:Trad.
+O:Scotland
+M:3/4
+L:1/8
+Q:1/4=120
+K:Em
+EF|"Em"G3 A B2|"C"g3 f e2|"G"d B3 G2|"D"A4 EF|"Em"G3 A B2|"C"g3 f e2|"Bm"B e3 d2|"Em"e4:|
+ef||"C"g3 f e2|"G"d3 c B2|"Am"c3 B A2|"Em"B4 EF|"G"G3 A B2|"C"g3 f e2|"Bm"B e3 d2|"Em"e4 ga||
+"Em"b3 a g2|"Em"B g3 e2|"G"d3 B G2|"D"A4 EF|"Em"G3 A B2|"C"g3 a b2|"Bm"B e3 d2|"Em" e4|]
+
+X:1007
+T:Ash Grove, The
+R:Waltz
+C:Trad.
+O:Wales
+M:3/4
+L:1/8
+Q:1/4=100
+K:G
+"D"D2|"G"G2B2dc|B2G2G2|"C"A2cBAG|"D"F2D2D2|"G"G2BAGF|"C"E2C2E2|"G"D2G2"D"F2|"G"G4:|
+|:Bc||"G"d2Bcde|d2c2B2|"D7"c2ABcd|c2B2A2|"G"B2GABc|"Em"B2A2G2|"D"F2d2"A"^c2|"D"d4D2|
+"G"G2B2dc|B2G2G2|"C"A2cBAG|"D"F2D2D2|"G"G2BAGF|"C"E2C2E2|"G"D2G2"D"F2|"G"G4:|
+
+X:1008
+T:Ashokan Farewell
+R:Air
+C:Jay Ungar 1983
+O:USA
+M:3/4
+L:1/8
+Q:1/4=80
+K:D
+Ac|"D"d3 c BA|"D7"F4 EF|"G"G3 F ED|"Bm"B,2 D2-DB,|"D"A,2 D2 F2|A2 d2 f2|"G"f3 g f2|"A7" e4 Ac|
+"D"d3 c BA|"D7"F4 EF|"G" G3 F ED|"Bm"B,2 D2-DB,|"D" A,2 D2 F2|A2 d2 f2|"A7"A2 c2 e2|"D"d4 FG|
+"D"A3 F D2|d4 A2|"G" B3 c d2|"D" A F3 E2|"Bm" F3 E D2|"G" B,4 G,2|"A7" A,4-A,2|A4 FE|
+"D"D2 F2 A2|"C" =c6|"G" B3 c d2|"D" A2 F2 D2|A,2 D2 F2|A2 d2 F2|"A7" E3 D C2|"D" D4|]
+
+X:1009
+T:Atholl Highlanders, The
+R:March
+C:Trad.
+O:Scotland
+M:6/8
+L:1/8
+Q:1/8=250
+K:AMix
+"A"e2e ecA|ecA "Bm"Bcd|"A"e2e ecA|"Bm"Bcd "A"cBA|
+"A"e2e ecA|ecA "Bm"Bcd|"A"eae "D"fed|"A"cdB A2A:|
+|:"A"Ace Ace|"D"Adf Adf|"A"Ace Ace|"Bm"Bcd "A"cBA|
+"A"Ace Ace|"D"Adf Adf|"A"eae "D"fed|"A"cdB A2A:|
+|:"A"a2e edc|"A"a2e edc|"A"a2e edc|"Bm"Bcd "A"cBA|
+"A"a2e edc|a2e edc|eae "D"fed|"A"cdB A2A:|
+|:"A"cAc cAc|"Bm"dBd dBd|"A"cAc cAc|"Em"BGB BGB|
+"A"cAc cAc|"Bm"dBd dBd|"A"eae "D"fed|"A"cdB A3:|
+
+X:1010
+T:Aunt Hessy's White Horse
+T:Aunt Hessie; Aunt Hassie
+R:Reel
+C:Trad.
+O:South Africa
+M:4/4
+L:1/8
+Q:1/4=200
+K:G
+D2|"G"G2A2 B2c2|ddd2 d2Bc|"D7"ddd2 d2Bc|"G"ddd2 d2D2|
+"G"G2A2 B2c2|ddd2 d2Bc|"D7"dd2d cBA2|"G"G4-G2:|
+|:"G"z2|"G"gg2f f2=f2|"C"e4 z4|gg2g f2e2|"G"d4z4|
+dd2d e2=f2|"D7"f4z4|"D7"dd2d cBA2|"G"G4z2:|
+% --------------------------------- B ---------------------------------------
+
+X:2001
+T:Ballydesmond Polka 1
+R:Polka
+C:Trad.
+O:Ireland
+M:2/2
+L:1/8
+Q:1/4=200
+K:G
+"Am"E2A2 A3B|c2d2 e2g2|"G"G4 G3A|G2E2 E2D2|"Am"E2A2 A3B|c2d2 e2g2|"G"g2e2 d2B2|"G/Am"B2A2 A4:|
+|:"Am"a3g a2b2|a2g2 e2f2|"G"g3f g2a2|g2e2 e2d2|"Am"e2a2 a3b|a2g2 e2f2|"G"g2e2 d2B2|"Am/G"B2A2 A4:|
+
+X:2002
+T:Ballydesmond Polka 2
+R:Polka
+C:Trad.
+O:Ireland
+M:2/2
+L:1/4
+Q:1/4=200
+K:G
+"Am"cd/c/ "G"Bc/B/|"F"AB/A/ "Em"G3/2A/|"G"B/c/d "Am"ed|"G"g3d|"Am"ea ge|"G"dB GA/B/|"Am"ce "G"dB|"Am"A2 A2:|
+|:"Am"ea ag/e/|"G"dg gd|"Am"ea ab|"G"g>f gd|"Am"ea ge|"G"dB GA/B/|"Am"ce "G"dB|"Am"A2 A2:|
+
+X:2003
+T:Barley Mow, The
+R:Jig
+C:Trad
+O:England
+M:6/8
+L:1/8
+Q:1/8=220
+K:G
+"G"G2 G "D"A2 A|"G"B2 c dBG|"C"E2 E c2 B|"Am"ABG "D7"FED|
+"G"G2 G "D"A2 A|"G"B2 c dBG|"C"EcB "D7"AGF|"G"G6:|
+"G"d2 d "C"e2 e|"G"d2 g dBG|"G"d2 d "C"e2 e|"G"dBG "D"A3|
+"G"d2 d "C"e2 e|"G"d2 g g2 f|"A7"egf ed^c|"D7"d3 D3||
+"G"G2 G "D"A2 A|"G"B2 c dBG|"C"E2 E c2 B|"Am"ABG "D7"FED|
+"G"G2 G "D"A2 A|"G"B2 c dBG|"C"EcB "D7"AGF|"G"G6|]
+
+X:2004
+T:Bear Dance
+R:Polka
+C:Trad.
+O:Flanders
+M:2/4
+L:1/16
+Q:1/4=100
+K:Em
+"Em"B2E2E3A|B2E2E3A|"G"G2G2F2G2|"D"A6GA|"Em"B2B2A2A2|"D"G2G2F4|"Em"E2G2FED2|E8:|
+|:"Em"E2GGE2G2|"D"FED2D4|"Em"E2GGE2G2|"D"A6GA|"Em"B2B2A2A2|"D"G2G2F4|"Em"E2G2FED2|E8:|
+K:Am
+|:"Am"e2A2A3d|e2A2A3d|"C"c2c2B2c2|"G"d6cd|"Am"e2e2d2d2|"G"c2c2B4|"Am"A2c2BAG2|A8:|
+|:"Am"A2ccA2c2|"G"BAG2G4|"Am"A2ccA2c2|"G"d6cd|"Am"e2e2d2d2|"G"c2c2B4|"Am"A2c2BAG2|A8:|
+
+X:2005
+T:Bielbie's Hornpipe
+R:Hornpipe
+C:Trad.
+O:England, Northumberland
+M:4/4
+L:1/8
+Q:1/4=140
+K:G
+D2|:"G"G3/2A/ B3/2 c/ d3/2g/ f3/2 a/|g2B2d3z/ B/|"Am"c3/2e/ A3/2 B/ c2c2|"G"B3/2d/ G3/2 A/ B3/2c/ B3/2 A/|
+"G"G3/2A/ B3/2 c/ d3/2g/ f3/2 a/|g2B2d3z/ B/|"Am"c3/2e/ A3/2 B/ c3/2B/ c3/2 A/|1 "G"G2B2G2D2:|2 "G"G2B2G3/2A/ B3/2 c/|:
+"G"d2b2c2a2|B2g3/2f/ g3/2d/ B3/2 G/|"D"F3/2G/ A3/2 B/ c3/2A/ F3/2 D/|"G"G3/2F/ G3/2 A/ B3/2A/ B3/2 c/|
+"G"d2b2c2a2|B2g3/2f/ g3/2d/ B3/2 G/|"D"F3/2G/ A3/2 B/ c3/2A/ F3/2 A/|1 "G"A3/2G/ G3/2 F/ G3/2A/ B3/2 c/:|2 "G"A3/2G/ G3/2 F/ G3|]
+
+X:2006
+T:Big Ship
+T:Glise de Sherbrooke
+T:Grande Chaine, La
+R:Slide
+C:Trad.
+O:England via Canada
+M:4/4
+L:1/8
+Q:1/4=160
+K:G
+D2|"G"G2 GA BABc|d2 dc B2G2|"Am"c2cB AFA2|"G"dedc B2D2|
+"G"GFGA BABc|dedc B2G2|"D"cdcB AGFA|"G"G2 B2 G2:|
+|:d2|"C"g2gf efge|"G"d2 dc B2G2|"Am"c2 cB A2 A2|"G"dedc B2 d2|
+"C"g2gf efge|"G"d2 dc B2G2|"D"cdcB AGFA|"G"G2 B2 G2:|
+
+X:2007
+T:Black Velvet Band, The
+R:Waltz
+C:Trad.
+O:Ireland
+M:3/4
+L:1/4
+Q:1/4=150
+K:G
+d|"G"d2d|B>cd|cB2|B2A|(GAB)|GF>E|"D"(D3|D)dc|
+"G"B>BB|DEF|"Em"G2A|B2G|"Am"ABc|"D"FG>A|"G"G3|G2z|]
+
+X:2008
+T:Blackthorn Stick, The
+R:Jig
+C:Trad.
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=240
+K:G
+"D7"d|"G"gfg "C"ege|"G"dBG "D"AGE|"G"DGG "D"FGA|"G"BGB "D"A2 d|
+"G"gfg "C"age|"G"dBG "D"AGE|"G"DGG "D"FGA|"G"BGG G2:|
+|:d|"G"edd gdd|edd gdd|edd gfg|"Am"edB "D7"A2 d|
+"G"gfg "C"age|"G"dBG "D"AGE|"G"DGG "D"FGA|"G"BGG G2:|
+
+X:2009
+T:Blarney Pilgrim
+R:Jig
+C:Trad.
+O:Ireland.
+M:6/8
+L:1/8
+Q:1/8=200
+K:G
+D|"G"DED DEG|"C"A2G ABc|"G"BAG "C"AGE|"Am"GEA "D7"GED|
+"G"DED DEG|"C"A2G ABc|"G"BAG "C"AGE|"D7"GED D2:|
+|:d|"G"ded dBG|"Am"AGA "Em"BGE|"G"ded dBG|"C"AGA "D7"GBd|
+"G"g2e dBG|"Am"AGA "Em"BGE|"Em"B2G AGE|"Em"GAG G2:|
+|:G|"D"A2D "Em"B2D|"D"A2D ABc|"G"BAG "C"AGE|"Am"GEA "D7"GED|
+"D"A2D "Em"B2D|"D"A2D ABc|"G"BAG "C"AGE|"D7"GED D2:|
+
+X:2010
+T:Blaydon Races
+R:Jig
+C:Trad.
+O:England
+M:6/8
+L:1/8
+Q:1/8=240
+K:G
+D|"G"G2G G2G|G2G G2G|"D7"A2A A2A|"G"B3 "G7"G3|"C"ccc c2c|"G"B2B B2B|"A7"A2B A2G|"D7"F3 D3|
+"G"G2G G2G|G2G G2G|"D7"A2A A2A|"G"B3 "G7"G3|"C"ccc c2c|"G"B2c d2d|"D7"d2c B2A|"G"G2A B2c||
+"G"d3 "D7/A"d2B|G3 "C"G2G|"A7"A2A "D7"A2A|"G"B3 "G7"G3|"C"c2c "D7"c2c|"G"B2B "G"B2B|"C"A2B "A7"A2G|"D"F3 "D7"D3|
+"G"G2G "C"G2G|G3 "C"G2G|"A7"A2A "D7"A2A|"G"B3 "G7"G3|"C"c2c "D7"c2c|"G"B2c "E7"d2d|"Am"d2c "D7"B2A|"G"G3 G2|]
+
+X:2011
+T:Blind Mary
+R:Air
+C:Turlough O'Carolan (1670-1738)
+O:Ireland
+M:2/4
+L:1/8
+Q:1/8=120
+K:D
+A|"D"d>d dc|"G"cB "D"A (F/G/)|A>B "Bm"AF|"A"E3 (F/G/)|
+("D"A>f) (f>e)|("G"dB) "D"A(D/E/)|(F>G) ("A"E>D)|"D"D3||
+(d/e/)|"D"f>g fB|"A"ec A(B/c/)|"Bm"d>D D(E/F/)|"A"E3 (A/G/)|
+("D"F>G) "F#m"Ad|"Bm"f>e "G"d (D/E/)|("D"F>G) ("A"E>D)|"D"D3|]
+
+X:2012
+T:Blue Eyed Stranger
+R:Reel
+C:Trad.
+O:England
+M:4/4
+L:1/8
+Q:1/4=160
+K:G
+"G"G2D2D2GF|"C"ED EF "G"G2A2|"G"B2d2 "D7"cB AG|"C"E2 "D7"F2 "G"G2 D2:|
+"G"GA Bc d2G2|"C"ed cB "D7"A2D2|"G"GA Bc d2d2|"D7"B3c "G"d4|
+"G"GA Bc d2G2|"C"ed cB "D7"A2GA|"G"B2d2 "D7"cBAG|"C"E2 "D7"F2 "G"G4|
+
+X:2013
+T:Bobby Shaftoe
+R:Reel
+C:Trad.
+O:England
+M:4/4
+L:1/8
+Q:1/4=200
+K:G
+"G"G2GG G2c2|B2d2 B2G2|"D"D2DD D2G2|F2A2 F2D2|"G"G2GG G2c2|B2d2 B2G2|"C"A2c2 "D"A2F2|"G"G4G4:|
+|:"G"B2d2B2G2|B2d2B4|"D7"A2c2A2F2|A2c2A4|"G"B2d2B2G2|B2d2B4|"C"A2c2 "D"A2F2|"G"G4G4:|
+
+X:2014
+T:Bonaparte Crossing The Rhine
+T:Boney Crossing the Alps
+T:Battle Of Waterloo, The
+R:Hornpipe
+C:Trad.
+O:Scotland
+M:4/4
+L:1/8
+Q:1/4=120
+K:Ador
+EG|"Am"A2 AB AGE2|"C"cdec d2 eg|"Am"aged cded|"C"cAGE G2 cB|
+"Am"A2 AB AGE2|"C"cdec d2 eg|"Am"aged cAGE|"Am"A2 A2 A2:|
+|:eg|"Am"aged cdeg|"Am"agec d2 eg|"Am"aged cded|"C"cAGE G2 EG|
+"Am"A2 AB AGEG|"C"cdec d2 eg|"Am"aged cABG|"Am"A2 (3cBG A2:|
+
+X:2015
+T:Bonny Green Garters
+R:Jig
+C:Trad. Morris
+O:Headington England
+P:A.(AB)4
+M:6/8
+L:1/8
+Q:1/8=180
+K:G
+P:A
+d|:"G"d>cB AGF|"C" G>AB cde|"G" d2d dcB|1"D"B3 A2 d:|2"D"A3 G2||
+P:B
+d|"G"d>cB AGF|"C"G3 A2 "D"d|"G"d>cB AGF|"Em" G3 A2 d|
+"G"d>cB AGF|"C"G>AB cde|"G"ded dcB|"D"A3 "G"G2|]
+
+X:2016
+T:Bonnie Kate
+R:March
+O:Scotland via Ireland
+M:4/4
+L:1/4
+Q:1/4=180
+K:G
+e/f/|"G"g>f "D"g>f|"G"gd dB|"C"c/d/e "D"dc|"G"BG G>A|
+"G"B"Em"G GA/B/|"Am"c"D"A Ac|"G"B/c/d "C"cB|"D"A3:|
+|:G/A/|"G"BG GA/B/|"D"cA "G7"dB|"C"ec cd/e/|"D"fz de/f/|
+"G"g>a "Em"g>e|"Bm"de/f/ "Em"gB|"Am"ce "D"d/e/d/c/|"G"BG G:|
+
+X:2017
+T:Boyne Hunt, The
+R:Reel
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/8=260
+K:D
+"D"BAFA DAFA|BAFA "Em"BEE2|"D"BAFA DAFA|ABde fddA:|
+|:"D"faaf a3f|"Em"gfga bge2|"D"faaf a3f|ABde fdd2|
+"D"faaf a3f|"Em"gfga bge2|"D"f2fe d2dB|ABde fedB:|
+
+X:2018
+T:Boys of Bluehill
+T:Beaux of Oakhill
+R:Hornpipe
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=120
+K:D
+DA|"D"BAFA DAFA|"A"BA (3Bcd e2 de|"D"fagf "A7"egfe|"G"de (3fed B2 dA|
+"D"BAFA DAFA|"Em"BA (3Bcd e2 de|"D"fagf "A7"egfe|"D"d2 dc d2:|
+|:fg|"D"afdf a2 gf|"Em"efga b2 ag|"D"fagf egfe|"G"de (3fed B2 dA|
+"D"BAFA DAFA|"Em"BA (3Bcd e2 de|"D"fagf "A7"egfe|"D"d2 d2 d2:|
+
+X:2019
+T:Breeches Full of Stitches
+T:Oh Those Britches Full of Stitches
+R:Polka
+C:Trad.
+O:Ireland
+M:2/2
+L:1/4
+Q:1/4=180
+K:G
+|:"G"G>A BG| "Am"AG "D7"A/B3/2| "G"G>A BG| "Am"AG "C"E2|"G"G>A BG| "Am"AG "D7"Bd| "G"G>A "C"GE| "Am"ED "D"D2 :|
+|:"G"d>e dB| "Am"AG "D7"AB| "G"d>e dB| "Am"AG "C"E2|"G"d>e dB| "Am"AG "D7"AB| "C"G>A "Em"GE| "Am"ED "D"D2 :|
+
+X:2020
+T:Brighton Camp
+T:The Girl I Left Behind Me
+R:March
+C:Trad.
+O:England
+M:4/4
+L:1/4
+Q:1/4=160
+K:G
+g/f/|"G"ed/c/ BA|"C"BG E>F|"G"GG G/A/B/c/|"D7"d2 Bg/f/|"G"ed/c/ BA|"C"BG E>G|"D7"FA DE/F/|"G"G2 G:|
+|:d/c/|"G"Bd "D7"ef|"G"gd "D7"B>A|"G"Bd "Em"ef|"C"g2 "D7"fg/f/|"G"ed/c/ BA|"C"BG E>G|"D7"FA DE/F/|"G"G2 G:|
+
+X:2021
+T:Brian Boru's March
+R:March
+C:Trad.
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=200
+K:D
+f|:"Bm"d>cB B2f|d>cB B2e|"A"c>BA A2e|c>BA A2f|
+"Bm"d>cB B2f|d>cB B2B|B>de f2e|d>cB B2z:|
+|:"D"Ade f2e|f2e f2e|"A"ABc e2c|e2c e2c|
+"Bm"Bde f2e|f2e f2e|B>de f2e|d>cB B2z:|
+|:"Bm"d>cB b2b|d>cB b2b|"A"c>BA a2a|c>BA a2a|
+"Bm"d>cB b2b|d>cB b2b|B>de f2e|d>cB B2z:|
+
+X:2022
+T:British Grenadiers
+R:March
+C:Trad.
+O:England
+M:4/4
+L:1/4
+Q:1/4=160
+K:G
+D|"G"G D G A|B2 "D"A B/c/|"G"d G "D7"B/A/ G/F/|"G"G3 D|"G"G D G A|B2 "D7"A B/c/|"G"d G "D7"B/A/ G/F/|"G"G3||
+B/c/|"G"d>e d c|B c d d|"C"e e "Am"d/c/ B/A/|"G"G2 "D"F D/D/|"G"G F/G/ "D"A G/A/|"G"B A/B/ "D"c B/c/|"G"d G "D7"B/A/ G/F/|"G"G3|]
+
+X:2023
+T:Bucks of Oranmore, The
+T:Hearty Bucks, The
+R:Reel
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/8=320
+K:D
+|"D"A2FA A2dB|A2FA "Em"BEE2|"D"A2FA A2Bd|egfd "Bm"edBd|
+"D"A2FA A2dB|A2FA "Em"BEE2|"D"DEFG AFAB|defd "Bm"edBd||
+|"D"ADFD A2dB|ADFD "Em"BEE2|"D"ADFD A2Bd|egfd "Bm"edBd|
+"D"ADFD A2dB|ADFD "Em"BEE2|"D"DEFG AFAB|defd "Em"efge||
+|"D"a2fd "Em"edef|"D"a2fd "Em"ed B2|"D"a2fd "Em"edef|"D"gefd "Em"edB2|
+"D"a2fd "Em"edef|"D"a2fd "Em"edB2|"D"faaf "Bm"bfaf|"D"gefd "Bm"edBd||
+|"D"f2df "Em"e2de|"D"f2df "Bm"edBd|"D"f2df "Em"e2de|"D"gefd "Bm"edBd|
+"D"f2df "Em"e2de|"D"f2df "Bm"edBd|"D"faaf "Bm"bfaf|"D"gefd "Bm"edBd||
+|"D"Adfd edfd|Adfd "Bm"edBd|"D"Adfd edfd|"D"gefd "Bm"edBd|
+"D"Adfd edfd|Adfd "Em"edB2|"D"faaf "Bm"bfaf|"D"gefd "Bm"edBd|]
+
+X:2024
+T:Burning of the Piper's Hut, The
+R:March
+C:Trad.
+O:Scotland
+M:4/4
+L:1/8
+Q:1/4=120
+K:Am
+E2|"Am"A>B c>d e2 e2|e>d e<g e2 dc|"G"B2 G2 d2 G2|B>c d<e d2 c>B|
+"Am"A>B c>d e2 e2|e>d e<g e2 dc|"G"B2 G2 e2 d>c|"Am"B2 A2 A2:|
+|:E2|"Am"e2 A2 g2 A2|e2 A2 g2 dc|"G"B2 G2 d2 G2|B>c d<e d2 c>B|
+"Am"e2 A2 g2 A2|e2 A2 g2 dc|"G"B2 G2 e2 d>c|"Em"B2 "Am"A2 A2:|
+
+X:2025
+T:Buttered Peas
+R:Polka
+C:Trad.
+O:England
+M:4/4
+L:1/8
+Q:1/4=180
+K:D
+A"D"G|FG A2 "G"A2 F2|GA "D"B2 B2 G2|F"Em"G A2 "A"A2 F2|"D"G2 E2 E2 A"G"G|
+FG A2 "D"A2 F2|"A"GA "D"B2 B2 G2|F"D"G A2 E3 G|"G"F2 D2 D2:|
+|:A"D"G|FGA"A"B A2 Bc|"D"dcde "G"d3 G|FG "D"A2 A2 "A"F2|
+G2 "D"E2 E2 AG|FGAB A2 Bc|dc de d3 G|FG A2 E3 G|F2 D2 D2:|
+
+X:2026
+T:Butterfly, The
+R:Slipjig
+C:Trad.
+O:Ireland
+M:9/8
+L:1/8
+Q:1/8=240
+K:Em
+"Em"B2E G2E "D"F3|"Em"B2E G2E "D"FED|"Em"B2E G2E "D"F3|"G"B2d d2B "D"AFD:|
+|:"Em"B2c e2f g3|B2c g2e "D"dBA|"Em"B2c e2f g2a|"G"b2a g2e "D"dBA:|
+|:"Em"B>cB B2A G2A|B>cB BAB "D"dBA|"Em"B>cB B2A G2A|"G"B2d g2e "D"dBA:|
+% --------------------------------- C --------------------------------------
+
+X:3001
+T:Caitlin Triall
+R:Waltz
+C:Turlough O'Carolan (1670-1738)
+O:Ireland
+M:3/4
+L:1/8
+Q:1/4=100
+K:G
+G>E|:"G"D3 E G2|G2 A2 B2|"Em"B2 g2 f2|"C"e g3 e2|"G"d3 B G2|"Em"B A3 G2|1"C"E6-|"D7"E4 G>E:|2"G"G6||
+"G"G4 de/f/|g3 f g2|"Em"e d3 B2|"G"g3 f g2|"Em"e g3 e2|"G"d3 B G2|"Em"B A3 G2|"C"E6-|"D7"E4 G>E|
+"G"D3 E G2|G2 A2 B2|"Em"B2 g2 f2|"C"e g3 e2|"G"d3 B G2|"D7"B B3 A2|"C"G4 (3AGF|"G"G4|]
+
+X:3002
+T:Campbell's Farewell to Redcastle
+T:Farewell to Red Gap
+R:Reel
+C:Trad.
+O:Scotland
+M:2/4
+L:1/8
+Q:1/8=180
+K:Amix
+E|"A"AA/B/ cc/d/|ea e>d|cA AB/c/|"G"dd/B/ GE|
+"A"AA/B/ cc/d/|ea e>d|c/B/A B/A/G|A2 A:|
+g/f/|"A"ea ag/f/|ea a>d|cA AB/c/|"G"dd/B/ Gg/f/|
+"A"ea ag/f/|ea a>d|cB/A/ G/A/B/G/|A2 Ag/f/|
+"A"ea ag/f/|ea e>d|cA AB/c/|"G"dd/B/ GE|
+"A"AA/B/ cc/d/|ea e>d|c/B/A B/A/G|A2 A|]
+
+X:3003
+T:Captain O'Kane
+T:Planxty O'Kane
+T:The Wounded Hussar
+R:Jig
+C:Turlough O'Carolan (1670-1738)
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=120
+K:G
+E/2D/2|"Em"B,EF G2 F/2E/2|"D"F/2G/2A/2G/2F/2E/2 "Bm"DEF|"Em"GBG B/2A/2G/2F/2E/2D/2|B,EE E2 E/2D/2|
+"Em"B,EF G2 F/2E/2|"D"F/2G/2A/2G/2F/2E/2 "Bm"DEF|"Em"GBB B/2A/2G/2F/2E/2D/2|B,EE E2||
+E/2F/2|"Em"GBB B2 A/2G/2|"D"FAA "Am"A2 d/2c/2|"Em"Be^d e>fg|Be^d e2 e/2f/2|
+"Em"g>fe "G"d>cB|"D"AFd "Bm"DEF|"Em"GBG B/2A/2G/2F/2E/2D/2|B,EE E2|]
+
+X:3004
+T:Carolan's Concerto
+R:March
+C:Turlough O'Carolan (1670-1738)
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=120
+K:D
+(3ABc|"D"d2 dd d2 cB|ABGA F2 A2|"Em"E2 A2 "D"D2 A2|"Bm"Bcde dcBA|
+"D"d2 a2 fgaf|efge fgaf|"G"g2 bg fdfa|gfed dcBA|
+"G"BdBd gdgd|"D"AdAd f2 fd|"A"e2 ed efed|"F#m"cdBc A2 AG|
+"D"FGAF EFGE|FGAF GABG|A2 d2 fedc|d6:|
+|:(3ABc|"D"d2 b2 agfe|d2 a2 c2 a2|"G"B2 gB ABcd|"D"ecBA d2 df|
+"A"edcB ca a/a/a|"Bm"Bg g/g/g Af f/f/f|"A"edcB ca a/a/a|"G"Bg g/g/g bgbg|
+"D"afaf edcB|"F#m"cABG AFGE|"D"DAFA DAFA|"Em"GEBE GEBE|
+"D"FAdc BAGF|"G"GABc defg|"D"A2 d2 fedc|d6:|
+
+X:3005
+T:Carolan's Draught
+R:March
+C:Turlough O'Carolan (1670-1738)
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=120
+K:G
+D2|"G"GABc "Bm"defd|"Em"g2fe "G"d2d2|"Em"e2E2 "G"d2D2|"C"c2Bc "Am"AcBA|
+"G"GABc "Bm"defd|"Em"gfed "A"^cbag|"G"gfed "Am"A2^c2|"D"d6:|
+fg|"D"afga "G"bagf|"Em"egfe "C"edcB|"Em"e^def "G"gfga|"G"bagf "Em"efga|
+"G"bBbB "D"aBaB|gBgB "Bm"fBfB|"Em"e^def gfe=d|e6 f2|
+"Em"gfed "Am"cBAG|"Em"e2d2 "G"d2D2|"C"c2B2 "D"A2G2|FGAF "G"D3D|
+"Em"EFGE "D"FGAF|"G"GABG "Am"ABcA|"G"d2g2 bagf|g6|]
+
+X:3006
+T:Castles in the Air
+T:Bonny Jean of Aberdeen
+R:Hornpipe
+C:Trad.
+O:Scotland
+M:4/4
+L:1/8
+Q:1/4=120
+K:G
+(3DEF|"G"G2 GB "D7"D2 (3DEF|"G"GFGA "G7"B4|"C"cBce "G"dBAG|"A7"ABAG "D7"E2 (3DEF|
+"G"G2 GB "D7"D2 (3DEF|"G"GFGA "G7"B4|"C"cBce "G"dBGA|"D7"BcBA "G"G2:|
+|:d2|"D7"e2 eg d3 "G"B|"D7"cBcd "G"B4|"C"cBce "G"dBAG|"A7"ABAG "D7"E2 (3DEF|
+"G"G2 GB "D7"D2 (3DEF|"G"GFGA "G7"B4|"C"cBce "G"dBGA|"D7"BcBA "G"G2:|
+
+X:3007
+T:Cheshire Rounds
+R:Waltz
+C:Trad.
+O:England: Cheshire
+M:3/4
+L:1/8
+Q:1/8=160
+K:D
+|:"Em"gf ed fa|"A"ge ed cA|"G"gf ed fa|"D" Ad dA FD:|
+|:"G"GB FA E2|"A"Ee ed cA|"G"GB FA E2|"D"Dd dA FD:|
+
+X:3008
+T:Childgrove
+R:Marchl
+C:Trad. Playford 1701
+O:England
+M:2/4
+L:1/8
+Q:1/4=80
+K:DDor
+A|\
+"Dm"Ad de|f2 ed|"Gm"gf ed|"Am"e>d c/B/A|
+"Dm"Ad de|f2 ea|"Gm"g>f "A7"e/f/e/d/|"Dm"d3:|
+|:f/g/|\
+"F"af fa|"C"ge eg|"Dm"fd d/e/f/d/|"Am"eA Af/g/|
+"F"af fa|"C"g>f e/f/g/e/|"Dm"fe/d/ "A7"ed/^c/|"Dm"d3:|
+
+X:3009
+T:Cock O' The North
+R:Jig
+C:Trad.
+O:Scotland
+M:6/8
+Q:1/8=240
+K:D
+AG|\
+"D"F2F FED|F2A "G"B2A|"D"F2F FED|"A7"E3 A2G|
+"D"F2F FED|F2A "G"B2A|"D"F2F "A"EFE|"D"(D3 D2)||
+A|\
+"D"d2A "G"B2A|"D"d2A "G"B2A|"Bm"F2F FED|"C"(E3 E2) A|
+"D"d2A "G"B2A|"D"d2A "G"B2A|"D"F2F "A"EFE|"D"(D3 D2)|]
+
+X:3010
+T:Colored Aristocracy
+T:Southern Aristocracy
+R:Reel
+C:Trad.
+O:USA, South
+M:4/4
+L:1/8
+Q:1/4=120
+K:G
+(3DEF|:"G"G2GG E2D2|G2GG G2GA|"Em"B2d2 BAG2|E2EE E2z2|"C"e2ef gfe2|
+"G"d2 ed2 BG2|1 "A7"B2 B^c2 BA2|"D7"d4 d2 (3DEF:|2 "D7"B2 Bd2 BA2|"G"G4 G2 (3def|:
+"G" g2ff e2d2|"Em"e2ee e2e2-|"C"e2eg e2dB|"Em"B2BB B2z2|"C"edef gfe2|
+"G"d2e d2BG2|1 "A7"B2 B^c2 BA2|"D7"d4 d2(3def:|2 "D7"B2Bd2 BA2|"G"G4 G2z2|]
+
+X:3011
+T:Connaught Man's Rambles, The
+R:Jig
+C:Trad.
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=180
+K:D
+A|"D"FAA dAA|"Bm"BAB "D"dAG|FAA Afe|"Bm"dBB B2A|
+"D"FAA dAA|"Bm"BAB def|"Em"gfe "Bm"dfe|dBB B2:|
+|:g|"Bm"fbb "D"faa|"Bm"fef "G"deg|"Bm"fbb "D"faa|"Bm"fed "Em"e2g|
+"Bm"fbb "D"faa|"Bm"fef def|"Em"gfe "Bm"dfe|dBB "G"B2:|
+
+X:3012
+T:Cottage in Hayley Wood, The
+R:Jig
+C:Derek Magee
+O:Cambridgeshire England
+M:6/8
+L:1/8
+Q:1/8=160
+K:G
+D|"Em"E2 F GFE|BAG FGE|"D"D2 F A2 d|edB AFD|
+"Em"E2 F GFE|BAB e2 f|gfe dBG|"D"FAF E2:|
+|:f|"Em"gfg fed|"D"FAd fed|GBd FAd|"Em"fed e2 f|
+gfg bag|"D"fge fga|"Bm"bag faf|"Em"efd e2:|
+
+X:3013
+T:Cotillion, The
+T:Chain Cotillion
+R:Rigaudon
+C:Trad.
+O:France
+M:2/2
+L:1/8
+Q:1/2=80
+K:G
+|:"G"G4 "G"d4|"G"B2 AB "G"G2 AB|"C"c2 B2 "G"A2 G2|"Bm"F2 EF "G"D3 D|
+"Em"E4 "Bm"F4|"G"GFGA "G".G2 d2|("C"cB)AG ("G"BA)GF|1 "G"G6 z2:|2 "G"G6 d2|:
+"G"dedc "G".B2 d2|"G"dedc "G".B2 d2|"Em"e2 d2 "Em"e2 f2|"G"g4 "Bm"d2 ef|
+"Em"g2 fe "G"d2 cB|"C"e2 dc "G"B2 AB|"C"c2 B2 "G"A2 G2|"Bm"F2 EF "G"D3 D|
+"Em"E4 "Bm"F4|"G"GFGA "G"G2 d2|("C"cB)AG ("G"BA)GF|[1 "G"G6 d2:|[2 "G"G6 d2|:
+"G"gfga "G"g2 d2|"G"g6 d2|"G"Bc .d2 "G"Bc .d2|"G"BcBA "G"G2 d2|
+"G"gfga "G"g2 d2|"G"g6 d2|"G"Bc .d2 "G"Bc .d2|[1 "G"B6 d2:|[2 "G"B6 B2|:
+"G"B2 .A2 "Am"A2 Bc|"G"d6 g2|"G".d2 .d2 "G"d2 cB|"D"AGAB "D"A2 GA|
+"G"BcBA "G"GABc|"G"dcde "G"d2 g2|"G"B2 g2 "G"GABA|1 "G"G6 B2:|2 "G"G6 z2|]
+
+X:3014
+T:Cumberland Square Eight
+T:My love she's but a lassie yet
+R:Reel
+C:Trad.
+O:Scotland
+M:4/4
+L:1/16
+Q:1/4=120
+K:D
+"D"d2D2 F2A2 d2D2 D2dc|d2D2 F2A2 "A"e2E2 E2dc|"D"d2D2 F2A2 "Bm"B2g2 f2e2|"Bm"dcBA B2c2 "D"d2D2 D2dc|
+"D"d2D2 F2A2 d2D2 D2dc|d2D2 F2A2 "A"e2E2 E2dc|"D"d2D2 F2A2 "Bm"B2g2 f2e2|"Bm"dcBA B2c2 "D"d2D2 D2fg|
+"D"a2f2 g2e2 f2d2 d2fg|a2f2 gfga "Em"b2e2 e2fg|"D"a2f2 g2e2 f2d2 e2c2|"Bm"dcBA B2c2 "D"d2D2 D2fg|
+"D"a2f2 g2e2 f2d2 d2fg|a2f2 gfga "Em"b2e2 e2fg|"D"a2f2 g2e2 f2d2 e2c2|"Bm"dcBA B2c2 "D"d3 z d3 z|]
+
+X:3015
+T:Curly-headed Ploughboy, The
+R:Reel
+C:Trad.
+O:England
+M:4/4
+L:1/8
+Q:1/4=140
+K:G
+"D7"dc|"G"B2d2 G2B2|"C"E4 "G"D2G2|"D7"FGAB c2B2|"G"B4 "D7"A2dc|
+"G"B2d2 G2B2|"C"E4 "G"D2G2|"D7"FGAB c2F2|"G"G6:|
+K:D
+|:"D"d2|"A7"c2c2 cABc|"D"d2d2 d2ed|"A7"c2c2 cABc|"D"d6 ed|
+"A7"c2c2 cABc|"D"d2A2 "G"B2G2|"A7"F2A2 G2E2|"D"D6:|
+
+X:3016
+T:Cushie Butterfield
+T:Pretty Polly Perkins of Paddington Green
+R:Waltz
+C:Trad. Song
+O:Newcastle England
+M:3/4
+L:1/8
+Q:1/4=150
+K:D
+A/AG/|"D"FAd2e2|d2F2A2|"A7"G2F2E2|"D"D4d2|"A"e2A2ff|e2A2cc|"Bm"d2c2B2|"A"A4A3/2G/|
+"D"FAd2e2|ddA2A2|"Em"B2e2e2|"D"A4de|fegfed|"Em"e2B2d2|"A7"A2B2c2|"D"d4A/AG/||
+"D"FFd2de|ddA2A2|"Em"B2e2e2|"D"A4de|fegfed|"Em"e2B2d2|"A7"A2B2c2|"D"d6|]
+% --------------------------------- D ---------------------------------------
+
+X:4001
+T:Danny Boy
+T:Londonderry Air
+T:Young Man's Dream, The
+R:Air
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/8=180
+K:C
+B,CD|"C"E3D EAGE|"F"DCA,2 z CEF|"C"G3A GE"Am"CE|"D7"D4 "G7"z B,CD|
+"C"E3D EA"C7"GE|"F"DCA,2 "G7"z B,CD|"C"E3F "G7"EDCD|"C"C4 "G7"z GAB|
+"C"c3B "F"BA"G7"GA|"C"GEC2 "G7"z GAB|"C"c3B "F"BA"A7"GE|"D7"D4 "G7"z GGG|
+"C"e3d "F"dcAc|"C"GE"Am7"C2 "F"z B,"G7"CD|"C"EAGE "G7"DCA,B,|"C"C4|]
+
+X:4002
+T:Dargason
+T:Sedauny; Sedany
+R:Jig
+C:Trad.
+O:Wales
+M:6/8
+L:1/8
+Q:1/8=180
+K:D
+"D"F2D D2D|F2G A>GF|"Em"G2E E2E|"A7"G2A B>AG|
+"D"F2D D2D|"Bm"d2d c>BA|"Em"G2E E2E|"A7"e2d c>BA:|
+
+X:4003
+T:Dark Island, The
+T:Dr. Mackay's Farewell to Creagorry
+T:Eilean Dorcha; Away to the Westward
+R:Air
+C:Ian Maclachlan, 1958
+O:Scotland
+M:3/4
+L:1/8
+Q:1/4=100
+K:G
+DE|"Am"A3 E A2|"Em"G3 A G2|"C"E3 D C2|"G"D4 GA|"G"B3 A G2|"Em"G d3 D2|"Am"B3 d B2|"D7"A4 DE|
+"Am"A3 E A2|"Em"G3 A G2|"C"E3 D C2|"G"D4 GA|"G"B3 D dB|"D7"A3 D BA|"C"G3 G G2|"G"G4 Bc||
+"^CHORUS"
+"G"d3 D D2|"Em"B3 A G2|"C"E C3 E2|"G"D4 GA|"G"B3 A G2|"Em"G d3 D2|"Am"B3 d B2|"D7"A4 DE|
+"Am"A3 E A2|"Em"G3 A G2|"C"E3 D C2|"G"D4 GA|"G"B3 D dB|"D7"A3 D BA|"C"G3 G G2|"G"G4|]
+
+X:4004
+T:Dashing White Sergeant, The
+R:Reel
+C:Trad.
+O:Scotland
+M:4/4
+L:1/8
+Q:1/4=160
+K:D
+FE|:"D"D2D2DEFG|A2A2A2fe|d2B2A2F2|"Em"B2E2EGFE|
+"D"D2D2DEFG|A2A2A2ff|"A"e2d2c2B2|1"D"A3B AGFE:|2"A"A4A2E2||
+"A"A2AB c2cd|e2ec A3A|"Bm"B2Bc d2de|"Bm"f2fd B3B|
+"A"c2A2d2A2|e2A2f2A2|"Em"g2f2e2d2|"A"c2B2A2G2|
+"D"F2d2dcde|d2A2A2z2|"Em"B2e2edef|"Em"e2B2B2z2|
+"D"A2d2dcde|f2d2dcde|f2z2e2z2|d2cB AGFE|]
+
+X:4005
+T:Da Slockit Light
+R:Air
+C:Tom Anderson, 1969
+O:Scotland, Shetland
+M:4/4
+L:1/8
+Q:1/4=90
+K:D
+FE|"D"D3F A2d2|fedc d2A2|"G"B2d2 "D/F#"A2d2|"Em"BAGF "A7"EGFE|
+"D"D3F A2d2|fedc "Bm"d2A2|"G"B2G2 "A7"AGFE|"D"D4- D2:|
+g2|"D"f2a2 "A7"e3c|"Bm"d3e "A"dcBA|"D"f2a2 "E7"e2^g2|"A"a4- a2=g2|
+"D"f2a2 "A7"e3c|"G"d3e "D/F#"dcBA|"Em"B2G2 "A7"AGFE|"D"D4- D3g|
+"D"f2a2 "A7"e3c|"Bm"d3e "G"dc"D/F#"BA|"G"B2d2 A2d2|BAGF "A"EGFE|
+"D"D3F A2d2|"A"fedc "Bm"d2A2|"G"B2G2 "A7"AGFE|"D"D4- D2|]
+
+X:4006
+T:Davy Davy Knick Knack
+R:Polka
+C:Trad.
+S:Greenshoots
+O:England
+M:2/4
+L:1/16
+Q:1/8=160
+K:G
+D2|"G"GFGA B2B2|GFGA B2B2|"D7"dcBc A2A2|dcBc A2A2|
+"G"GFGA B2B2|GFGA B2B2|"C"dcBc "D7"AcBA|"G"G2B2 G2:|
+|:"C"Bc|"G"d3c B2d2|"Em"g2 g2 d4|"D7"dcBc A2A2|dcBc A2A2|
+"G"d3c B2d2|"Em"g2 g2 d4|"D7"dcBc AcBA|"G"G2 B2 G2:|
+
+X:4007
+T:Delia
+T:Amorous Goddess, The
+R:March
+C:Samuel Howard
+O:USA
+M:4/4
+L:1/8
+Q:1/4=100
+K:D
+A2|"D"d2 d/e/f "A7"e2 ac|"Bm"d2 "Em"g<e "D"d2 "A7"c2|\
+"D"dA "D7"B=c "G"B^c "D"d2|"Em"e/f/g "D"f2 "A7"e4|
+"D"d2 d/e/f "A7"e2 ac|"Bm"d2 "Em"g<e "D"d2 "A7"c2|\
+"D"dA "D7"B=c "Em"B2 ge|"D"d2 "A7"c2 "D"d4||
+"A7"c2 "D"d/e/f "A"e2 dc|"Bm"d2 "E7"cB "A"c4|\
+"A"ec BA "D"F^G "A"A2|"Bm"d2 c2 "E7"B4|
+"A"e2 "D"df "A"e2 dc|"Bm"d2 "E7"bd "A"c4|\
+"A"ec BA "Bm"F2 dB|"A"A2 "E7"^G2 "A"A4||
+"D"d2 d/e/f "A"e2 ac|"Bm"d2 "Em"g<e "D"d2 "A7"c2|\
+"D"dA "D7"B=c "G"B^c "D"d2|"Em"e/f/g "D"f2 "A7"e4|
+"D"d2 d/e/f "A"e2 ac|"Bm"d2 "Em"g<e "D"d2 "A7"c2|\
+"D"dA "D7"B=c "Em"B2 ge|"D"d2 "A7"c.B//c// "D"d4|]
+
+X:4008
+T:Dennington Bell
+R:March
+C:Trad.
+O:England, Suffolk
+M:4/4
+L:1/8
+Q:1/4=140
+K:D
+FG|"D"A2 fe d2 EF|"Em"G2 ed c2 EF|"A7"G2 ed c2 cB|"D"A>B AG F2 FG|
+"D"A2 fe d2 EF|"Em"G2 ed c2 EF|"A7"G2 ed c2 Bc|"D"d>e fe d2:|
+|:dc|"Em"B>B Bd e>d cB|"D"A>B Ad f4|"Em"B>A Bd e>d cB|"A"AB AF E2 FG|
+"D"A2 fe d2 EF|"Em"G2 ed c2 EF|"A7"G2 ed c2 Bc|"D"d>e fe d2:|
+
+X:4009
+T:Dennis Murphy's Polka
+R:Polka
+C:Trad.
+O:Ireland
+M:2/4
+L:1/16
+Q:1/4=100
+K:D
+"D"fgfe d2B2|"Bm"A2D2 F2A2|"Em"G2E2 e3d|"A7"c2B2 B2A2|
+"D"fgfe d2B2|"Bm"A2D2 F2A2|"Em"G2E2 "A7"e3f|"D"e2d2 d4:|
+|:"D"A2f2 fef2|"G"B2g2 gfg2|"D"A2f2 fed2|"A7"efed B2A2|
+"D"A2f2 fef2|"G"B2g2 g3a|b2a2 "A7"g2ef|"D"e2d2 d4:|
+
+X:4010
+T:Dever The Dancer
+T:Humours Of Whiskey, The
+R:Slipjig
+C:Trad.
+O:Ireland
+M:9/8
+L:1/8
+Q:1/8=180
+K:Emin
+"Em"BEE BEF G2A|BEE BAG "D"FGA|"Em"BEE BEF G2A|"G"B^cd "Em"ABG "Bm"FED:|
+|:"G"ded "Am"cAF "Em"G2A|"G"ded "Bm"def "Em"gfe|"G"ded "Am"cAF "Em"G2A|"G"B^cd "Em"ABG "Bm"FED:|
+
+X:4011
+T:Devil among the Tailors, The
+T:De'il amang the Tailors, The
+R:Reel
+C:Trad.
+O:Scottish
+M:4/4
+L:1/8
+Q:1/4=120
+K:G
+df|"G"g2df g2df|g2dg edcB|"C"ceAe ceAe|ceag fdef|
+"G"g2df g2df|g2dg edcB|"C"cdec dBGE|"D7"DGFA "G"G2:|
+|:dc|"G"BdGd BdGd|Bdgf edcB|"C"ceAe ceAe|ceag fedc|
+"G"BdGd BdGd|Bdgf edcB|"C"cdec dBGE|"D7"DGFA "G"G2:|
+
+X:4012
+T:Dingle Regatta
+R:Jig
+C:Trad.
+O:Ireland
+M:6/8
+Q:1/8=220
+K:G
+"G"d^cd e2d|BAB d2B|"D"A2A AGA|"G"B2A G2d|
+"G"d^cd e2d|BAB d2B|"D"A2A ABA|"G"G3-G3:|
+|:"D"d3 def|"G"g3 gfg|"D"a2a aga|"G"b2a g2e|
+"D"d3 def|"G"g3 gfg|"D"a2g f2e|def "G"g3:|
+|:"G"g3 d3|BdB G3|"D"FGA DEF|"G"G2B def|
+"G"g3 d3|BdB G3|"D"FGA DEF|"G"G3-G3:|
+
+X:4013
+T:Donkey Riding
+R:Hornpipe
+C:Trad. Shanty
+O:England
+M:2/4
+L:1/16
+Q:1/4=120
+K:G
+"G"G3A B2B2|"Am"c2A2 "G"B4|B2A2 "Am"A2GA|"G"B2A2 "Am"A4|"G"G3A B2B2|"Am"c2A2 "G"B4|B2A2 "D7"d2d2|"G"G4 G4:|
+|:"Em"e2g2 "G"d2dd|"Am"c2d2 "G"B4|"G"B2A2 "Am"A2GA|"G"B2A2 "Am"A4|"Em"e2g2"G"d2dd|"Am"c2d2 "G"B4|B2A2 d2 "D7"d2|"G"G4 G4:|
+
+X:4014
+T:Donnybrook Fair
+T:Joy of My Life, The
+R:Jig
+C:Trad.
+O:Ireland.
+M:6/8
+L:1/8
+Q:1/8=160
+K:G
+D|"G"GFG AGA|"Em"Bee "D"dBA|"G"B3 GAB|"Am"AGF "Em"FED|
+"G"GFG AGA|"Em"Bee "D"dBA|"G"B3 GAB|1 "D"AGF "G"G2:|2 "G"AGF G2f||
+"Em"g3 "D"fed|"C"ege "D"dBA|"Em"Bee "D"dBA|"Em"Bee e2f|
+"G"gfe "D"fed|"C"ege "D"dBA|"G"B3 GAB|"D"AGF "G"G2f|
+"Em"g3 "D"fed|"C"ege "D"dBA|"G"Bee dBA|"Em"Bee e2f|
+"G"g3 "D"a3|"Em"bge "D"dBA|"G"B3 GAB|"D"AGF "G"G3|]
+
+X:4015
+T:Doon the Brae
+T:Old Crossroads, The
+R:March
+O:Scotland
+M:4/4
+L:1/8
+Q:1/4=90
+K:EMin
+B,|:"Em"E3F G3A|B2e2 "Bm"dB2A|"Em"G>FGB "D"AFDE|"Bm"F2EF D2B,2|
+"Em"E3F G3A|B2e2 "Bm"dB2A|"Em"G>FGB "D"AFDE|1"Bm"F2E2 "Em"E3B,:|2"Bm"F2E2 "Em"E3A
+|:"Em"B2e2 e2de|"Bm"f>gfe dB2B|"D"A3B "Bm"d3e|dBAB d2BA|
+"Em"B2e2 e2de|"Bm"f>gfe dB2A|"Em"G>FGB "D"AFDE|1"Bm"F2E2 "Em"E3A:|2"Bm"F2E2"Em"E4|
+
+X:4016
+T:Dorset Four Hand Reel
+R:Reel
+C:Trad.
+O:England
+M:2/4
+L:1/8
+Q:1/4=120
+K:G
+BA|"G"G2B2 d2cB|"C"c2e2 c2e2|"G"G2B2 d3c|"D"B2A2 A2BA|
+"G"G2B2 d2cB|"C"c2e2 c2e2|"G"G2B2 "D7"d3c|"G"B2G2G2:|
+|:d2|"C"g2g2 gfe2|"G"d2d2 dcB2|"D"A2AB c2d2|"G"e2d2 d2ef|
+"C"g2g2 gfe2|"G"d2d2 dcB2|"D7"A2AB c2A2|"G"G4 G2:|
+|:D2|"G"G2Bd gdBG|"C"c2e2 c2e2|"G"G2Bd gdBG|"D7"A2d2 A2d2|
+"G"G2Bd gdBG|"C"c2e2 c2e2|"D7"d2fe dcBA|"G"G2g2 g2:|
+|:Bc|"G"d2B2 d2B2|"C"e2c2 e2c2|"G"d2B2 d2B2|"D7"A2d2 d3d|
+"G"d2B2 d2B2|"C"e2c2 e2c2|"D7"d2fe dcBA|"G"G2g2 g2:|
+
+X:4017
+T:Double Lead Through
+R:March
+C:Trad. (William Kimber)
+O:England, Headington
+M:2/4
+L:1/16
+Q:1/4=100
+K:G
+d2|:"G"g2d2 "D7"c2A2|"G"G2G2 GABG|"C"E2E2 "D7"F2D2|"G"G8:|
+|:"D"A3d ^c2d2|A2d2 ^c2d2|1 A2d2 "A7"e2A2|"D"f8:|2 "A7"A2g2 f2e2|"D7"d2c2 B2A2|:
+"G"G2G2 GABG|"D7"A2A2 ABcA|"G"Bcd2 "C"cde2|"D7"e2d2 d2ef|"C"g2g2 gfe2|
+"D7"d2d2 "G"dcB2|"C"ABc2 "G"Bcd2|1 "C"egfe "D7"dcBA:|2 "C"e2"D7"f2 "G"g4|]
+
+X:4018
+T:Drops of Brandy
+R:Slipjig
+C:Trad.
+O:Ireland
+M:9/8
+L:1/8
+Q:1/8=220
+K:D
+"D"A2G FDF FDF|A2G FDF "A7"GFE|"D"A2G FDF FDF|"Em"GFG E2F "A7"GFE:|
+|:"D"DFA dAF dAF|DFA dAF "A7"GFE|"D"DFA dAF dAF|"Em"GFG E2F "A7"GFE:|
+
+X:4019
+T:Drowsy Maggie
+R:Reel
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=140
+K:D
+"Em"E2BE dEBE|E2BE "D"AFDE|"Em"E2BE dEB2|"G"BABc "D"dAFD|
+"Em"E2BE dEBE|E2BE "D"AFDE|"Em"E2BE dEB2|"G"BABc "D"dAFA||
+"D"d2fd "A7"cdec|"D"d2fd "Bm"faaf|"D"d2fd "A7"cdec|"G"BABc "D"dAFA|
+"D"d2fd "A7"cdec|"D"d2fd "Bm"faa2|"G"bgaf "D"gfed|"G"BABc "D"dAFD:|"Em"E4 z4|]
+
+X:4020
+T:Drunken Sailor
+T:What Shall We Do
+R:Hornpipe
+C:Trad.
+O:England
+M:4/4
+L:1/8
+Q:1/4=150
+K:Em
+"Em"B2BB B2BB |B2E2G2B2 |"D"A2AA A2AA |A2D2F2A2 |"Em"B2BB B2BB |B2^c2d2e2 |"Bm"d2B2"D"A2F2 |"Em"E4 E2 z2 ||
+"Em"B4 B3B |B2E2G2B2 |"D"A4 A3A |A2D2F2A2 |"Em"B4 B3B |B2^c2d2e2 |"Bm"d2B2"D"A2F2 |"Em"E4 E2 z2 |]
+
+X:4021
+T:Durham Rangers
+R:Hornpipe
+C:Trad.
+O:Northumbria England
+M:4/4
+L:1/8
+Q:1/4=120
+K:D
+FG|"D"ABAF A2 de|fgfe d3 A|"G"BcdB "D"ABAF|"Em"G2 E2 "A7"E2 FG|
+"D"ABAF A2 de|fgfe "Bm"d2 dA|"Em"BcdB "A7"ABAG|"D"F2 D2 D2:|
+|:ag|"D"fefg af"G"dg|"D"fefg a2 gf|"G"g2 bg "D"f2 af|"Em"g2 e2 "A7"e2 FG|
+"D"ABAF A2 de|fgfe "Bm"d2 A2|"Em"BcdB "A7"ABAG|"D"F2 D2 D2:|
+% --------------------------------- E ---------------------------------------
+
+X:5001
+T:Earl Grey
+T:Chicken Pecking
+R:Reel
+C:Trad.
+S:Pete Coe
+O:England, Northumberland
+M:4/4
+L:1/4
+Q:1/4=160
+K:G
+"G"G>AGD|"Em"EGDB|"C"cAc/B/A/G/|"D"FAAB/A/|
+"G"G>AGD|"Em"EGDB|"C"cede/f/|1 "G"gGG2:|2 "G"gGG ((3d/e/f/)|:
+"C"gGfG|eGdG|cA c/B/A/G/|"D"FAA((3d/e/f/)|
+"C"gGfG|eGdG|ced e/f/|1 "G"gGG ((3d/e/f/):|2 "G"gGG2|]
+
+X:5002
+T:Earl's Chair, The
+R:Reel
+C:Trad. O'Neill's 1850
+O:Ireland
+M:4/4
+L:1/8
+Q:1/8=260
+K:D
+A|"Bm"B2 dB BAFA|B2 dB BAFB|"D"AF F2 DF F2|AFdB ADFA|
+"Bm"B2Bd BAFA|B2 dB BAFB|"D"AFAB dcdf|"Em"edef "D"d3:|
+f|:"Em"e2e f "Bm"d2 (3Bcd|"Em"edef "Bm"dBAB|"Em"e2ef "D"d3e|"Bm"fedB "D"ADFA|
+"Em"e2e f "Bm"dBB2|"Em"gB B2 "D"defg|"Bm"afbf "D"afeg|"Bm"fedB "D"ADFA:|
+
+X:5003
+T:East Neuk of Fife
+R:Reel
+C:Trad.
+O:Scotland
+M:4/4
+L:1/8
+Q:1/4=160
+K:Em
+D2|"G"G2G2 G2Bc|dBGB dBGB|"Am"A2A2 "D"A2gf|"Em"e2ed efge|
+"G"dcBA G2Bc|dBGB d2cB|"Am"ABcd "G"BcAB|"Em"G2E2 E2:|
+|:dc|"G"B2G2 G2dc|B2G2 "Em"G2ed|"Am"c2A2 "D"A2fg|"Am"a2A2 A2Bc|
+"G"d2G2 B2G2|"Em"gfge "G"d2cB|"Am"ABcd "G"BcAB|"Em"G2E2 "C"E2:|
+
+X:5004
+T:Egan's Polka
+R:Polka
+C:Trad.
+S:Greenshoots
+O:Ireland
+Z:Paul Hardy
+M:2/4
+L:1/8
+Q:1/4=120
+K:D
+"D"fA BA|fA BA|d2 "Bm"e>f|"G"ed "A7"BA|
+"D"fA BA|fA BA|"G"d2 "Em"e>f|"A7"ed "D"d2:|
+|:"D"fa f>e|"Bm"ed BA|"G"d2 e>f|"A7"ed BA|
+"D"fa f>e|"Bm"ed BA|"G"d2 "Em"e>f|"A7"ed "D"d2:|
+
+X:5005
+T:Eleanor Plunkett
+R:Air
+C:Turlough O'Carolan (1670-1738)
+O:Ireland
+M:3/4
+L:1/8
+Q:1/4=100
+K:Em
+GA|"Em"B2 B2 AG|G2 G2 ag|e2 e2 ed|B2 B2 AG|E2 "Am"A2AB|"D"A4 ga|
+"Em"b2ag ed|e4ef|g2g2b2|"D"a2ba gf|"Em"g2ag fe|"G"d2B2d2|
+"Em"e2 g2 G2|B2 B2 AG|E2 "Am"A2 AB|"D"A4|]
+
+X:5006
+T:Endearing Young Charms
+T:Believe Me if All those Endearing Young Charms
+T:My Lodging is on the Cold Ground
+R:Waltz
+C:Music Trad. 17C
+N:Words by Thomas Moore 1808
+O:Ireland
+M:3/4
+L:1/8
+Q:1/8=260
+K:D
+FE|"D"D3ED2|"Bm"D2F2A2|"G"G2B2d2|"G"d4cB|"D"A3GF2|"A7"E3DE2|"D"F6|"A7"E4FE|
+"D"D3ED2|"Bm"D2F2A2|"G"G2B2d2|"G"d4cB|"D"A2d2F2|"A7"E3DE2|"D"D6-|D4AG|
+"D"F2A2d2|"D"d4AA|"G"B2G2d2|"G"d4cB|"D"A3GF2|"A7"E3DE2|"D"F6|"A7"E4FE|
+"D"D3ED2|"Bm"D2F2A2|"G"G2B2d2|"G"d4cB|"D"A2d2F2|"A7"E3DE2|"D"D6-|D4z2|]
+
+X:5007
+T:Eric's Waltz
+R:Waltz
+C:Eric Elsener
+O:France
+M:3/4
+L:1/8
+Q:1/4=120
+K:G
+D2|"G"G4 A2|"Bm"B4 d2|"C"c2 cd cB|"D"A4 c2|"G"B2 Bc BA|"Em"G4 B2|"C"A2 AG FG|"D"A4 D2|
+"G"G4 A2|"Bm"B4 d2|"C"c2 cd cB|"D"A4 c2|"G"B2 Bc BA|"D"G2 A2 F2|"G"G2 "D"FG BA|"G"G4 "Bm"d2|
+"C"c2 cd cB|"D"A4 c2|"G"B2 Bc BA|"Em"G4 B2|"C"A2 AB AG|"D"F2 G2 A2|"G"B2 BA GA|"Bm"B4 d2|
+"C"c2 cd cB|"D"A4 c2|"G"B2 Bc BA|"Em"G4 B2|"D"A2 AB AG|"D"F2 G2 A2|"G"G2 FG "D"BA|"G"G4|]
+% --------------------------------- F ---------------------------------------
+
+X:6001
+T:Fairy Dance, The
+R:Reel
+C:Nathaniel Gow, 1812
+O:Scotland
+M:4/4
+L:1/8
+Q:1/4=160
+K:G
+"G"B2BG "G"B2BG|"G"B2BG "D"FGAc|"G"B2BG "C"cBAG|"D"FDEF "G"GABc:|
+|:"G"d2dB "C"e2eB|"D7"c2cA "G"d2dc|"Em"B2BG "Am"cBAG|1 "D7"FDEF "G"GABc:|2 "D7"FDEF "G"G3|]
+
+X:6002
+T:Farewell to Whiskey
+T:Farewell to Whisky
+R:Air
+C:Niel Gow 1799
+O:Scotland
+M:4/4
+L:1/8
+Q:1/4=100
+K:G
+GE|"G"D2G2 B2AG|"Am"A2E2 E3G|"G"D2G2 B2AG|"Bm"d2B2 B3d|
+"C"e2g2 "G"d2B2|"Am"cBAG "D7"A2B2|"G"D2G2 "D7"BAGA|"G"B2G2 G2:|
+|:Bc|"G"d2B2 g2B2|"Am"cBAG "D7"A2Bc|"G"d2B2 g2d2|"C"e2g2 g3d|
+"C"e2g2 "G"d2B2|"Am"cBAG "D7"A2B2|"G"D2G2 "D7"BAGA|"G"B2G2 G2:|
+
+X:6003
+T:Father Kelly's (reel)
+T:Rossmore Jetty, The
+R:Reel
+C:P J Kelly
+O:Ireland
+M:4/4
+L:1/8
+Q:1/8=240
+K:G
+"G"B2GB "Em"AGEG|"G"DGGF G2AB|"Am"c2AB cBAG|EAAG "D"FDGA|
+"G"B2GB "Em"AGEG|"G"DGGF GABc|d2Bd gdBd|1 "D"cAFA "G"G3A:|2 "D"cAFA "G"GABc|:
+"G"d2Bd gdBd|d2Bd gdBd|"C"e2ce "D"agfe|"G"defg "D"agfe|
+"G"d2Bd gdBd|d2Bd gdBd|"Am"c2Ac "G"BAGB|1 "D"AGFA "G"GABc:|2 "D"AGFA "G"G3A|]
+
+X:6004
+T:Fiery Clock Face
+T:Coal-hole, The
+R:Jig
+C:Trad. Song, 1888
+O:Newcastle England
+M:6/8
+L:1/8
+Q:1/8=280
+K:D
+A|"D"d2 d D2 E|F2 G A2 B|"C"=c2 =c E2 F|G2 A "A7"B2 c|
+"D"d2 d D2 E|F2 G A2 A|"G"Bcd "A7"e2 c|"D"d3 d2:|
+|:d/e/|"D"f2 f def|"G"g2 f e2 d|"A"c2 B A2 B|"A7"c2 d e2 ^e|
+"D"f2 f def|"Em"g2 f e2 d|"A7"cBA B2 c|"D"d3 d2:|
+
+X:6005
+T:Flowers of Edinburgh, The
+R:Reel
+C:Trad.
+O:Scottish
+M:4/4
+L:1/8
+Q:1/4=120
+K:G
+GE|"G"D2 DE G2 GA|BGBd cBAG|"D"FGFE DEFG|"D7"AFdF E2 "C"GE|
+"G"D2 DE "Em"G2 DA|"G"BGBd "C"efge|"G"dcBA "D7"GFGA|B2 G2 G2:|
+|:z d|"G"g2 g2 gb ag|"B7"f2 f2 fagf|"Em"e2 ef gfed|B2 e2 e2 ge|
+"G"dBGB d2 d2|"C"edef "A7"g2 fe|"G"dcBA "D7"GFGA|"G"B2 G2 G2:|
+
+X:6006
+T:Flowers Of The Forest, The
+R:Air
+C:Trad. (before 1615 Skene ms)
+O:Scottish
+M:6/8
+L:1/8
+Q:1/8=180
+K:Dmix
+"D"A3 A2B|"D"A2d d3-|"Bm"d2f g2f|"G"e2d B2d|"G"d3- d2B|"D"A3 A2B|
+"D"A2d d3-|d2g "Bm"f3|"D"e>fe d3-|d3 "G"c3|"D"c2d B>cB|"Am"A3- A2f|
+"C"g2f e2d|"G"B2d d3-|"D"d2B A3|"D"A2B A2d|"D"d3- d2g|"Bm"f3 e>fe|"D"d3- d3|
+
+X:6007
+T:Four Pound Cheque
+T:42 Pound Check, The
+R:Polka
+C:Trad.
+N:Variant of Dennis Murphy Polka
+O:Ireland
+M:2/4
+L:1/8
+Q:1/8=240
+K:D
+"D"Ad Bd/B/|AD FA|"Em"GE BE|"D"A>G FD|Ad Bd/B/|AD FA|"A"GE A>G|"D"FD D2:|
+|:"D"Ad fe/f/|"Em"gf ed|"A"cA eA|e>d cA|"D"Ad fe/f/|"Em"gf e>d|"A7"cA Bc|"D"d2 d2:|
+
+X:6008
+T:Foxhunter's Jig, The
+R:Slipjig
+C:Trad.
+O:England
+M:9/8
+L:1/8
+Q:1/8=200
+K:D
+"D"FGF FED "G"G2E|"D"FGF FED "A"E2D|"D"FGF FED "G"G2B|"D"AFD DEF "A"E2D:|
+|:"G"B=cB BAG "D"FGA|"G"B2E E2F "A"G2B|"D"ABc "G"dcB "D"ABc|"G"d2D "D"DEF "A"E2D:|
+|:"D"fgf fed "G"g2e|"D"fgf fed "A"e2d|"D"fgf fed "G"g2b|"D"afd def "A"e2d:|
+|:"G"gfe d=cB "D"AGA|"G"B2E E2F "A"G2B|"D"ABc "G"dcB "D"ABc|"G"d2D DEF "A"E2D:|
+
+X:6009
+T:French-Canadian Waltz
+T:Louis Waltz
+R:Waltz
+C:Trad.
+O:Canada
+M:3/4
+L:1/8
+Q:1/4=120
+K:D
+A3/2G/|"D"F2 D>F A>d|f4 ef|"G"g>b b>g f>g|"Em"B3 d c>B|"A7"A>G E>F G>A|c2 B2 A2|"D"F2 E2 F>B|"A7"A4 A>G|
+"D"F2 D>F A>d|f4 e>f|"G"g>b b>g f>g|"Em"B3 d c>B|"A7"A>G E>F G>A|c2 B2 c2|"D"d6|d4 c>B|
+"A7"A2>A2 A2|c2 B2 A2|"D"F3 E FG|d2 c2 d2|"A7"e2>e2 e2|e2 A2 G2|"D"F6|"D7"F4 EF|
+"G"G2>G2 G2|"A7"c2 B2 A2|"D"F3 E F2|"Bm"d2 c2 d2|"G"E2>D2 EF|"A7"G2 F2 E2|"D"D6|D4 z2|]
+
+X:6010
+T:Friendly Visit, The
+R:Hornpipe
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/8=220
+K:G
+BA|"G"(3GFG DG BGBd|"C"(3cBc AB "D7"cdef|"G"g2 dg "C"ecAG|"Am"FGAB "D7"cAFD|
+"G"(3GFG DG BGBd|"C"(3cBc AB "D7"cdef|"G"gdBG "D7"FAdc|"G"B2 G2 G2:|
+|:(3GBd|"G"g2 dB GBdg|"Am"e2 cA FGAg|"D"f2 ed "A7"^cdeg|"D7"(3fgf (3efe "G"dcBA|
+"G"(3GFG DG BGBd|"C"(3cBc AB "D7"cdef|"G"gdBG "D7"FAdc|"G"B2 G2 G2:|
+% --------------------------------- G ---------------------------------------
+
+X:7001
+T:Gairsay
+R:March
+C:Trad.
+O:Orkney, Scotland
+M:4/4
+L:1/8
+Q:1/4=160
+K:D
+D2E2|"D"F3G "A7"F2E2|"D"E2D2 F2A2|d3e d2c2|"G"B4 "A7"B2c2|"D"d3e d2B2|"D"A2F2 F2G2|A3B A2F2|"A7"E4||
+D2E2|"D"F3G "A7"F2E2|"D"E2D2 F2A2|d3e d2c2|"G"B4 "A7"B2c2|"D"d3e d2B2|A2F2 "D"F2A2|"Em"G2AG "A7"F2E2|"D"D4||
+c2d2|"A7"e3f e2d2|c2A2 d2e2|"D"f3g f2e2|d4 d2c2|"G"B3A B2c2|d3e d2B2|"D"A3B A2F2|"A"E4 D2E2|
+"D"F3G "A7"F2E2|"D"E2D2 F2A2|d3e d2c2|"G"B6 "A7"c2|"D"d3e "G"d2B2|"D"A2F2 F2A2|"Em"G2AG "A7"F2E2|"D"D4|]
+
+X:7002
+T:Galopede
+T:Yarmouth Reel
+R:Reel
+C:Trad.
+O:England
+M:4/4
+L:1/8
+Q:1/4=140
+K:G
+dc|"G"B2 Bc "D"A2 AB|"G"G2 "C"G2 "G"G2 AB|"C"cBcd "Am"edcB|"D"A2 A2 A2 dc|
+"G"B2 Bc "D"A2 AB|"Em"G2 G2 "G"G2 AB|"Am"cBAG "D7"FGAF|"G"G2 G2 G2:|
+dc|"G"B2 gf "C"e2 ed|"Am7"dcBc "D"A2 dc|"G"B2 gf "Am"edcB|"D"A2 A2 A2 dc|
+"G"B2 gf "C"e2 ed|"Am7"dcBc "D"A2 dc|"G"BdcB "D7"AcBA|"G"G2 G2 G2||
+Bc|"G"d2 d2 d2 g2|d2 d2 d2 g2|d2 d2 "C"edcB|"D"A2 A2 A2 Bc|
+"G"d2 d2 d2 g2|"G"d2 d2 d2 g2|"C"edcB "D7"dcBA|"G"G2 G2 G2|]
+
+X:7003
+T:Galway Hornpipe
+T:McDermott's No.1
+R:Hornpipe
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/8=240
+K:D
+FE|"D"D2 FA dAFD|"C"=CDEF G2 FE|"D"D2 FA dcdf|"A"edcB AGFE|
+"D"D2 FA dAFD|"C"=CDEF G2FG|"A"AdcB AGFE|"D"D2 CE D2:|
+|:de|"D"f2 fg fedc|"G"BABc B2 Bd|"E"e2 ef edcB|"A"A2 ce a2 AB|
+"D"d2 df edAF|"G"GFGA BdcB|"A"AdcB AGFE|"D"D2 CE D2:|
+
+X:7004
+T:Gentle Maiden
+R:Waltz
+C:Trad.
+O:Ireland
+M:3/4
+Q:1/4=120
+L:1/8
+K:G
+D2|"G"G3 A G2|"D"F2 E2 D2|"G"d4 d2|"Em"e3 f g2|"G"d3 c B2|"D"A4 G2|"C"E6|"D"F4 D2|
+"G"G3 A G2|"D"F2 E2 D2|"G"d6|"Em"e3 f g2|"G"d3 c B2|"D"A3 cBA|"G"G6-|G4||
+d2|"G"d3 e f2|"Em"g4 g2|"C"g6|"C"g2 f2 e2|"G"d3 c B2|"Am"A4 G2|"C"E6|"D"F4 D2|
+"G"G3 A G2|"D"F3 E D2|"G"d6|"Em"e3 f g2|"G"d2 c2 B2|"D"A3 B A2|"G"G6-|G4|]
+
+X:7005
+T:George Brabazon
+T:Planxty George Brabazon
+R:Reel
+C:Turlough O'Carolan (1730)
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=110
+K:G
+ge|"G"d2G2 cBAG|d2G2 cBAG|"Am"e2A2 ABcd|e2A2 "D7"ABcd|
+"G"edcB "C"g2fe|"G"edcB cBAG|BAGE "D"DEGA|"G"B2G2 G2:|
+|:ga|"G"b2gb "B"a2fa|"Em"g2eg edcB|"Am"e2A2 ABcd|"D7"e2A2 A2ga|
+"G"b2gb "B"a2fa|"Em"g2eg edcB|"Am"cBAG "D7"DEGA|"G"B2G2 G2:|
+
+X:7006
+T:Gilsland Hornpipe
+R:Hornpipe
+C:Trad.
+S:Pete Coe
+O:England, Northumberland
+M:4/4
+L:1/8
+Q:1/4=160
+K:D
+de|"D"f2 af gfed|"Bm"BcdB BAFG|"D"A2AB ABde|"Em"f2e2e2de|
+"D"f2af gfed|"Bm"BcdB BAFG|"D"A2AB ABde|"D"f2d2d2:|
+|:de|"D"f2f2 f2 ef|"G"g2g2 g2 fg|"D"a2ab afde|"Em"f2e2e2de|
+"D"f2af gfed|"Bm"BcdB BAFG|"D"A2AB ABde|"D"f2d2d2:|
+
+X:7007
+T:Goathland Square Eight
+T:Goatland Square Eight
+R:Reel
+C:Trad.
+S:Cecil Sharp Mss
+O:England
+M:4/4
+L:1/8
+Q:1/4=160
+K:G
+D2|"G"G2GB d2B2|g2d2 B2G2|"Am"c2AB c2(3BcB|"D7"A2G2 F2D2|
+"G"G2BB d2B2|g2d2 B2G2|"Am"A2AB c2ec|"D7"A2F2 "G"G2:|
+|:D2|"G"G2gg g2gf|"C"e2ee e2ed|"Am"c2a2 a2ag|"D"f2d2 d2ef|
+"Em"g2e2 "A7"e2ag|"D"f2d2 "G"d2g2|"A7"e2^c2 "D7"A2d=c|"G"B2G2 G2:|
+
+X:7008
+T:Golden Slippers
+T:Dem Golden Slippers
+R:Reel
+C:James A. Bland (1879)
+O:USA
+M:4/4
+L:1/4
+Q:1/4=200
+K:D
+d/e/|"D"ff f/e/d/e/|ff fd/e/|ff gf|"A7"fe ec/d/|
+"A"ee/f/ e/d/c/d/|ee/f/ ec/d/|eg fe|"D"ed d:|
+|:B|"D"A3d/e/|fe d=c|"G"B3e/f/|"Em"gf ed|"A"^c>Bcd|
+|1"A"e>fec|"D"d3/2c/ de|fd"A7"c:|2"A"e2 g2|ff/g/ fe|"D"d3|]
+
+X:7009
+T:Grandfather's Clock
+R:March
+C:Henry C. Work 1876
+O:USA
+P:A((AB)2C2)2C
+M:4/4
+L:1/8
+Q:1/4=120
+K:G
+P:A
+|:DD|"G"G2 FG "D"A2 GA|"G"B2 cB "Am"E2 AA|"G"G2 GG "D"FE F2|"G"G4 "G"G2:|
+P:B
+Bc|"G"d2 BA "Em"G2 FG|"C"AG "D"FE "G"D2 Bc|"G"d2 BA "A7"G2 FG|"D"A4 "D"A2 DD|
+"G"G2 z2 "D"A2 z2|"G"(3BBB cB "Am"E2 AA|"G"G2 GG "D"FE F2|"G"G4 "G"G2||
+P:C
+DD|"G"G2 DD "Em"E2 DD|"G"B,2 DD "Em"E2 DD|"G"G2 DD "Em"E2 DD|"G"B,2 DD "Em"E2 DD|
+"G"G2 z2 "D"A2 z2|"G"(3BBB cB "Am"E2 AA|"G"G2 GG "D"FE F2|"G"G4 G2|]
+
+X:7010
+T:Grandfather's Tune
+T:Sheepshearing
+R:Reel
+C:Trad.
+O:England
+M:4/4
+L:1/8
+Q:1/4=210
+K:D
+"D"F2A2 B2c2|dcde f2 a2|"Em"g2f2 e2d2|"A"c2B2 A2G2|
+"D"F2A2 B2c2|dcde f2 a2|"Em"g2f2 eABc|"D"d2f2 d4:|
+|:"Em"e4 f4|g2f2 e4|g2f2 e2d2|"A"c2B2 A2G2|
+"D"F2A2 B2c2|dcde f2 a2|"Em"g2f2 eABc|"D"d2f2 d4:|
+
+X:7011
+T:Great North Run '86, The
+R:Reel
+C:Robert Whitehead
+O:England, Northumberland
+M:4/4
+L:1/4
+Q:1/4=160
+K:G
+D|"G"GG "D"F/G/A/F/|"G"G/A/B/c/ dB|"C"ec/e/ "G"dG|"A7"A/B/A/G/ "D7"ED|
+"G"GG "D"F/G/A/F/|"G"G/A/B/c/ dB|"C"ec/e/ "G"d/B/G/B/|"D7"AF "G"G:|
+|:d|"Em"ge/g/ "Bm"fd|"C"ec/e/ "G"dB|"Am"ec/e/ "G"dG|"D7"A/B/A/G/ ED|
+"G"GG "D"F/G/A/F/|"G"G/A/B/c/ dB|"C"ec/e/ "G"d/B/G/B/|"D7"AF "G"G:|
+
+X:7012
+T:Greensleeves
+R:Air
+C:Trad. 16C
+O:England
+M:3/4
+L:1/8
+Q:1/4=120
+K:Em
+E2|"Em"G4A2|"G"B3cB2|"D"A4F2|"Bm"D3EF2|"Em"G4E2|E3^DE2|"B"F4^D2|"Em"B,4E2|
+"Em"G4A2|"G"B3cB2|"D"A4F2|"Bm"D3EF2|"Em"G3FE2|"B"^D3^C^D2|"Em"E6-|E4z2|
+("G"d6-|d3)^cB2|"D"A4F2|"Bm"D3EF2|"Em"G4E2|E3^DE2|"B"F4^D2|"G"B,6|
+("G"d6-|d3)^cB2|"D"A4F2|"Bm"D3EF2|"Em"G4E2|"B"^D3^C^D2|"Em"(E6-|E4)|]
+
+X:7013
+T:Grogan's Favourite
+T:Eileen O'Callaghan's Reel
+R:Reel
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=160
+K:G
+"G"G2BG DGBG|GABd "D"cAFA|"G"G2BG DGBc|"D"defd cAFA|
+"G"G2BG DGBG|GABd "D"cAFA|"G"GBB2 dBB2|"D"defd cAFA:|
+|:"G"dggf g2fg|"D"adfd adfe|"G"dggf "Em"g2fe|"D"defd cAFA|
+"G"Gggf g2fg|"D"a^gab a=gfe|"G"dgg2 bgg2|"D"defd cAFA:|
+% --------------------------------- H ---------------------------------------
+
+X:8001
+T:Harper's Frolic
+T:Harpers Frolick
+R:Polka
+C:Trad.
+O:Ireland
+M:2/4
+L:1/8
+Q:1/4=100
+K:D
+A/G/|"D"FA DA/G/|F/G/A Dd|"A"cd ec|"D"d/c/d/e/ fA/G/|
+"D"FA DA/G/|F/G/A Dd|"A"cd ec|"D"d2 d:|
+|:d/e/|"D"fd d e/f/|"Em"ge eg|"D"fd df|"E"e/d/c/B/ "A"A d/e/|
+"D"fd d e/f/|"Em"ge eg|"D"f/e/d "A"ec|"D"d2 d:|
+
+X:8002
+T:Harvest Home
+R:Reel
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=120
+K:D
+A>F|:"D"D>AF>A D>AF>A|d>ef>e d>cB>A|"G"e2 f2 g2 f2|"A7"(3efe (3dcB (3ABA (3GFE|
+"D"D>AF>A D>AF>A|d>ef>e d>cB>A|"G"e2 f2 "A7"g>ec>e|1 "D"d2 "G"d2 "D"d2 A>F:|2 "D"d2 "G"f2 "D"d2 c>d|:
+"A7"e>AA2 f>AA2|g>AA2 e>AA2|e2 "G"f2 g2 f2|"A7"(3efe (3dcB (3ABA (3GFE|
+"D"D>AF>A D>AF>A|d>ef>e d>cB>A|"G"e2 f2 "A7"g>ec>e|1 "D"d2d2 d2cd:|2 "D"d2f2 d4|]
+
+X:8003
+T:Haste to the Wedding
+T:Small Pin Cushion
+T:Carrick Fergus
+R:Jig
+C:James Oswald, 1750
+O:Scotland
+M:6/8
+L:1/8
+Q:1/8=180
+K:D
+F/G/|"D"A>BA Agf|"G"ede "A7"fdB|"D"A>BA "Bm"AdF|"Em"GFG "A7"EFG|
+"D"A>BA Aaf|"G"ede "A7"fdB|"D"A>BA "A7"faf|"D"d>ed d2:|
+|:f/g/|"D"a>fa afa|"G"b>gb "(A7)"bag|"D"fga "Bm"agf|"Em"g>fg "A7"efg|
+"D"az2 "Bm"f2f|"Em"ede "A7"fdB|"D"A>BA "A7"faf|"D"d>ed d2:|
+
+X:8004
+T:High Reel
+R:Reel
+C:Trad
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=160
+K:D
+"A"a2 fa ec A2|cAeA fAeA|a2 fa ec A2|"G"Bcdc BGGB|
+"A"a2 fa ec A2|"Em"cdef g2 fg|"A"afge fdec|"G"Bcdc BG G2:|
+|:"A"(3cBA eA fAeA|(3cBA af ec A2|(3cBA eA fAec|"G"Bcdc BGGB|
+"A"(3cBA eA fAed|"Em"cdef g2 fg|"A"afge fdec|"G"Bcdc BGGB:|
+
+X:8005
+T:Hobarts Transformation
+R:Reel
+C:Trad.
+N:Hobart (B.1775) was early American Bishop
+O:USA
+M:4/4
+L:1/8
+Q:1/4=160
+K:Em
+"Am"e2 a2 ab ag|e2 a2 ab ag|"Em"ed ef gf gf|ed ef gf gf|
+"Am"e2 a2 ab ag|e2 a2 ab ag|"Em"ed ef gf gf|"Am"ed cB A4:|
+|:"Am"A2 Ac "Em"BA GB|"Am"AB AG E2 EG|"Am"AG AB c2 d2|"Em"e3 =f e4|
+"Am"A2 Ac BA GB|AB AG E2 AB|cB Ac BA G2|A3 B A4:|
+
+X:8006
+T:Horse's Brawl
+T:Branle des Chevaux
+R:Reel
+C:From Arbeau, Orchesographie, 1689
+O:France
+M:2/2
+L:1/8
+Q:1/2=80
+K:G
+"G"G3A B2B2|"C"c2B2A2c2|"G"B2A2G2F2|"C"E4 "D"D4|"G"G3A B2B2|"C"c2B2A2c2|"G"BAG2 "D"G2F2|"G"G4G4:|
+|:"G"d2cB A2B2|"C"c2BA G2B2|"G"A2G2F2G2|"D"A4A4|"G"d2cB A2B2|"C"c2BA G2B2|"G"A2G2 "D"G2F2|"G"G4G4:|
+|:"Gm"_B2AG B2AG|"D"F2G2A4|"D"D2E2F2G2|"D"A2_B2A2G2|"Gm"_B2AG B2AG|"D"F2G2A4|"D"D2E2F2G2|"D"G2^F2 "Gm"G4:|
+
+X:8007
+T:Hunsdon House
+R:Jig
+C:Trad. Playford
+O:England
+M:6/8
+L:1/8
+Q:1/8=220
+K:D
+"D"D2A F2B|"D"AF2 "A"E2D|"Bm"d2f "A"ec2|"E7"B3 "A"A3:|
+|:"F#m"a2g fc2|"Bm"d2c Bef|"Em"g2f ec2|"A7"B3 ABc|
+"Bm"d2c BF2|"Em"G2F EBc|"Bm"def "Em"g2f|"A7"e3 "D"d3:|
+
+X:8008
+T:Hunt the Squirrel
+R:Jig
+C:Trad.
+O:Sussex England
+M:6/8
+L:1/8
+Q:1/8=240
+K:G
+"G"G2d d2e|d3B3|GAB A2"D"G|"G"GAB A2"D"G|
+"G"G2d d2e|d3B3|GAB A2"D"G|"G"G3-G3:|
+|:"C"c2d edc|c2d edc|c2d e2f|g3-g fe|
+"G"d2B d2B|d2B d3|GAB A2G|G3-G3:|
+
+X:8009
+T:Hunting the Hare
+R:Slipjig
+C:Trad. O'Neills 1850
+O:Ireland
+M:9/8
+L:1/8
+Q:1/8=200
+K:D
+G|"D"F2A ABA d2A|"G"Bcd e2d "A7"cBA|"D"F2A ABA d2A|"G"Bcd "A7"edc "D"d2:|
+|:g|"D"f2d def "G"g2e|"Em7"a2f "A7"egd cBA|"D"fef def "G"g2e|"D"a2f "A7"edc "D"d2:|
+
+X:8010
+T:Huntsman's Chorus
+R:Reel
+C:von Weber?
+O:England
+M:4/4
+L:1/8
+Q:1/4=160
+K:G
+D2|"G"G2D2 GABc|d4 B4|"D"A2d2 A2d2|"G"BcBA G2D2|
+"G"G2D2 GABc|d4 "C"c4|"G"BAGA "D"B2A2|"G"G6:|
+|:A2|"G"B3B B2A2|"Em"G4 A2B2|"C"c3c c2B/c/B|"D"A2F2 E2D2|
+"G"B3A GABc|d4 "C"c4|"G"BAGA "D"B2A2|"G"G6:|
+% --------------------------------- I ---------------------------------------
+
+X:9001
+T:Irish Washerwoman, The
+R:Jig
+C:Trad.
+O:England, then Ireland
+M:6/8
+L:1/8
+Q:1/8=200
+K:G
+d/c/|"G"BGG DGG|BGB dcB|"D"cAA EAA|cAc edc|
+"G"BGG DGG|BGB dcB|"D"cBc Adc|"G"BGG G2:|
+|:d|"G"gfg GBd|gfg bag|"D"fdd Add|fdf agf|
+"C"egg "G"dgg|"C"cgg "G"Bgg|"D"cBc Adc|"G"BGG G2:|
+
+X:9002
+T:Iron Legs
+T:Iron League
+R:Waltz
+C:Trad.
+N:Also as Hornpipe
+O:England
+M:3/4
+L:1/8
+Q:1/4=120
+K:G
+dc|"G"B3 c dB|"D7"A4 dc|"G"B3 c "D7"AB|"G"G2 B2 d2|"C"e4 f2|g4 ag|"D7"f3 g ef|d4 dc|
+"G"B3 c dB|"D7"A4 dc|"G"B3 c "D7"AB|"G"G2 B2 d2|"C"e4 g2|"D7"b3 a gf|"G"g3 a gf|g4:|
+|:ga|"G"b3 c' bc'|"D7"a3 b ab|"Em"g3 a ga|"Bm7"f3 g fg|"C"e3 f ef|"G"d3 e de|"D7"c3 B cd|"G"B4 d2|
+"C"e3 f ef|"G"d4 d2|"D7"c3 B cd|"G"B4 d2|"C"e4 g2|"D7"b3 a gf|"G"g3 a gf|"G"g4:|
+% --------------------------------- I ---------------------------------------
+
+X:10001
+T:Jenny Lind
+R:Polka
+C:Anton Wallerstein, 1845
+O:USA
+M:4/4
+L:1/4
+Q:1/4=200
+K:G
+"(D7)"d/c/|"G"Bd "C"ce|"G"db b/a/b|"D7"ca a/g/a|"G"Bg "(D7)"gd/c/
+|"G"Bd "C"ce|"G"db b/a/b|"D7"c'a a/c'/b/a/|"G"gb g:|
+|:e/f/|"C"g3/2f/ e/g/f/e/|"G"dB B/A/B|"D7"cA A/G/A|"G"BG G/d/e/f/
+|"C"g3/2f/ e/g/f/e/|"G"dB B/A/B|"D7"cA A/c/B/A/|"G"GB G:|
+
+X:10002
+T:Jessie's Hornpipe
+R:Hornpipe
+C:Trad.
+O:England
+M:4/4
+L:1/4
+Q:1/4=140
+K:G
+B/2c/2|"G"dg gB/2c/2|Bd dB/2A/2|GG "D7"AA|B/2A/2B/2c/2 "D7"BB/2c/2|
+"G"dg gB/2c/2|"Em"Bd dB/2A/2|"Am"GG "D7"AG/2A/2|"G"G3:|
+B/2c/2|"G"dg "C"ec|"G"dg "C"ec|"G"d3/2B/2 GB|"Am"A/2G/2A/2B/2 "D7"AB/2c/2|
+"G"dg "C"ec|"G"dg "C"ec|"G"B/2d/2B/2G/2 "D7"A/2c/2A/2F/2|"G"G3:|
+
+X:10003
+T:Jimmy Allen
+T:Jamie Allen
+R:Reel
+C:Trad.
+O:England, Northumberland
+M:4/4
+L:1/8
+Q:1/4=200
+K:G
+GA|"G"B2G2 G2A2|B4 G2AB|"Am"c2A2 A2B2|"C"c3c "G"B2A2|
+"G"G2g2"Em"g2e2|"G"d4"G"B3c|d2d2"Am"cB A2|"G"G6:|
+|:BA|"G"G2g2 g3f|"Em"e2d2"C"c2B2|"D"A2a2 a3g|f2d2"Em"e2f2|
+"G"g3a "Em"g2e2|"G"d4 B3c|d2d2"Am"cB A2|"G"G6:|
+
+X:10004
+T:Jump at the Sun
+R:Jig
+C:John Kirkpatrick
+O:England
+M:6/8
+L:1/8
+Q:3/8=100
+K:Em
+E|"Em"EGB ^A2B|EGB ^A2B|eBB eBB|BAG "B"F3|
+"Em"EGB ^A2B|EGB ^A2B|eBB "Am"cB=A|"B7"GAF "Em"E2:|
+|:B|"Em"eBB gfe|"B7"fBB agf|"Em"gfe gfe|"B"f^dB "B7"c2B|
+"Em"eBB gfe|"B7"fBB agf|"Em"eBB "Am"cBA|"B7"GAF "Em"E2:|
+% --------------------------------- K ---------------------------------------
+
+X:11001
+T:Katyusha
+R:March
+C:Matvei Blanter 1938, after earlier trad.
+O:Russia
+M:2/4
+L:1/8
+Q:1/8=240
+K:Em
+"Em"E3F|G3E|GG FE|"B7"F2B,2|F3G|A3F|AA GF|"Em"E>F GA|:
+"Em"B2"C"e2|"G"d2"E7"ed|"Am"cc BA|"Em"B2 E2|"Am"zc2A|"Em"B3G|"B7"AA GF|"Em"E4:|
+
+X:11002
+T:Keel Row, The
+R:Reel
+C:Trad.
+O:England, Tyneside
+M:2/4
+L:1/8
+Q:1/4=120
+K:G
+d3/2c/2|"G"B2G3/2B/2|"Am"c2A3/2c/2|"G"B2G3/2B/2|"D"A3/2F/2D3/2A/2|"G"B2G3/2B/2|"Am"c2A3/2c/2|"G"B3/2G/2A3/2F/2|"G"G2:|
+|:d3/2c/2|"G"B/2d3/2d3/2g/2|"Em"e2d3/2c/2|"G"B2G3/2B/2|"D"A3/2F/2D3/2c/2|"G"B/2d3/2d3/2g/2|"Em"e2d3/2c/2|"G"B3/2G/2A3/2F/2 "G"G2:|
+
+X:11003
+T:Keep Your Feet Still
+T:Geordie Hinnie
+R:Reel
+C:Trad.
+O:England, Northumberland
+Z:Paul Hardy
+M:4/4
+L:1/4
+Q:1/4=200
+K:D
+F G|"D"A A A B|A F E D|"G"G A B c|d2 c B|"D"A A A A|B A F D|"A"E2- E2-|E2 F G|
+"D"A A A B|A F E D|"G"G A B c|d2 c B|"A7"A2 c B|A G F E|"D"D2- D2-|D2 E F|
+"A7"G G G G|G A2 G|"D"G F F =F|F2 F G|A A A A|B A F D|"A7"E2- E2-|E2 F G|
+"D"A A A B|A F E D|"G"G A B c|"C"d2 c B|"A7"A2 c B|A G F E|"D"D2- D2-|D2|]
+
+X:11004
+T:Kerfunken, The
+T:Kerfunten Jig
+R:Jig
+C:Trad.
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=200
+K:Dmaj
+"Bm"F3 FED|FGA Bcd|"D"A2 B BAF|"Em"E3 EDE|
+|"Bm"F3 FED|FGA Bcd|"D"A2 B BAF|1 "Bm"EFE D2 E:|2 "D"EFE DFA|
+|:"Bm"d3 def|B3 BAB|d3 def|fed efe|
+|"Bm"d3 def|B3 BAB|"D"A2 d dAF|1"D"EFE DFA:|2 "Bm"EFE D2 E|]
+
+X:11005
+T:Kesh, The
+R:Jig
+C:Trad.
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=200
+K:G
+"G"G2G GAB|"C"A2A "D"ABd|"G"edd gdd|"C"edB "D"dBA|
+"G"G2G GAB|"D"A2A ABd|"C"edd "G"gdB|"D"AGF "G"G3:|
+|:"G"B2B dBd|"C"ege "G"dBG|B2B dBG|"D"ABA AGA|
+"G"B2B dBd|"C"ege "G"dBd|"C"gfg "D"aga|"C"bgf "G"g3:|
+
+X:11006
+T:Kid on the Mountain, The
+R:SlipJig
+C:Trad. O'Neills 1850
+O:Ireland
+M:9/8
+L:1/8
+Q:1/8=200
+K:Em
+"Em"E2E FEF G2 F|E2E BcA BGE|E>FE FEF G2 A|"C"BAG FAG "D"FED:|
+|:"G"BGB "D"AGF "G"G2 D|GAB dge "D7"dBA|"G"BGB "D"AGF "G"G2 A|"C"BAG FAG "D"FED:|
+|:"Em"gfg eBd e2 f|gfg efg "D7"afd|"Em"g2g eBd e2 a|"C"bag fag "D"fed:|
+|:"Em"eBB e2f g2f|eBB efg "D"afd|"Em"eBB e2f g2a|bag "C"fag "D"fed:|
+|:"G"edB "D7"dBA "G"G2D|"G"GAB dge "D7"dBA|"G"edB "D7"dBA "G"G2A|"C"BAG FAG "D"FED:|
+
+X:11007
+T:Killarney Boys of Pleasure
+R:Reel
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/8=240
+K:EDor
+D|"Em"E2 (3FED E2 FA|"Bm"BFAF DEFA|"Em"B2 Bd "C"e2 ed|"Bm"BdAF DEFD|
+"Em"E2 (3FED E2 FA|"Bm"BFAF DEFA|"Em"B2 Bd "C"e2 ed|"Bm"BdAF "D"FEE:|
+|:e|"Em"Bee2 Befe|"D"BdAF "D"DEFA|"Bm"f2 (3gfe f2 fe|"D"dBAF DEFA|
+"Em"Bee2 Befe|"D"BdAF DEFA|"Bm"f2 (3gfe defe|"D"dBAF "Em"E3:|
+
+X:11008
+T:King of the Fairies, The
+R:Hornpipe
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=120
+K:ADor
+E2|"Am"AGAB cBcd|e=fed cBcd|e2 A2 AB cA|"Em"BcBA G2 E2|
+"Am"AGAB cBcd|edce "Em"g3 =f|"Am"e2 A2 cBAG|A2 AG A2:|
+e2|"Am"abag "Em"egab|"Am"c'd'c'b abag|a2 e2 edef|"Em"gagf ef ge|
+"Am"a2 e2 "Em"egab|"Am"c'd'c'b abag|eg ac' "Em"bagb|"Am"a2 ag a3 b|
+"Am"c'3 a "Em"b3 g|"Am"agef "Em"g3 a|"Em"gedB "Am"cdef|"Em"gedB "Am"cBAG|
+"Am"E2 A2 ABcd|e2 a2 agab|a2 e2 edcB|A2 AG A2|]
+
+X:11009
+T:Kirkgate Hornpipe
+R:Hornpipe
+C:Trad.
+S:Pete Coe
+O:England, Northumberland
+M:4/4
+L:1/8
+Q:1/4=140
+K:G
+g>d|"G"B2B2 B>cA>B|G2G2 G2B>c|d>Bd>B "C"e>dc>B|"Am"c>BA>G "Bm"F>AF>D|
+"G"B2B2 B>d^c>e|d2d2 "D"d2a>g|"Bm"f>af>d "Em"e>ge>^c|"D"d2d2"G"d2:|
+|:A>B|"C"c2c2"Am"c2A>B|c>BA>G "Bm"F2D2|"G"d2d2"Bm"d2e>f|"Em"g>fe>d "Am"c>BA>G|
+"Em"e2e2 e>gf>g|"G"d2d2 "Bm"d>gf>g|"G"d>Be>c "G"B>AG>F|"G"G2B2 G2:|
+% --------------------------------- L---------------------------------------
+
+X:12000
+T:Lady in the Boat, The
+R:Jig
+C:Trad.
+O:Ireland
+M:6/8
+Q:1/8=160
+K:D
+A|"D"dfA d2A|"D"dfA d2f|"D"a2f "Bm"fed|"Em"efe "A7"ecA|
+"D"dfA d2A|"D"dfA d2f|"D"a2f "A7"efe|"D"d3 d2:|
+|:d/2e/2|"D"f3 "A7"gfg|"D"a3 f2g|"D"agf "Bm"fed|"Em"efe "A7"ecA|
+"D"f3 "A7"gfg|"D"a3 f2g|"D"agf "A7"gec|"D"edd d2:|
+
+X:12001
+T:Lark in the Morning, The
+R:Jig
+C:Trad
+O:England
+M:6/8
+L:1/8
+Q:1/8=200
+K:Bm
+B|"D"AFA AFA|"G"BGB BdB|"D"AFA Ade|"Bm"fed BdB|
+"D"AFA AFA|"G"BGB BdB|"D"def afe|"Bm"fdB B2:|
+|:A|"D"def aff|"D"bff afe|"D"def aff|"Bm"fdB BAB|
+"D"def aff|"D"bff aff|"G"gag "D"fgf|"Em"edB B2:|
+|:A|"D"d2 f fef|"D"fef fef|"D"d2 f fef|"Bm"edB BAB|
+"D"d2 f fef|"D"fef fef|"G"gag "D"fgf|"Em"edB B2:|
+|:B|"D"Add fdd|"D"edd fdd|"D"Add fdd|"Bm"edB BAF|
+"D"Add fdd|"D"edd fdd|"G"gag "D"fgf|"Em"edB B2:|
+
+X:12002
+T:Leaving of Liverpool, The
+R:Air
+C:Trad. Song
+O:England
+M:2/4
+L:1/4
+Q:1/4=120
+K:D
+D/2E/2|"D"F-F/2A/2|"D7"G/2F/2 E/2D/2|"G"d-d/2B/2|"D"A "A7"D/2E/2|"D"F-F/2A/2|"Bm"B A/2F/2|"Em"E2-|"A7"E D/2E/2|
+"D"F-F/2A/2|"D7"G/2F/2 E/2D/2|"G"d-d/2B/2|"D"A "A7"D/2E/2|"D"F/2A/2 "Bm"A/2F/2|"Em"E/2G/2 "A7"F/2E/2|"D"D2-|D c/2d/2||
+"A7"e-e/2c/2|A c/2e/2|"G"d-d/2B/2|"D"A "A7"D/2E/2|"D"F/2A/2 A/2A/2|"Bm"^G/2A/2 B/2A/2|"E7"E2-|"A7"E/2A/2 A/2G/2|
+"D"F-F/2A/2|"D7"G/2F/2 E/2D/2|"G"d-d/2B/2|"D"A "A7"D/2E/2|"D"F/2A/2 "Bm"A/2F/2|"Em"E/2G/2 "A7"F/2E/2|"D"D2-|D|]
+
+X:12003
+T:Liberty Bell
+T:Monty Python
+R:Jig
+C:John Philip Sousa, 1893
+O:USA
+M:6/8
+L:1/8
+Q:1/8=200
+K:G
+d/c/|"G"B2 B B_B=B|g2 d d2 B|"Am"c2 c c2 d|e3 e2 c|"D"A2 A A^GA|"D7"f2 e e2 c|"G"B2 B "D7"B2 c|("G"d3"D7"d2) c|
+"G"B2 B B_B=B|g2 d d2 B|"A"^c2 a a2 a|"A7"a3 a2 g|"D"f2 a a^ga|"A7"e2 a a^ga|"D7"d2 ^c d2 c|d3 d2:|
+|:c|"G"B_B=B "D7"e2 d|"G"B3 G3|"C"E3 "D7"A3|"G"G3 G2 G|"D7"ABd f2 e|"G"d3 g3|"D"f3 "A7"e3|"D7"d3 d2 d|
+"C"e2 e e_e=e|"B7"f3 f3|"Em"g2 g aga|"B"b3 b2 b|"C"a2 g e2 c|"G"B3 G3|"D7"A3 F3|G3 G2:|
+K:C
+G|:"C"E3 F3|^F3 G3|e2 e e2 _e|e3 e2 G|E3 F3|^F3 G3|"G"f2 f f2 e|f3 f2 e|"G"d3 "Gdim"^c3|"G"d2 G ^F2 G|
+"C"e3 "Cdim"_e3|"C"e2 G ^F2 G|1"G"B3 d3|"D7"c2 d A2 c|"G"B2 c A2 B|"G7"G2 A F2 G:|2 "F"A3 f3|"C"e2 c "G"d2 B|"C"c6|c6|
+
+X:12004
+T:Lily Marlene
+T:Lili Marleen
+R:Air
+C:Norbert Schultze 1938
+N:Sung by both sides in World War II
+O:Germany
+M:4/4
+L:1/8
+Q:1/4=100
+K:G
+"G"B>B B>c d2 B2|"Am"c>c c>g "D"f4|"Am"A>A A>B "D7"c2 c>d|f>e d>c "G"B3 G|
+"C"e2 f>g f2 e2|"G"e2 d2 f3 e|"D7"d2 c2 e3 d|"G"c2 B2 d3 B|
+"D7"d3 c "Am"c2 a2|"Em"g4 "G"d2 B2|"G"d3 c "Am"c2 F2|"G"G6 z2|
+
+X:12005
+T:Lilting Banshee, The
+T:Butcher's March, The
+R:Jig
+C:Trad.
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=120
+K:Ador
+"Am"EAA EAA|"Em"BAB G2A|Bee edB|"G"def gfg|
+"Am"eAA eAA|"Em"BAB G2A|Bee edB|"D"dBA "Am"A3:|
+|:"Am"eaa age|"G"dBA G2A|"Em"Bee edB|"G"def gfg|
+"Am"eaa age|"G"dBA G2A|"Em"Bee edB|"D"dBA "Am"A3:|
+
+X:12006
+T:Linehope Lope
+T:Linhope Loup
+R:Hornpipe
+C:Trad.
+S:Pete Coe
+O:Northumbria England
+M:4/4
+L:1/8
+Q:1/4=160
+K:D
+FG|"D"A2 f2 "G"G2 c2|"D"d3c "D"d>A F>A|"Em"G2E2 "Em"E>F G>A|"G"B2A2 "D"A>G F>G|
+"D"A2 f2 "G"G2 c2|"D"d3c "D"d>A F>A|"Em"G2 E>F "G"G>A B>c|"D"d>A F>A "D"D2:|
+fg|:"D"a2A2 "D"A2a2|"G"g2B2"G"B2d2|"A"c>d c>B "D"A>g f>e|"D"d>c d>e "D"f>e f>g|
+"D"a2A2 "D"A2a2|"G"g2B2"G"B2d2|"A"c>d c>B "D"A>g f>e|1"D"d2 d>c "D"d>e f>g:|2 d6|]
+
+X:12007
+T:Longford collector, The
+T:Langford collector, The
+R:Reel
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=130
+K:G
+D|:"G"G2GA Bddg|"Em"eBB2 eBdB|"G"G2GA B2dB|"Am"AcBA "Em"GEDE|
+"G"G2GA Bddg|"Em"eBBB "Bm"d2ef|"G"g2af gedB|"Am"AcBA "Em"GEDE:|
+|:"G"g2ga gedf|"Em"eBBd "Bm"d2ef|"G"g2af gedB|"Am"AcBA "Em"GEDE:|
+
+X:12008
+T:Lord Inchiquin
+T:Planxty Inchiquin
+R:Waltz
+C:Turlough O'Carolan, 1691?
+O:Ireland
+M:3/4
+L:1/8
+Q:1/4=120
+K:D
+A2|"D"d2 de fe|"G"d2 ed cB|"D"A2 F2 A2|"D"f4 e2|"Bm"d2 ed cB|"D"A2 G2 F2|"G"G2 BA GF|"A"E4 ag|
+"D"f3e d2|"G"d2 c2 B2|"D"A2 F2 A2|"D"f4 e2|"Bm"d2 ed cB|"D"Ad3 F2|"A"E4 D2|"D"D4:|
+A2|"A"AB cd e2|"A"e2 d2 e2|"D"f2 d2 f2|"A"e4 d2|"D"de fg a2|"A"a2 b2 g2|"D"f3d f2|"A"e4 d2|
+"D"de fg a2|"A"a2 b2 g2|"D"f3g e2|"D"d4 f2|"Em"gf e2 e2|"D"e2 f2 d2|"G"c2 d2 B2|"D"A2 a2 g2|
+"D"f3e d2|"Bm"d2 c2 B2|"D"A2 F2 A2|"Em"g4 fe|"G"d2 ed cB|"D"Ad3 F2|"A"E4 D2|"D"D4|]
+
+X:12009
+T:Lord of the Dance
+T:Simple Gifts
+R:Reel
+C:Trad. Shaker tune
+N:Words by Sydney Carter
+O:USA, New England
+M:4/4
+L:1/8
+Q:1/4=120
+K:D
+"A7"A2|"D"d2dd "Bm"fefg|"F#m"a2aa "Bm"f2ff|"Em"e2e2 e2ef|"Em"gfed "A7"c2AA|
+"D"d2dd "Bm"fefg|"F#m"a2aa "Bm"f2ff|"Em"e2e2 "A7"f2fe|"G"d2d2 "D"d4|
+"D"a4 "Bm"f3e|"D"fgfe "Bm"d4|"D"f2fg a2gf|"Em"e2e2 "A7"e2AA|
+"D"d2d2 "G"d3e|"D"fe"A7"fg "D"a2gf|"Em"e2e2 "A7"f2fe|"D"d2 "G"d2 "D"d4|]
+
+X:12010
+T:Lumps of Plum Pudding
+R:Jig
+C:Trad. Morris Dance
+O:Bledington, England
+P:A.AB.(CB)2
+M:6/8
+L:1/8
+Q:1/8=200
+K:G
+P:A
+d|"G"B>AG g>fg|"G"d>ed G2 A|"G"B>AG "Em"G>FG|"Am"A>BA "D7"D2 c|
+"G"B>AG g>fg|"D7"d>ef "G"g3|"G"d>BG "D7"ABc|"G"d2 B G2||
+P:B
+z|"G"d>fg d>fg|"G"d2 B G>AB|"Am"c>de cAB|"Am"c>AA ABc|
+"D7"d>ef "G"g3|"D7"d>ef "G"g3|"G"d>BG "D7"ABc|"G"d2 B G3||
+P:C
+M:3/8
+L:1/8
+"G"d2 c|\
+M:6/8
+"G"B2 A G3|"Em"g2 f g3|"D7"d2 e d3|"G"G3 "D7"A3|
+"G"B2 A G3|"Em"G2 F G3|"A7"A2 B "D"A3|
+M:3/8
+L:1/8
+"D7"D2 c|\
+M:6/8
+"G"B>AG g>fg|\
+"D7"d>ef "G"g3|"G"d>BG "D7"ABc|"D7"d2 B "G"G2|]
+% --------------------------------- M ---------------------------------------
+
+X:13001
+T:Maggie in the Woods
+R:Polka
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=160
+K:G
+"G"G2D2 G3A|B2d2 "Em"e4|"G"d2B2 BAGA|B2A2 "D"A2BA|
+"G"G2D2 G3A|B2d2 "Em"e4|"G"d2B2 "D"A2BA|"G"G4 G4:|
+|:"G"g2f2 "Em"e2d2|e2f2 g3e|"G"d2B2 BAGA|B2A2 "D"A4|
+"G"g2f2"Em"e2d2|e2f2 g3e|"G"d2B2"D"A2BA|"G"G4 G4:|
+
+X:13002
+T:Maid Behind the Bar, The
+R:Reel
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/8=220
+K:D
+AG|:"D"FAAB AFED|FAAB A2de|"G"fBBA Bcde|"D"f2gf "A"edBA|
+"D"FAAB AFED|FAAB A2de|"G"fBBA BcdB|1 "A"AFEF "D"D2AG:|2 "A"AFEF "D"D3e|:
+"D"fgag fdde|fdad fdd2|"Em"efga beef|gebe gee2|
+"D"faaf bfaf|defd e2de|"G"fBBA BcdB|1 "A"AFEF "D"D3e:|2 "A"AFEF "D"D2|]
+
+X:13003
+T:Mairi's Wedding
+T:Mairie's Wedding
+R:Reel
+C:Trad.
+O:Scotland
+M:4/4
+L:1/4
+Q:1/4=190
+K:G
+G/E/|"G"D3/2D/ DE|GA B2|"C"AG EG|"D7"BA B2|"G"D3/2D/ DE|GA B2|"C"AG EC|"D7"D3:|
+|:B/c/|"G"d3/2d/ de|"Em"dc B2|"A7"AG EG|"D"BA B2|"D7"d3/2d/ de|"Em"dc B2|"Am"AG EC|"D7"D3:|
+
+X:13004
+T:Man in the Moon, The
+R:Waltz
+C:Trad.
+O:England
+M:3/4
+L:1/8
+Q:1/4=140
+K:G
+|:D2|"G"G3A G2|"D7"F2E2D2|"G"G2A2B2|"C"c4Bc|"G"d4c2|"D7"B2c2A2|("G"G6|G4):|
+Bc|"G"d6|d6|"Am"c2A2B2|c6|"G"B3A Bc|d2B2G2|"C"E2F2G2|"D7"A2F2D2|
+"G"G3A G2|"Bm"F2E2D2|"G"G2A2B2|"C"c4Bc|"G"d4c2|"D7"B2c2A2|("G"G6|G4)|]
+
+X:13005
+T:Man of the House
+R:Reel
+C:Trad. O'Neill's 1850
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=140
+K:G
+D|"Em"E2 BE GABG|"Em"E2 BE "D"FDAD|"Em"E2 BE GABc|"G"dBcA "Em"BE E:|
+e|"Em"efge "D"fgaf|"Em"gfed edBd|efge "D"fgaf|"Em"gfed Beed|
+"Em"efge "D"fgaf|"Em"gfed efga|bgaf gfed|eBBA GE E|]
+
+X:13006
+T:Manchester hornpipe
+T:Rickett's hornpipe
+R:Hornpipe
+C:Trad.
+O:England
+M:4/4
+L:1/8
+Q:1/4=120
+K:D
+(3ABc|"D"dcdA FAdf|"A7"edcB A2g2|"D"fgaf "G"gfed|"A7"edcB A2fe|
+"D"dcdA FAdf|"A7"edcB A2g2|"D"fgaf "A7"bgec|"D"d2f2 d2:|
+|:fg|"D"afaf "(Bm)"d2ga|"Em"bgbg "A7"e2fg|"D"afaf "G"bagf|"E7"edcB "A7"A2fe|
+"D"dcdA FAdf|"A7"edcB A2g2|"D"fgaf "A7"bgec|"D"d2f2 d2:|
+
+X:13007
+T:March of the Men of Devon, The
+R:March
+C:Trad.
+O:Wales (despite the title!)
+M:4/4
+L:1/8
+Q:1/4=120
+K:D
+A>G|"D"FD D2DFAd|"A"cAA2 Aceg|"Bm"fddc Bggf|"D"e/f/e/d/ c/d/c/B/ "G"A/B/A/G/ F/G/F/E/|
+"D"FD D2DFAd|"A"cAA2 Aceg|"Bm"fddc "A7"Bgec|"D"d2d2 d2:|
+|:fg|"D"affd fdfa|"A"geec eceg|"Bm"fddc Bggf|"D"e/f/e/d/ c/d/c/B/ "G"A/B/A/G/ F/G/F/E/|
+"D"FD D2DFAd|"A"cAA2 Aceg|"Bm"fddc "A7"Bgec|"D"d2d2 d2:|
+
+X:13008
+T:Margaret's Waltz
+R:Waltz
+C:Pat Shaw
+O:England
+M:3/4
+L:1/8
+Q:1/4=120
+K:G
+B2|"G"D3 EGA|"Em"B4 B2|"C"AG E2 G2|"D7"A4 B2|"G"D3 EGA|"Em"B3 c d2|"D7"B4 A2|"G"G4:|
+Bc|"G"d3 efd|"Em"g4 g2|"C"ed c2 e2|"D7"d3 cBA|"Em"G3 ABc|"Bm"d4 B2|"C"AG E2 G2|"D7"A4 Bc|
+"G"d3 efd|"Em"g3 f e2|"Am"d2 c2 B2|"D7"A4 B2|"G"D3 EGA|"Em"B3 c d2|"D7"B4 A2|"G"G4|]
+
+X:13009
+T:Mason's Apron, The
+R:Reel
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=140
+K:A
+ed|"A"c2A2 ABAF|EFAB dcBA|"Bm"d2B2 BcBA|Bcde gfed|
+"A"c2A2 ABAF|EFAB dcBA|"D"Bcde "Bm"fefa|"E"edcB "A"A2:|
+|:ed|"A"cAeA fAeA|cAeA fedc|"Bm"dBfB gBfB|dBfB "E"gfed|
+"A"cAeA fAeA|cAeA fedc|"D"Bcde "Bm"fefa|"E"edcB "A"A2:|
+
+X:13010
+T:Merrily Danced the Quaker's Wife
+T:Merrily Kiss the Quaker
+R:Slide
+C:Trad.
+O:Scotland
+M:12/8
+L:1/8
+Q:1/8=220
+K:G
+D|"G"GAB D2 B "C"c2 A "Em"BGE|"G"GAB DEG "D"ABA AGE|
+"G"GAB D2 B "C"c2 A "Em"BGE|"G"GAB "D"D2 E "G"G3 G2:|
+|:A|"G"BGG "C"AGG "G"BGG "C"AGE|"G"GAB DEG "D"ABA AGA|
+"G"BGG "C"AGG "G"BGG "C"AGE|"G"GAB "D"D2 E "G"G3 G2:|
+|:d|"G"gfg "D"aga "G"bge dBd|"G"g2 g gab "D"a3 agf|
+"C"gag "D"fgf "G"ege dBA|"G"GAB "D"D2 E "G"G3 G2:|
+
+X:13011
+T:Merry Blacksmith, The
+R:Reel
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=140
+K:D
+A2|"D"d2dA BAFA|dcdA BAFA|ABde f2ed|"G"Beed egfe|
+"D"d2dA BAFA|dcdA BAFA|ABde fdec|"A"dBAF "D"D2:|
+|:fg|"D"a2ag f2fe|d2dA BAFA|ABde f2ed|"G"Beed "A"egfe|
+"D"a2ag f2fe|d2dA BAFA|"G"ABde fdec|"A"dBAF "D"D2:|
+
+X:13012
+T:Merry Month of May, The
+R:Jig
+C:Trad.
+O:England
+M:6/8
+L:1/8
+Q:1/8=180
+K:G
+D|\
+"G"G2G GFG|"Am"A2B c2d|"C"e2e "G"dBG|"A7"GFG "D7"AFD|
+"G"G2G GFG|"Am"A2B c2d|"C"efg "G"dcB|"D7"AGF "G"G2:|
+|:B|"D7"AAA A2B|"C"cdc "G"B2d|"G"g2d g2d|"D7"ded cBA|
+"G"G2G GFG|"Am"A2B c2d|"C"efg "G"dcB|"D7"AGF "G"G2:|
+
+X:13013
+T:Michael Turner's Waltz
+R:Waltz
+C:Mozart KV 536#2 1788
+O:Germany, England
+M:3/4
+L:1/8
+Q:1/4=100
+K:G
+GA|"G"B2BD"D7"cD|"G"d2d2gf|"C"e2e2ge|"G"d2d2"D7"GA|
+"G"B2BD"D7"cD|"G"d2d2cA|"Am7"G2G2"D7"AB|"G"G2z2:|
+|:"G"AB|"D7"c2cdBc|"D7"A2A2Bc|"G"d2decd|"Em"B2B2gf|
+"C"e2e2ge|"G"d2d2GA|"C"B2Bc"D7"AB|"G"G2z2:|
+
+X:13014
+T:Minstrel Boy, The
+R:Air
+C:Trad.
+O:Ireland
+M:2/4
+L:1/8
+Q:1/4=100
+K:G
+D|"G"G3"D7"A|"G"cB AG|B2 "D"d2|"Em"g2 "D"fg|"C"e2 "G"d2|"G"Bc dB|"D7"A4|"G"G2 D2|
+"G"G3"D7"A|"G"cB AG|B2 "D"d2|"Em"g2 "D"fg|"C"e2 "G"d2|Bc dB|"D7"A4|"G"G2 d2|
+"Em"g2 "B7"f2|"Em"e2 "A7"fg|"D"f2 "A7"e2|"D"d3d|"Em"e3B|"Bm"B2 "Em"e2|"A7"e2 "D7"f2|"G"g3g|
+"G"G3"D7"A|"G"cB AG|B2 "D"d2|"Em"g2 "D"fg|"C"e2 "G"d2|Bc dB|"D7"A4|"G"G4||
+
+X:13015
+T:Miss McLeod's Reel
+R:Reel
+C:Trad. O'Neills 1850
+O:Ireland
+M:4/4
+L:1/8
+Q:1/8=260
+K:G
+BA|:"G"G2BG DGBG|B2BA BcBA|G2BG DGBG|"D"A2AG "Am"AcBA|
+"G"G2BG DGBG|B2BA B2d2|"Em"e3f edef|"G"gedB "Am"AcBA:|
+|:"G"G2gf "Em"edeg|"G"B2BA BcBA|G2gf "Em"edeg|"D"a2ag "Am"ac'ba|
+"G"g2gf "Em"edeg|"G"BcBA B2d2|"Em"edcB "C"cdef|"G"gedB "G"A2G2:|
+
+X:13016
+T:Mist Covered Mountains
+T:Chi Mi Na Morbheanna
+R:Air
+C:Trad.
+O:Scotland
+M:3/4
+L:1/8
+Q:1/4=140
+K:Am
+"Am"A6|A6|"C"e3 e e2|"Em"e2 d2 B2|"G"G6|G6|"Bm"B3 A B2|"Am"A3 G A2|
+"Am"c6|"G"d6|"C"e3 ^f g2|"Em"B3 A G2|"Am"A3 B e2|"G"d2 c2 B2|"Am"A6|A6||
+"Am"e6|e6|"G"d3 e g2|"Am"e3 d B2|"G"G4 G2|"Bm"d4 B2|"Am"e4 e2|"Bm"d3 c B2|
+"Am"A6|c6|"G"d3 e g2|"Em"B3 A G2|"Am"A3 B e2|"G"d2 c2 B2|"Am"A6|A6|]
+
+X:13017
+T:Moll In the Wad
+T:Moll in the Wood
+R:Jig
+C:Trad. O'Neill's 1850
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=220
+K:DMix
+c|"Em"BAB G2 F|E2 F G2 A|BAB GAB|"D"AFD D2 c|
+"Em"BAB G2 F|E2 F G2 A|"G" BGB dcB|"D" AFD D2:|
+|:c|"G" BGB d2 c|BGB d2 c|BGB dcB|"D" ecA A2 c|
+"G"BGB def|"Em" gfe dcB|"C" cec "G"BdB|"D"AFD D2:|
+
+X:13018
+T:Morning Star, The
+R:March
+C:Trad. Morris
+O:England
+M:4/4
+L:1/8
+Q:1/4=100
+K:G
+dc|"G"BdBG "Em"E2FG|"Am"ABAF "D7"D2dc|"G"BdBG "Em"EFGE|1 "Am"D2 "D7"F2 "G"G2:|2"D"D2F2 "G"G4||
+|"G"B2 d2 "Em"g2 e2|"C"dcBA "D7"G3c|"G"B2 d2 "Em"g2 e2|"C"f2d2 "D7"d3c|
+|"G"B2 d2 "Em"g2 e2|"Am"dcBA "D7"GFGA|"G"BdBG "Em"EFGE|"Am"D2 "D7"F2 "G"G2|]
+
+X:13019
+T:Morpeth Rant
+R:Reel
+C:William Shields (1748-1829)
+O:England, Northumberland
+M:4/4
+L:1/8
+Q:1/4=140
+K:D
+"A"A3 z c3 z|:"D"d2 AG FD FA|"G"BG Bd "A"cA ce|"D"f2 fd gf ed|"A7"c2 e2 e2 A2|
+"D"d2 AG FD FA|"G"BG Bd "A"cA ce|"D"f2 fd gf ed|1"D"A2 d2 d2 A2:|2"D"A2 d2 d2 Ac|:
+"D"df af df af|"Em"gf ef g2 ef|"G"gf ed cd eg|"D"fe fg f2 fe|
+"D"df af df af|"Em"gf ef g2 ef|"A"gf ed ca ag|1"D"f2 d2 d2 A2:|2"D"f2 d2 d4|]
+
+X:13020
+T:Mourisque, La
+T:Basse danse 5
+R:March
+C:Tielman Susato 1551
+O:Flemish
+M:4/4
+L:1/4
+Q:1/4=180
+K:G
+"G"B/ c/ d d e|d3 c|B G "Em"G A|"Am7"F>E "D"D2|"G"B/ c/ d d e|d3 c|B/A/ "D"G A F|"G"G3 A:|
+|:"G"B G G A|B G "C"c A|"G"B G "Em"G A|"Am"F>E "D7"D2|"G"B G G A|B G "C"c A|"G"B/A/ "D"G A F|"G"G4:|
+
+X:13021
+T:Monk's March
+R:March
+C:Trad.
+O:England
+M:2/4
+L:1/16
+Q:1/4=120
+K:G
+D2E2F2|"G"G4G2B2|"D7"A4A2c2|"G"B2d2g2e2|"G"d4d2c2|
+"G"B2d2B2G2|"D7"A2c2A2F2|"G"G3A "C"B2A2|"G"G2:|
+z2B2c2|"G"d4d2c2|"Bm"B4B4|"C"c3d c2B2|"D7"A4A4|
+"G"d3e d2c2|"Bm"B4B4|"G"c2d2e2c2|"D7"A2c2B2A2|
+"G"G4G2B2|"D7"A4A2c2|"G"B2d2g2e2|"G"d4d2c2|
+"G"B2d2B2G2|"D7"A2c2A2F2|"G"G3A "C"B2A2|"G"G2|]
+
+X:13022
+T:Morrison's Jig
+T:Stick Across the Hob; Tom Carmondy's Favourite
+T:Whelan's Fancy
+R:Jig
+C:Trad.
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=240
+K:EDor
+"Em"E2E BEB|EBE "D"AFD|"Em"E2E BEB|"D"dcB AFD
+|"Em"E2E BEB|EBE "D"AFD|"G"G2G "D"FGA|"G"BAG "D"FED:|
+||"Em"Bee fee|aee "(D)"fed|"Em"Bee fee|"D"a2g fed
+|"Em"Bee fee|aee "D"fef|"Em"gfe "D"d2A|BAG FED||
+||"Em"Bee fee|aee "(D)"fed|"Em"Bee fee|"D"faf def
+|"G"g2g gfe|"D"def "G"g2d|"(A)"ed^c "D"d2 A|"G"BAG "D"FED|]
+
+X:13023
+T:Muckin' o' Geordie's Byre
+T:Mucking Out the Byre
+R:Jig
+C:Trad.
+O:Scotland, Hebrides
+M:6/8
+L:1/8
+Q:1/8=240
+K:D
+A|"D"ABA AFA|d2e f2a|"G"g2e "D"f2d|"G"e2d BdB|
+"D"ABA AFA|d2e f2g|"G"afd "A"efe|"D"d3 d2:|
+|:e/2f/2|"Em"g2 g gag|"D"f2 f faf|"Em"e2e "A7"ede|"D"fed "G"BdB|
+"D"ABA AFA|d2e "G"f2g|"D"afd "A7"efe|"D"d3 d2:|
+
+X:13024
+T:Musical Priest, The
+R:Reel
+C:Trad. O'Neill's 1748
+O:Scotland, then Ireland
+M:4/4
+L:1/8
+Q:1/8=260
+K:D
+BA|"Bm"FB BA B3d|"A"cBAf ecBA|"Bm"FB BA BcdB|cBAc B2:|
+Bc|:"Bm"d2 dc dfed|"A"(3cBA eA fA eA|"Bm"d2 dc defb|afed dB Bc:|
+|:"Bm"dB (3BAB bafb|"A"afec ABce|"Bm"dB (3BBB bafb|afec B2 Bc:|
+% --------------------------------- N ---------------------------------------
+
+X:14001
+T:Nathaniel Gow's Lament for the Death of His Brother
+T:Gallowglass
+R:Lament
+C:Nathaniel Gow (1763-1831)
+O:Scotland
+M:6/8
+L:1/8
+Q:1/8=120
+K:Am
+A/B/|"Am"c>BA eBd|cAA A2A/B/|cBA e^fg|"Em"BGG G2A/B/|
+"Am"cBA eBd|cea e2d|c>BA EA^G|A[AC][AC] [A2C2]:|
+e|"Am"a^ga e=g/f/e/d/|cAA A2A/B/|cBA e^fg|"Em"BGG G2e|
+"Am"a^ga e=g/f/e/d/|cAA Ae>d|c>BA EA^G|A[AC][AC] [A2C2]e|
+"Am"a^ga e=g/f/e/d/|cAA A2A/B/|cBA e^fg|"Em"BGG G2e|
+"Am"aeg fdB|"Em"ecA B^GE|"Am"ABc "Em"Be/d/c/B/|"Am"cA[AD] [A3C3]|]
+
+X:14002
+T:Ned Of The Hill
+T:Eamonn a Chnuic
+R:Air
+C:Trad.
+O:Ireland
+M:3/4
+L:1/8
+Q:1/4=120
+K:G
+BA|"Em"G4 EF|"Em"G4 GA|"Em"B2 g3 f|"Em"e4 ge|"G"d3 B A2|"Em"G3 A B2|"C"c3 BAG|"Em"E4 BA|
+"Em"G4 EF|"Em"G4 GA|"Em"B2 g3 f|"Em"e4 ge|"G"d3 B A2|"Em"G3 A B2|"D"A3 GGF|"G"G4 d2|
+"C"e c3 g2|"G"d4 d2|"Em"e2 f3 e|"G"d4 de|"G"d3 B A2|"Em"G3 A B2|"C"c3 BAG|"Em"E4 BA|
+"Em"G3 E F2|"Em"G4 GA|"Em"B2 g3 f|"Em"e4 ge|"G"d3 e dB|"Am"A2 G2 AB|"D"A3 G GF|"G"G4|]
+
+X:14003
+T:Nellie the Elephant
+R:Jig
+C:Butler/Hart 1957
+O:USA
+M:6/8
+L:1/8
+Q:1/8=200
+K:G
+"G"Bcd BAG|B2B d2d|"C"e2e gfe|"G"d3 B3|
+"D7"c2c AAA|"G"ddd B3|1"D/A"f3 "A"e3|"D"d3 "D7"cBA:|2"C"e3 "D"F3|"G"G3-G2G||
+"C"Gce g2e|"G"g3 d3|"C"e3 d2c|"G"B3-B2B|
+"A"A2B ^cBA|"D"d2e ffg|"A"a2g f2e|"D7"d3 cBA|
+"G"Bcd BAG|B2B d2d|"C"e2e gfe|"G"d3 B3|
+"D7"c2c AAA|"G"ddd B3|"C"e3 "D"F3|"G"G3-G2G|]
+
+X:14004
+T:Newcastle
+R:Hornpipe
+C:Trad. Playford 1651
+O:England
+M:4/4
+L:1/8
+Q:1/4=160
+K:G
+A2|"G"B2d2 "D7"G2A2|"G"G3A G2D2|"G"B2d2 G2d2|"C"e2g4 fe|
+"G"d2B2 A2G2|"C"E2 e4 dc|"G"d2B2 "D7"A2>G2|"G"G6:|
+|:ef|"G"gfed g3B|"C"A2g4 A2|"G"G3A B2F2|"C"E2 e4 f2|
+"G"gfed g3B|"Am"A2A2 c3d|e2B2 "D7"A3G|"G"G6:|
+
+X:14005
+T:New Rigged Ship
+R:Reel
+C:Trad.
+O:Scotland, Shetland
+M:4/4
+L:1/8
+Q:1/4=150
+K:Ador
+eg|"Am"a2ab ageg|a2ab agef|"G"g2gg fgag|"D"f2d2 d2:|[K:Amix]
+|:ed|"A"cAcA "E7"B2ed|"A"cAcA "(E7)"E2ed|"A"cAcA "E7"B2ed|"A"c2A2 A2:|[K:Ador]
+|:AB|"Am"cdec "G"BcdB|"Am"ABAF "Em"GFE2|"Am"cdec "G"BcdB|"Am"c2A2 A2:|
+
+X:14006
+T:New York Girls
+T:Can't You Dance The Polka?
+R:Polka
+M:4/4
+L:1/4
+Q:1/4=170
+K:G
+d|"G"GB dB|"C"ce-eg|"D"fd cd|"G"B3 d|"G"g>g gd|"C"fe ce|"D7"dd cA|"G"GA Bc|
+"G"d3 B|"C"c e3|"D"d2 c2|"G"B G3|"G"g3 d|"C"fe c2|"D7"d>d cA|"G"A G2|]
+
+X:14007
+T:Niel Gow's Lament for the Death of his Second Wife
+T:Neil Gow's Lament
+R:Air
+C:Niel Gow 1805
+O:Scotland
+M:6/8
+L:1/8
+Q:1/8=120
+K:D
+D/B,/|"D"A,>B,D "Bm"D>ED|"Em"EFA "G"B2 d/B/|"D"A>FD "Em"E>DE|"D"FDB, "G"B,2 D/B,/|
+"D"A,>B,D "Bm"D>ED|"Em"EFA "G"d2 c/B/|"D"A>FD "G"B,2 A,|"G"B, "Em7"D D "D"D2:|
+(3A/B/c/|"D"d>fd "A"ecA|"G"B/A/B/c/d B/A/G/F/E/<D/|"Em"E2 D/E/ "D"F>ED|"Bm"FDB, "Em7"B,2 (3A/B/c/|
+"D"d>af "A"ec>A|"G"B/A/B/c/d B/A/G/F/E/<D/|"Em"E2 D/E/ "D"F>D"G"B,|"D"A,B,"Em7"D D2 "D"(3A/B/c/|
+"D"d>fd "A"ec>A|"G"B/A/B/c/d B/A/G/F/E/<D/|"D"F/D/A/F/d/A/ "G"B/A/G/F/E//D3/4|"D"F2 "Em"E "A7"E>DB,|
+"D"A,>B,D "Bm"D3/2E/D|"Em"EFA "G"d>cB|"D"A>FD "G"B,2 A,|"G"B, "Em7"D D "D"D2|]
+
+X:14008
+T:Northern Lights of Old Aberdeen
+R:Waltz
+C:Trad. Song
+O:Scotland
+M:3/4
+L:1/8
+Q:1/4=160
+K:D
+A2|"D"A2 F2 G2|"F#m"A4 A2|"G"d2 c2 B2|"D"A6|"Em"G2 A2 G2|"A7"F4 E2|("D"A6|A4) A2|"D"A4 "D7"F2|"F#m"A4 A2|"G"d2 c2 B2|"D"A6|"Em"G2 A2 G2|"A7"F4 E2|("D"D6|D4) A2|
+"G"B2 G2 B2|d2 c2 B2|"D"A6|"D7"A4 AA|"G"B2 G2 B2|"G"d2 c2 B2|("F#m"c6|c4) A2|"D"A2 A2 F2|"F#m"A4 A2|"G"d2 c2 B2|"D"A6|"Em"G2 A2 G2|"A7"F2 F2 E2|("D"D6|D4) "A7"A2||
+"D"D4 D2|"Bm"F4 F2|"Em"E2 D2 "A7"E2|"D"D4 "D7"A2|"G"B4 B2|"A7"G2 A2 B2|("D"A6|A4) A2|"G"B4 B2|"Em"G4 "A7"B2|"D"A4 F2|"Bm"E4 D2|"E7"E4 E2|F4 D2|("A7"A6|A4) A2|
+"D"D4 D2|"Bm"F4 F2|"Em"E2 D2 "A7"E2|"D"D4 A2|"G"B4 B2|"G"G2 A2 B2|("D"A6|A4) A2|"G"B4 G2|"Ddim"d4 B2|"D"A4 F2|"Bm"d4 d2|"E7"d4 B2|"A7"c4 d2|("D"d6|d6)|]
+% --------------------------------- O ---------------------------------------
+
+X:15001
+T:Off to California
+R:Hornpipe
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=120
+K:G
+(3DEF|"G"GFGB "D"AGED|"G"GBdg "C"e2 (3def|"G"gfgd "C"edBG|"D"ABAG "C"E2 (3DEF|
+"G"GFGB "D"AGED|"G"GBdg "C"e2 (3def|"G"gfgd "C"edBG|"D"ABAF "G"G2:|
+|:(3def|"D"gfeg "G"fedf|"Em"edef edBd|"Em"gfgd "D"edBG|"D"ABAG "C"E2 (3DEF|
+"G"(3GAG BG "D"AGED|"G"GBdg "C"e2 (3def|"G"gfgd "C"edBG|"D"AADE "G"G2:|
+
+X:15002
+T:O'Keefe's slide
+T:Dan O'Keefe's slide
+R:Slide
+C:Trad.
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=240
+K:EDor
+D|"Em"E2B B2A|"D"FEF A2D|"Em"E2B B2A|"D"F2D DEF|
+"Em"E2B B2A|"D"FEF A3|FEF A2B|"Em"F2E E2:|
+|:A|"Em"B2e e2f|e2d B2A|B2e e2f|e2d B2c|
+"D"d2e dcB|AFE D2E|FEF A2B|"Em"F2E E2:|
+
+X:15003
+T:Old Mole, The
+R:Jig
+C:Trad. Playford 1651
+O:England
+M:6/8
+L:1/8
+Q:1/8=200
+K:G
+"Em"G2 G E3/2F/G|"D"A2 F D2 D|"Em"G2 G E3/2F/G|"D"A3 d3|
+"Em"B2 G E3/2F/G|"D"A2 F D2 D|"Em"E3/2F/G F3/2E/F|"G"G3 G3:|
+
+X:15004
+T:Old Joe Clark
+R:Reel
+C:Trad.
+O:USA, South
+M:4/4
+L:1/8
+Q:1/4=200
+K:D
+"A"e2 f2 g2 f2|e2 d2 c4|e2 f2 g2 f2|"E"e4 e2 z2|"A"e2 f2 g2 f2|e2 d2 c4|A2 c2 "G"B2 G2|"A"A4 A2 z2:|
+|:"A"A3 A A4|e2 d2 c4|A3 A A2 A2|"G"G4 z4|"A"A3 A A4|e2 d2 c4|A2 c2 "G"B2 G2|"A"A4 A2 z2:|
+
+X:15005
+T:Over the Water to Charlie
+R:Jig
+C:Trad.
+O:Scotland
+M:6/8
+L:1/8
+Q:1/8=240
+K:G
+"G"GBd eBd|"Em"efg dBd|"G"GBd eBd|"D"e2f "G"g3|
+"G"GBd eBd|"Em"efg dBd|"G"bag agf|"D"e2f "G"g3:|
+|:"G"bag agf|"Em"efg dBd|"G"bag agf|"Em"e2a "D"a3|
+"G"bag agf|"Em"efg dBd|"G"G3 dBd|"D"e2f "G"g3:|
+
+X:15006
+T:Oyster Girl, The
+T:Kingsbury Jig
+R:Jig
+C:Trad.
+O:England
+M:6/8
+L:1/8
+Q:1/8=240
+K:G
+Bc|:"G"ded B2 G|"D"A2 F D3|"G"G2 G BGB|"D"d2 c A2 d|
+"G"ded Bdg|"D"f2 e "C"c2e|"G"d2 B "D7"cBA|"G"G3-G2 d:|
+|:"G"Bcd Bcd|"C"e2 c e2c|"D7"ABc ABc|"G"d2 B d2 B|
+"G"ded Bdg|"D"f2 e "C"c2 e|"G"d2 B "D7"cBA|"G"G3-G2 d:|
+% --------------------------------- P ---------------------------------------
+
+X:16001
+T:Parsons farewell
+R:Reel
+C:Trad. Playford 1650
+O:England
+M:4/4
+L:1/8
+Q:1/4=140
+K:Am
+"Am"c2 A2 A2 Bc|"G"d2 G2 G3 G|"Am"AB c2 B2 A2|1"Em"G2 E2 E4:|2("Em"E4E2)e2|:
+"Am"c4 c2 e2|"Am"c4 c2 e2|"Am"cd e2 cd e2|"G"d2 B2 B4|
+"G"Bc d2 Bc d2|"Am"c2 A2 ABcd|"Em"e2 dc BA B2|1"Am"A6 e2:|2 "Am"A8|]
+
+X:16002
+T:Peggy Perkins
+R:Reel
+C:Trad.
+S:George Spencer m/s, Leeds,1831
+O:Leeds, England
+M:2/4
+L:1/16
+Q:1/4=70
+K:D
+A2|"D"dfdA fgfd|a2a2 a2f2|"Em"gage "D"fgfd|"A"e2e2 e2A2|
+"D"dedA fgfd|a2a2 a2f2|"Em"gage "Bm"faec|"D"d2d2 d2:|
+|:z2|"D"ABcd "Em"efge|"D"f2d2 d4|"Em"gage "D"fgfd|"A"cdec "D"A2 z2|
+"D"ABcd "Em"efge|"D"f2d2 d4|"Em"efge "A"cdec|"D"d2d2 d2:|
+
+X:16003
+T:Plaisir D'Amour
+R:Waltz
+C:Jean-Paul Martini (Schwarzendorf) (1785)
+O:France
+M:3/4
+L:1/8
+Q:1/4=120
+K:G
+D|"G"G6|"D"A6|"G"B6|B4 z B|"C"c6|"G"B3 G B2|"D"A6|A4 z D|
+"C"E6|"D"F6|"G"G2 A2 B2|"C"E2 A3 c|"G"B6|"D"A6|"G"G6|G6|]
+
+X:16004
+T:Planxty Irwin
+R:Jig
+C:Turlough O'Carolan (1713)
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=160
+K:G
+d|\
+"G"g2f "C"e>fg|"G"d2c "Em"B>AG|"C"c2A "G"B>cd|"D7"F2G A2f|
+"G"g2f "C"e>fg|"G"d2c "Em"B>AG|"Am"c2A "G"B>cd|"C"GA "D7"F "G"G2:|
+|:d|\
+"G"g>ag g>fg|"D7"a>ba "D7"a>fd|"G"b2b "D7"a>bg|"A7"f>ge "D7"def|
+"G"g2f "C"e>fg|"G"d2c "Em"B>AG|"Am"c2A "G"B>cd|"C"GA "D7"F "G"G2:|
+
+X:16005
+T:Planxty Fanny Power
+T:Fanny Poer
+R:Waltz
+C:Turlough O'Carolan (1732)
+O:Ireland
+M:3/4
+L:1/8
+Q:1/4=120
+K:G
+D2|"G"G4D2|G3AB2|"C"c4B2|"Am"A4G2|"D7"F4E2|"D7"D3ED2|F4G2|A3Bc2|
+"G"B3AG2|B3cd2|"Am"e4A2|A4 G2|"D"F4E2|"D7"D2G2F2|"G"G6|G4:|
+d2|"G"d2Bcd2|d2Bcd2|"Em"G3AG2|G2B2G2|"C"e2cde2|e2cde2|"D7"A3BA2|A2c2A2|
+"G"B3cd2|"C"e2f2g2|"D7"f3ga2|d4c2|"G"B3AG2|"D7"Ac3F2|"G"G6|G4:|
+
+X:16006
+T:Portsmouth
+R:Hornpipe
+C:Trad. Playford 1709
+O:England
+M:4/4
+L:1/8
+Q:1/4=140
+K:G
+D2|"G"G3A BAGF|"C"E4e4|"G"d2B2 "Em"cBAG|"D"A6D2|
+"G"G3A BAGF|"C"E4e4|"G"d2B2 "D"cBAB|"G"G6:|
+|:d2|"G"g3a bagf|"G"g2d2B2d2|"G"g2B2 "Em"cBAG|"D"A6 D2|
+"G"G3A BAGF|"C"E4e4|"G"d2B2 "D"cBAB|"G"G6:|
+
+X:16007
+T:Princess Royal
+T:Miss MacDermott
+R:March
+C:Turlough O'Carolan (1670-1738)
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=120
+K:Am
+ed|"Am"c2 B2 A2 ed|"Am"c2 B2 A2 a2|"Dm"f3 e d2 f2|"Am"e3 d c2 e2|
+"G"d2 c2 B2 A2|"Em"GABG E2 ed|"Am"cBcA "Em"B2 G2|"Am"A4 A2:|
+|:ce|"F"f3 f f2 e2|"C"f2 g2 a4|"F"a2 g2 f2 e2|"G"cBAc B4|
+"Am"A2 A2 "G"B3 B|"Am"cB A2 a3 g|"Am"a2 "Dm"e2 f4|"Am"e2 "Dm"c2 d4|
+"Am"d2 c2 B2 A2|"G"GABG "Em"E2 ed|"Am"cBcA "Em"B2 G2|"Am"A4 A2:|
+
+X:16008
+T:Princess Royal (Morris)
+R:March
+C:Turlough O'Carolan (1670-1738)
+O:Ireland, then Major version as Morris dance of Abingdon England
+M:4/4
+L:1/8
+Q:1/4=160
+K:A
+ed|"A"c2 B2 A2 ed|"A"c2 B2 A2 a2|"D"f3 e d2 f2|"A"e3 d c2 e2|
+"Bm"d2 c2 B2 A2|"E"GABG E2 ed|"A"cBcA "E"B2 G2|"A"A4 A2:|
+|:ce|"D"f3 f f2 e2|"D"f2 g2 a4|"D"a2 g2 f2 e2|"A"cBAc "E"B4|
+"D"A2 A2 B3 B|"A"cB A2 a3 g|"D"a2 e2 f4|"D"e2 c2 d4|
+"Bm"d2 c2 B2 A2|"E"GABG E2 ed|"A"cBcA "E"B2 G2|"A"A4 A2:|
+
+X:16009
+T:Proudlocks's Hornpipe
+R:Hornpipe
+C:Trad.
+O:England
+M:4/4
+L:1/8
+Q:1/4=140
+K:G
+D2|"G"GDGB "D7"AGAB|"G"G2gf "C"gedc|"G"(3BcdBG "D7"(3ABcAF|"G"GFGA "D7"GFED|
+"G"GDGB "D7"AGAB|"G"G2gf "C"gedc|"G"(3BcdBG "D7"(3ABcAF|"G"G2G2 G2:|
+|:Bc|"G"dedc "Em"B2(3GAB|"Am"cdcB "D7"A2Bc|"G"dedc "Em"B2g2|"A7"agfe "D7"dcBA|
+"G"GDGB "D7"AGAB|"G"G2gf "C"gedc|"G"(3BcdBG "D7"(3ABcAF|"G"G2G2 G2:|
+% --------------------------------- Q ---------------------------------------
+
+X:17001
+T:Queen's Delight, The
+R:Jig
+C:Trad.
+O:England
+M:6/8
+L:1/8
+Q:1/8=200
+K:G
+"G"d2G dcB|"D7"cBc ABc|"G"d2G d2c|1"D7"BcA "G"GBc:|2"D7"BcA "G"G3|:
+"C"cBc cBc|"D7"ABc def|"G"gfg "C"eag|"A7"gfe "D7"def|
+"G"g2g gfe|"C"dec "D7"ABc|"G"d2G d2c|"D7"BcA "G"G3:|
+% --------------------------------- R ---------------------------------------
+
+X:18001
+T:Raglan Road
+T:Dawning of the Day
+T:Fainne Geal an Lae
+R:Waltz
+C:Trad.
+N:Poem by Patrick Kavanagh (1904-67)
+O:Ireland
+M:3/4
+L:1/4
+Q:1/4=140
+K:G
+"G" (G/A/)|B2 B|B2 A/B/|"D"d2 d|"C" e2 (d/B/)|"G" G2 (B/A/)|"C" G2 G|"G"(G3-|G) z d|
+"C" e2 d|e2 g|"G" B2 A|G2 (B/c/)|"G" d2 B|"Em" g2 B|"Am"(A3|A) z d|
+"C" e2 d|e2 g|"G" B2 A|G2 d|"G" d2 c/B/|"Em" g2 B|"D" (A3|"D7" A) z G/A/|
+"G" B2 B|B2 A/B/|d2 d|"C" e2 d/B/|"G" G2 (B/A/)|"C" G2 G|"G" G3-|G2|]
+
+X:18002
+T:Rakes Of Mallow, The
+R:Polka
+C:Trad.
+O:Ireland
+M:2/4
+L:1/8
+Q:1/4=120
+K:G
+"G"GB GB|GB c/B/A/G/|"D"FA FA|FA d/c/B/A/|
+"G"GB GB|GB d>B|"D7"c/B/A/G/ F/G/A/c/|"G"BG G2:|
+|:"G"gf/e/dc|Bc d>B|gf/e/dc|"D"Bd A>d|
+"G"gf/e/dc|Bc d>B|"D7"c/B/A/G/ F/G/A/c/|"G"BG G2:|
+
+X:18003
+T:Redesdale Hornpipe
+R:Hornpipe
+C:Trad.
+O:England
+M:4/4
+L:1/8
+Q:1/4=180
+K:G
+P:A
+"D7"(3def|"G"gdBd GB "D7"(3def|"G"gdBd G2AB|"D7"cAFA DFAc|"G"ed^cd B2"D7"(3def|
+"G"gdBd GB "D7"(3def|"G"gdBd G2"Em"AB|"Am"cAFA "D7"DFAB|"G"A2G2 G2:|
+GA|"G"BGFG DGFG|"G"BGFG D2AB|"Am"cAFA "D7"DFAc|"G"ed^cd B2GA|
+"G"BGFG DGFG|"G"BGFG D2AB|"Am"cAFA "D7"DFAB|"G"A2G2 G2:|
+
+X:18004
+T:Redhaired Boy, The
+T:Gilderoy
+T:An Gille Ruadh
+R:Reel
+C:Trad. O'Neill'S 1748
+O:Scotland
+M:4/4
+L:1/8
+Q:1/4=180
+K:G
+(GF)|"G"DGGF GABc|dedB "C"c2(Bc)|"G"dcBA GABG|"F"A=FDE "Dm"F2(DC)|
+"G"DGGF GABc|dedB "C"c2(Bc)|"G"dgga g=fdc|B2 "D7"G2 "G"G2:|
+|:(de)|"Dm"=fefg f2(de)|=fedB c2(Bc)|"G"dcBA GABG|"F"A=FDE "Dm"F2(DC)|
+"G"DGGF GABc|dedB "C"c2(Bc)|"G"dgga g=fdc|B2 "D7"G2 "G"G2:|
+
+X:18005
+T:Redwing
+T:Indian Maid; Union Maid
+R:Polka
+C:Trad. (Bawdy)
+O:USA
+M:4/4
+L:1/8
+Q:1/4=120
+K:G
+D|:"G"G>D GB d3 B|"C"ce ge "G"d3 B|"Am"cc/B/ "D7"Ac "G"BB/A/ "Em"GB|1"A7"AG FG "D7"AF ED:|2"A7"AG "D7"FA "G"G2||
+gf|:"C"e2 c2 eg fe|"G"d2 B2- Bd ed|"D7"d2 A2- Ad ed|1"G"d2 B2- Bg gf:|2"G"G4-G3|]
+
+X:18006
+T:Rights of Man, The
+R:Hornpipe
+C:Trad.
+O:Ireland
+Z:Paul Hardy after Greenshoots
+M:4/4
+L:1/8
+Q:1/4=120
+K:Em
+GA|"Em"Bc AB GA FG|EFGA B2ef|gfed edBd|"D"cBAG A2GA|
+"Em"(3BcB (3ABA (3GAG (3FGF|EFGA B2ef|gfed "Bm"Bgfg|"Em"e2 E2 E2:|
+|:ga|"Em"bgbg efga|bgbg egfe|"D"d2 d^c defg|afdf a2 gf|
+"Em"edef gfga|bgaf gfed|gfed "Bm"Bgfg|"Em"e2 E2 E2:|
+
+X:18007
+T:Road to Lisdoonvarna, The
+T:Lisdoonvarna
+R:Jig
+C:Trad.
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=240
+K:EDor
+"Em"E2B B2A|"(Bm)"B2c d2D/E/|"D"F2A ABA|D2E FED|
+"Em"E2B B2A|"(Bm)"B2c d3|"A"cdc B2A|"Em"B2E E3:|
+|:"Em"e2f gfe|"Bm"d2B Bcd|"A"c2A ABc|"Bm"d2B Bcd|
+"Em"e2f gfe|"Bm"d2B Bcd|"A"cdc B2A|"Em"B2E E3:|
+
+X:18008
+T:Rochdale Coconut Dance
+R:Reel
+C:Trad. Morris Dance
+O:England, Rochdale
+M:4/4
+L:1/8
+Q:1/4=180
+K:G
+"Em"EFGF E2 B2|EFGF E2 B2|"Am"c2 Ac "G"B2 G2|"D"AG F2 "Em"E2 D2:|
+"G"G2 BB G2 B2|"D"AGFG A2 dd|"G"G2 BB G2 B2|"D"AGFE "G"D2 d2|
+"G"G2 BB G2 B2|"D"AGFG A2 dd|"G"BdcB "Am"AcBA|"G"G2 F2 G2 D2|]
+
+X:18009
+T:Roddy McCorley
+T:Sean South
+R:March
+C:Trad. Song
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=120
+K:G
+GA|"G"B2ABD2GA|B3AG3D|"C"E2G2G2A2|"G"G4-G2Bc|
+d2d2d2Bd|"C"e2e2"G"d3B|"Em"G2E2"Am"c2B2|"D"A4-A2Bc|
+"G"d2d2d2Bd|"C"e2e2"G"d3B|"Em"G2E2"Am"c2B2|"D"A4-A2GA|
+"G"B2ABD2GA|B3AG2DD|"C"E2G2G2-"Am"GA|"G"G4-G2:|]
+
+X:18010
+T:Roman Wall
+R:Jig
+C:Trad.
+S:Pete Coe
+O:England, Northumberland
+M:6/8
+L:1/8
+Q:1/8=200
+K:G
+D|"G"G2G BAG|Bdg dBG|"C"c2e "G"dBG|"D"FAA A2D|
+"G"G2G BAG|Bdg dBG|"C"cde "G"dBG|"D"AGF "G"G2:|
+|:z|"C"g2g "D"fed|"C"efg "G"dBG|"C"cde "G"dBG|
+"D"F2A A2d|"C"g2g "D"fed|"C"efg "G"dBG|"C"cde "G"dBG|"D"AGF "G"G2:|
+
+X:18011
+T:Rose Tree, The
+R:Polka
+C:Trad.
+O:England
+M:2/4
+L:1/8
+Q:1/4=100
+K:D
+f/e/|:"D"dB AF|A/B/A/F/ A2|d d/e/f/e/d/e/|"A7"fe ef/e/|
+"D"dB AF|A/B/A/F/ A2|dc/d/ "A7"ed/e/|"D"fd d2:|
+|:"D"fe fg|"D7"a2 gf|"G"eb ba|"A7"be ef/e/|
+"D"dB AF|A>B AB|dc/d/ "A7"ed/e/|"D"fd d2:|
+
+X:18012
+T:Rosie Finn's Favourite
+R:Slide
+C:Trad.
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=220
+K:G
+"G"G2B d2g|b2g d2B|"C"cBc agf|"G"gfe "D"dBA|
+"G"G2B d2g|b2g d2B|"C"cBc agf|"G"g3 g2d:|
+|:"G"g2b c'2b|"Am"a2e e2g|"D"f2a abg|f2d d2f|
+"G"g2b c'2b|"Am"a2e a2g|"D"faf def|"G"g3 g2d:|
+
+X:18013
+T:Rosin the Bow
+T:Old Rosin the Beau
+R:Jig
+C:Trad.
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=180
+K:G
+D|"G"G>G G BAG|B/d/- d2- d2 e|d>BA GAB|"Em"E3- E2 z/2 D/2|
+"G"G>G G BAG|"Em"B/d/- d2 e2 z/2 d/2|"G"dBG "D7"A<BA|"G"G3-G2:|
+|:B/2c/2|"G"d>Bd d>ef|"Em"g2e g2 z/2 e/2|"G"d>BA G>AB|"Em"E3-E2 z/2 D/2|
+"G"G>G G B>AG|"Em"B/d/- d2 "C"e2 z/2 d/2|"G"dBG "D7"A>BA|"G"G3-G2:|
+
+X:18014
+T:Roxborough Castle
+R:Reel
+C:Trad.
+O:Scotland
+M:4/4
+L:1/8
+Q:1/4=140
+K:G
+D2|"G"G2 GB dBGB|"C"cBce "G"dBGB|"C"c2 ec B2 dB|"Am"c2 A2 "D7"AcBA|
+"G"GFGB dBGB|"C"cBce "G"dBGB|dgfe "D7"dcBA|"G"B2 G2 G2:|
+|:d2|"G"gdBd edBd|gdBd edBd|"C"c2 ec "G"B2 dB|"Am"c2 A2 "D7"AcBA|
+"G"GFGB dBGB|"C"cBce "G"dBGB|dgfe "D7"dcBA|"G"B2 G2 G2:|
+
+X:18015
+T:Rowan Davies, Miss
+R:Waltz
+C:Phil Cunningham
+O:Scotland
+M:3/4
+L:1/8
+Q:1/4=120
+K:G
+B2 A2|"G"G4 D2|"D7"D3 E F2|("Em"G6|G2) g2 f2|"C"e3 G G2|"G"d3 G B2|"Am"A6|
+"D7"B4 A2|"G"G4 D2|"D7"D3 E F2|("Em"G6|G2) A2 B2|"C"E c3 A2|"D7"F4 G2|("G"G6|G2):|
+|:"G"G2 F2|"Em"E3 E E2|"Am"e3 G G2|("G"d6|"Bm"d2) B2 A2|"Em"G3 A B2|"C"e2 G3 A|("B7"B6|"G7"B2) c2 d2|
+"C"e4 EG|"D7"F3 GAF|"Em"(G6|G2) A2 B2|"C"E c3 A2|"D7"F4 G2|"G"(G6|G2):|
+
+X:18016
+T:Rufty Tufty
+R:Reel
+C:Trad. Playford 1651
+O:England
+M:4/4
+L:1/8
+Q:1/4=160
+K:D
+A2|"D"d4 "A7"d2 e2|"D"f4 e2 f2|"G"g2 g2 "A7"f2 e2|"D"d6:|
+K:G
+|:ef|"D"g2 f2 e2 "C"d2|"G"d2 c2 B2 Bc|"G"d2 d2 c2 B2|"D7"A4 "G"G2:|
+|:B2|"D7"B3 c "G"d2 d2|"C"e2 c2 "G"d4|"D7"B3 c "G"d2 d2|"C"e2 c2 "G"d2 Bc|"G"d2 d2 c2 B2|"D7"A4 "G"G2:|
+
+X:18017
+T:Rule Britannia
+R:March
+C:Thomas Augustine Arne (1740)
+N:Words by James Thomson (1700-48)
+O:England
+M:4/4
+L:1/8
+Q:1/4=100
+K:D
+A|"D"d2d2 (d/2e/2f/2g/2) ad|"A"e3 (f/2g/2) "D"f2 z A|
+("D"d/2e/2d/2e/2) (f/2 g/2f/2g/2) "A"aefe|"D"de/2f/2 ed "A"c3 A|
+"A"cAeA a^g/2f/2 e/2d/2c/2B/2|"D"A2 B>A A2 z2|
+"D"d2 d>A "G"BG z d|"G"g>fed "A"c2 z A|
+"D"a2g2 f/2d/2g/2e/2 ag|"A"f2 e/f/e/d/ "D"d4|
+"D"f2 z f gg z f|"Em"g>fe>d "A"c4|
+"D"a2g2 f/2d/2g/2e/2 ag|"A"f2 e/f/e/d/ "D"d4|]
+
+X:18018
+T:Ryan's Polka
+T:John Ryan's
+T:Meg Ryan's; Jack Ryan's
+R:Polka
+C:Trad.
+O:Ireland
+M:2/4
+L:1/8
+Q:1/4=120
+K:D
+"D"dd "Bm"B/c/d/B/|"D"AF AF|dd "Bm"B/c/d/B/|"E7"AF "A7"ED|
+"D"dd "Bm"B/c/d/B/|"D"AF Ad/e/|fd "A7"e/d/c|1 "D"d2 d2:|2 "D"d2 d>e|:
+"D"fd de/f/|"G"gf "A"ed/e/|"D"fd Ad|"E7"fd/f/ "A7"a>g|
+"D"fd de/f/|"G"gf "A"ed/e/|"D"fd "A7"e/d/c|1 "D"d2 d>e:|2 "D"d2 d2|]
+% --------------------------------- S ---------------------------------------
+
+X:19001
+T:Sailor's Hornpipe, The
+T:College Hornpipe
+R:Hornpipe
+C:Trad. Shanty
+O:Britain
+M:4/4
+L:1/8
+Q:1/4=140
+K:G
+gf|"G"g2 G2 G2 dc|Bdgf gbag|"A7"a2 A2 A2 AG|"D"FA d2 d2 ef|
+"C"gfed "G"edcB|"C"cBAG "D"GFED|"C"EGFA "D"GBAc|"G"B2 "C"G2 "G"G2:|
+|:dc|"G"Bdgd Bdgd|"C"e2 c2 c2 ed|"A7"^ceae ^ceae|"D"f2 d2 d2 B2|
+"C"cBcd "Am"edcB|"C"cBAG "D"GFED|"C"EGFA "D"GBAc|"G"B2 "C"G2 "G"G2:|
+
+X:19002
+T:Saint Anne's Reel
+R:Reel
+C:Trad.
+O:Canada, then Shetland
+M:4/4
+L:1/8
+Q:1/4=120
+K:D
+"D"fedc edcB|A2FA DAFA|"G"B2GB EBGB|"D"A2FA DAFA|
+"D"fedc edcB|A2FA DAFA|"G"B2ed "A7"cABc|"G"dedc "D"d2 de:|
+|:"D"f2fe "D7"fdef|"G"gagf g2gf|"A7"edcB ABce|baa^g a2ag|
+"D"f2fe fdef|"G"gagf g2gf|"A7"edcB ABcd|eddc "D"d2 de:|
+
+X:19003
+T:Sally Gardens, Down by the
+T:Maids of the Mourne Shore
+R:Reel
+C:Trad.
+A:William Butler Yeats, 1889
+O:Ireland
+M:2/2
+L:1/8
+Q:1/2=50
+K:C
+(CD)|"C"E2(DC) "G"D2(EG)|"F"A4 "C"G2(cG)|"F"A2(GE) "G"D3C|"C"C4 z2(CD)|
+"C"E2(DC) "G"D2(EG)|"F"A4 "C"G2(cG)|"F"A2(GE) "G"D3C|"C"C4 z2G2|
+"Em"c2(BG) "Am"A2c2|"G"B4 "C"G2EG|"F"A2(GE) ("D"GA)(cd)|"C"c4 z2(CD)|
+"C"E2DC "G"D2(EG)|"F"A4 "C"G2(cG)|"F"A2(GE) "G"D3C|"C"C4 z2|]
+
+X:19004
+T:Salmon Tails up the Water
+R:Reel
+C:Trad.
+O:England, Northumberland
+M:4/4
+L:1/8
+Q:1/4=200
+K:G
+"G"G2E2D2E2|G4G3A|B2d2 "D"A2BA|"C"G2E2 "D"D4|"G"G2E2D2E2|G4G3A|B2d2 "D"A2BA|("G"G4G4):|
+"G"B2d2d4|"C"c2e2e4|"G"d2B2 "D"A2BA|"G"G2E2 "D"D4|"G"B2d2d4|"C"c2e2e3f|"Em"g2f2e2d2|"C"e2"D"f2" G"g4|
+"G"B2d2d4|"C"c2e2e4|"G"d2B2 "D"A2BA|"G"G2E2 "D"D4|"G"G2E2D2E2|G4 G3A|B2d2 "D"A2BA|("G"G4G4)|]
+
+X:19005
+T:Saucy Little Bird on Nelly's Hat, The
+R:Hornpipe
+C:Trad. Music Hall Song
+S:Scan Tester
+O:England
+M:4/4
+L:1/8
+Q:1/4=120
+K:G
+(3DEF|"G"G2G2 G3/2B/2 A3/2G/2|"D"(3FGA d2"G"d7/2c/2|B3/2d/2 B3/2G/2 "D"A3/2c/2 A3/2F/2|"G"G3/2A/2 (3BAG D2 (3DEF|
+"G"G2G2 G3/2B/2 A3/2G/2|"D"(3FGA d2"G"d7/2c/2|"G"B3/2d/2 B3/2G/2 "D"A3/2c/2 A3/2F/2|"G"G2G2 G2:|
+|:B3/2c/2|"G".d2.d2 d2e2|d2c3/2B/2 "Am"c2A3/2B/2|c3/2B/2 A3/2B/2 "C"c2d2|"Am"c2B3/2A/2 "G"B2 (3DEF|
+"G"G2G2 G3/2B/2 A3/2G/2|"D"(3FGA d2"G"d7/2c/2|B3/2d/2 B3/2G/2 "D"A3/2c/2 A3/2F/2|"G"G2G2 G2:|
+
+X:19006
+T:Scan Tester's No 1
+R:Reel
+C:Scan Tester
+O:England
+M:4/4
+L:1/8
+Q:1/4=160
+K:G
+BA|"G"G2G2GABc|d4d2B2|"Am"c2d2e2f2|"G"g4g2b2|
+"Am"a2g2f2e2|"G"e2d2B3d|"Am"e2d2c2B2|"D"A4ABAG|
+"G"G2G2GABc|d4d2B2|"Am"c2d2e2f2|"G"g4g2b2|
+"Am"a2g2f2e2|"Em"e2d2B3A|"G"G2B2cB "D7"A2|"G"G6|:
+BA|"G"G3A B2c2|"C"e2d2B2B2|"Am"A3B cBAc|"C"e2d2B2A2|
+"G"G3A B2c2|"C"e2d2B2g2|"G"fedc "D7"B2A2|"G"G6:|
+
+X:19007
+T:Scan Testers No 2
+R:Reel
+C:Scan Tester
+O:England
+M:4/4
+L:1/8
+Q:1/4=160
+K:G
+Bc|"G"d2dd d2d2|d2^c2"Am"=c2B2|"D"A3B A2G2|"Bm"F6DE|
+"Bm"F2EF "G"G2FG|"D"A2d4cB|A2G2"Bm"F2E2|"G"D6:|
+|:Bc|"G"d2G2 B2AB|"Am"c2E2"D"A3B|"Am"c2e2"G"d2c2|"G"B4 B3c|
+"G"d2G2 B2AB|"Am"c2E2"D"A3B|"Am"c2ec "G"B2A2|"G"G6:|
+
+X:19008
+T:Scottish Reform
+R:Jig
+C:Trad.
+O:Scotland
+M:6/8
+L:1/8
+Q:1/8=190
+K:D
+F/2G/2|"D"ABA AFA|"D"d2d "G"dcB|"D"ABA "Bm"AGF|"Em"EGF "A7"EFG|
+"D"ABA AFA|"D"d2d def|"G"gfg "A7"eag|"D"fdd d2:|
+f/2g/2|"D"afd def|"G"gba "A7"gfe|"D"afd "Em"g2f|"A7"ecA A2f/2g/2|
+"D"afd def|"G"gba "A7"gfe|"G"gfg "A7"eag|"D"fdd "A7"dfg|
+"D"afd def|"G"gba "A7"gfe|"D"afd "Em"g2f|"A7"ecA ABc|
+"D"dfd "A"ecA|"G"BdB "D"AFD|"G"GFG "A7"EAG|"D"FDD D2|]
+
+X:19009
+T:Scotland the Brave
+R:Reel
+C:Trad.
+O:Scotland
+M:2/4
+L:1/8
+Q:1/4=120
+K:D
+"D"D2 D3/2E1/2|FD FA|d2 "G"d3/2d1/2|"D"dA "D7"FD|"G"G2 B3/2G/2|"D"FA FD|"E7"E2 (A3/2B1/2)|"A7"AG FE|"D"D2 (D3/2E/2)|
+FD FA|d2 "G"d3/2d1/2|"D"dA "D7"FD|"G"G2 B3/2G/2|"D"FA "Bm"FD|"E7"E2 "A7"D3/2D1/2|"D"D4||
+"A7"e2 e3/2e1/2|ec A2|"D"d2 f3/2e1/2|dB A2|"Bm"d2 dd|"F#m"c2 dc|"E7"Bd cB|"A7"AG FE|
+"D"D2 (D3/2E1/2)|FD FA|d2 "G"d3/2d1/2|"D"dA "D7"FD|"G"G2 B3/2G1/2|"D"FA "Bm"FD|"Em"E2 "A7"D3/2D1/2|"D"D4|]
+
+X:19010
+T:Shenandoah
+R:Shanty
+C:Trad.
+O:England
+M:4/4
+L:1/8
+Q:1/8=160
+K:G
+D2| "G"GG G3 "Am"ABc | "C"e3"G"d3 (gf) | "C"e3d "G"ed "D"Bd-|"G"d6 z"D"d |
+"Em"eee3B "Bm"dB | "D"A2 "Em"G3z "D7"GA |"G"B3G "D"Be "Bm"d2- |d2"G"GA "C"B3G  |"D7"A2 "G"G4 |]
+
+X:19011
+T:Seven Stars
+T:Moon And Seven Stars, The
+R:Jig
+C:Trad.
+O:England
+Z:Pete Coe
+M:6/8
+L:1/8
+Q:1/8=220
+K:D
+"D"d2A A2F|"G"GAB "D"A2z|"G"Bcd efg|"A"fed cBA|
+"D"d2A A2F|"G"GAB "D"A2z|"G"Bcd efg|"A"Adc "D"d3:|
+|:"A"e2A A3|efg f3|efg fed|"G"cdB "D"A2A|
+"G"BGB "D"A2A|"G"BGB "D"A2A|"G"Bcd efg|"A"Adc"D"d3:|
+
+X:19012
+T:Shandon Bells
+R:Jig
+C:Trad.
+O:Cork, Ireland
+M:6/8
+L:1/8
+Q:1/8=160
+K:D
+B|"D"AFD DFA|ded "A7"cBA|"G"BGE EFG|"A7"B2A Bcd|
+"D"AFD DFA|ded "A7"cBA|"G"Bcd "A7"ecA|"D"d3 d2:|
+|:g|"D"f2d ded|faa afd|"A7"cAA eAA|cAc efg|
+"D"f2d ded|faa afd|"G"Bcd "A7"ecA|"D"d2d d2:|
+
+X:19013
+T:Sheffield Hornpipe
+R:Hornpipe
+C:Trad.
+S:Lesley Dolman
+O:England
+M:4/4
+L:1/8
+Q:1/4=120
+K:D
+FE|"D"D2FA d2dc|"G"BGBd "D"A2Ad|"A"c2ce "D"d2df|"Em"ecdB "A7"AFGE|
+"D"D2FA d2dc|"G"BGBd "D"A2Ad|"G"BGBd "A7"cAce|"D"d2f2 d2:|
+|:cd|"A"ecAA A2de|"D"fdAA A2ef|"G"gefd ecdf|"Em"ecdB "A7"AFGE|
+"D"D2FA d2dc|"G"BGBd "D"A2Ad|"G"BGBd "A7"cAce|"D"d2 "A7"f2 "D"d2:|
+
+X:19014
+T:Shepherd's Hey
+R:Reel
+C:Trad. Morris Dance
+O:England
+M:2/4
+L:1/8
+Q:1/4=120
+K:G
+GA|"G"B3/2c/ d3/2B/|"C"c2 c2|"G"B3/2c/ d3/2B/|("D7"A2A2)|"G"B3/2c/ d3/2B/|"C"c2 B3/2c/|"D7"d2 D2|"G"G2:|
+|:GA|"G".B2 G2|"G"c2-c>A|"G".B2 G2|"D7"A4|"G"B3/2c/ d3/2B/|"C"c2 B3/2c/|"D7"d2 D2|"G"G2:|
+
+X:19015
+T:Shingly Beach
+R:Air
+C:Tom Anderson, 1972
+O:Scotland, Shetland
+M:4/4
+L:1/8
+Q:1/4=100
+K:G
+D|:"G"G4 "C"c4|"G"Bd "Am"cA "D"F2 D2|"G"G2 Bd "Am"E2 Ac|"D"D2 FA "Am"C2 FA|
+"G"G4 "Am"c4|"G"B2 AG "D"A2 D2|"G"G2 B2 "Am"E2 A2|1"D"D2 GF "G"G3 D:|2"D"D2 GF "G"G3 e||
+"G"d2 cB "C"c2 f2|"G"g2 dB "C"c2 "D"d2|"G"B2 d2 "D7"A2 c2|"Em"B2 AG "D7"A2 c2|
+"G"d2 cB "C"c2 "D"f2|"G"g2 dB "C"c2 d2|"C"cB AG "Am"E2 A2|"D"D2 GF "G"G3 e|
+"G"d2 cB "C"c2 "D"f2|"G"g2 dB "C"c2 "Bm"d2|"G"B2 d2 "Am"A2 c2|"G"B2 AG "D"A2 D2|
+"G"G4 "Am"c4|"G"Bd "Am"cA "D"F2 D2|"G"G2 B2 "Am"E2 A2|"D"D2 GF "G"G4|]
+
+X:19016
+T:Si Bheag Si Mhor
+T:Sheebeg and Sheemore
+R:Waltz
+C:Turlough O'Carolan, 1691
+O:Ireland
+M:3/4
+L:1/8
+Q:1/4=100
+K:D
+de|"D"f2fed2|"D7"d2ded2|"G"B4A2|"D"F4A2|"G"BA Bc d2|"A7"e4de|"D"f4e2|"D7"d4f2|
+"G"B4e2|"D"A4d2|"Bm"F4E2|"D"D4f2|"G"B4e2|"A7"A4dc|"D"d6-|"D"d4:|
+|:de|"D"f2fed2|"D7"ed ef a2|"G"b4a2|"D"f2>e2d2|"G"e4a2|"D"f4ed|"Em7"d4B2|"A7"B4A2|
+"D"F4E2|"D7"D4f2|"G"B4e2|"D"A2>f2a2|"Em7"ba gf ed|"A7"e4 dc|"G"d6-|"D"d4:|
+
+X:19017
+T:Silver Spear
+R:Reel
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/8=240
+K:D
+AG|:"D"FAA2 BAFA|"Bm"dfed BcdA|"D"FAA2 BAFA|"Bm"dfed B3 A|
+"D"FAA2 BAFA|"Bm"dfed Bdef|"Em"g2g e"Bm"f2f e|1"Bm"dfed B2 A2:|2"Bm"dfed Bcde|:
+"D"f2af "Bm"bfaf|"Em"gfed "Bm"Bcde|"D"f2af "Bm"bfaf|"Em"gfed "Bm"B2 A2|
+"D"f2af "Bm"bfaf|"Em"gfed "Bm"Bcde|"Em"g2g e"Bm"f2f e|"Bm"dfed B2 A2:|
+
+X:19018
+T:Soldier's Joy
+T:The King's Head
+R:Reel
+C:Trad.
+O:England/Scotland/Ireland
+M:4/4
+L:1/8
+Q:1/4=180
+K:D
+FG|"D"AFDF AFDF|A2d2 d2cB|AFDF AFDF|"A"G2E2 E2FG|
+"D"AFDF AFDF|A2d2 d2 e2|fafd "A"egec|"D"d2d2 d2:|
+|:de|"D"f2fd fagf|"A"e2ec egfe|"D"f2fd fagf|"A"edcB A2de|
+"D"fdfd fagf|"A"ecec egfe|"D"fafd "A"egec|"D"d2d2 d2:|
+
+X:19019
+T:South Winds
+R:Waltz
+C:Trad.
+O:Ireland
+M:3/4
+L:1/8
+Q:1/4=120
+K:G
+dc|"G"B3A G2|B3c d2|"D"A3B G2|A4 dc|"G"B3A G2|"C"E3D E2|"G"G6-|G2 z2 dc|
+"G"B3A G2|B3c d2|"D"A4 B2|A4 dc|"G"B3A G2|"C"E3D E2|"G"G6-|G2 z2 (3def||
+"G"g3a f2|"Em"g3f e2|"C"d3e c2|"G"d4 c2|B3A G2|"Em"B3c d2|"Am"A4 B2|"D"A2 z2 (3def|
+"G"g3a f2|"Em"g3f e2|"C"d3e c2|"G"d2 G2 c2|B3A G2|"D"Ac3 F2|"C"G6-|"G"G2 z2|]
+
+X:19020
+T:Spancil Hill
+R:Jig
+C:Trad.
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=180
+K:Ador
+"Am" e2A e2e|"G" d2B G2A|Bdc A2G|"Am" A3- A2e|
+"Am" e2a a2b|a2g e2f|"G" g2a gfe|d3- d2e|
+"Am" e2a a2b|a2g e2f|"G" g2a gfe|d3- dgf|
+"Am" e2A e2e|"G" d2B G2A|BdB A2G|"Am" A3- Az|]
+
+X:19021
+T:Speed the Plough
+R:Reel
+C:Trad.
+O:England
+M:4/4
+L:1/8
+Q:1/4=120
+K:G
+"G"GABc dedB|dedB dedB|"C"c2ec "G"B2dB|"D"c2A2 A4|
+"G"GABc dedB|dedB dedB|"C"c2ec "G"B2dB|"D"A2F2 "G"G4:|
+|:"G"g2g2 gdBd|g2fe d2B2|"C"c2ec "G"B2dB|"D"c2A2 A4|
+"G"g2g2 gdBd|g2fe d2B2|"C"c2ec "G"B2dB|"D"A2F2 "G"G4:|
+
+X:19022
+T:Spirit of the Dance
+R:Jig
+C:Trad.
+O:England
+M:6/8
+L:1/8
+Q:1/8=220
+K:D
+"D"d2A B2A|"Bm"d2A B2A|"G"def g2f|"A"efd cBA|
+"D"d2A B2A|"Bm"d2A B2A|"G"def gab|"A7"aec "D"d3:|
+|:"A"Ace "G"g3|"D"f3 "Em"e3|"D"Adf "A"a3|"G"g3 "Bm"f3|
+"A"Ace "G"g3|"Bm"f3 "A"e2f|"G"gab "D"afd|"A7"f2e "D"d3:|
+
+X:19023
+T:Stack Of Barley, The
+T:Little Stack Of Barley
+R:Hornpipe
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=120
+K:G
+gf|"C"efed "Bm"BcdB|"Am"A2AG "D7"AcBA|"G"GFGA "Em"BABd|"Am"e2A2 "D"A2 gf|
+"C"efed "Bm"BcdB|"Am"AGEG "D7"AcBA|"G"GFGA "D7"Bd Ac|"G"B2 "C"G2 "G"G2:|
+|:dc|"G"BGBd "G"g2fg|"A7"agfg "C"e2 (3def|"Em"gfed "Bm"BABd|"Am"e2 A2 "D7"A2 Bd|
+"A7"(3efg "B7"af "Em"gage|"G"dBAG "D7"AcBA|"G"GFGA "D7"Bd Ac|"G"B2 "C"G2 "G"G2:|
+
+X:19024
+T:Star of Munster, The
+R:Reel
+C:Trad. O'Neills
+O:Ireland
+M:4/4
+L:1/8
+Q:1/8=260
+K:Em
+ed|"Am"c2Ac "Em"B2GB|"Am"AGEF "G"GED2|"Am"EAAB cBcd|eaaf "Em"gfed|
+"Am"cAA2 "Em"BAGB|"Am"AGEF "G"GED2|"Am"EAAB cded|cABG A2 z2||
+"Am"eaab "Em"ageg|agbg "Am"agef|"Em"gfga gfef|geaf gfed|
+"Am"eaab "Em"ageg|agbg "Am"agef|"Em"g2ge "D"a2af|"Em"b2ba gfed|]
+
+X:19025
+T:Star of the County Down
+T:Unquiet Grave, The
+R:Waltz
+C:Trad.
+O:Ireland
+M:3/4
+L:1/4
+Q:1/4=120
+K:Am
+cB|"Am"A2 A|A>"C"G"Am"A|c2 c|"Dm"d>"Am"c"Dm"d|"Am"e"Dm"d"Am"c|A2 A|"C"G3-|G"Am"c"G"B|
+"Am"A2 A|A>"C"G"Am"A|c2 c|"Dm"d>"Am"c"Dm"d|"Am"e"Dm"d"Am"c|A2"C"G|"Am"A3-|A e"F"f|
+"C"g2"Am"e|e"Dm"d"Am"c|"Dm"d2 d|d>"Am"c"Dm"d|"Am"e>"Dm"d"Am"c|A2 A|"C"G3-|G"Am"c"G"B|
+"Am"A2A|A>"C"G"Am"A|c2c|"Dm"d>"Am"c"Dm"d|"Am"e"Dm"d"Am"c|A2"C"G|"Am"A3-|A2|]
+
+X:19026
+T:Starry Nights of Shetland
+T:Starry Night in Shetland
+R:Waltz
+C:Trad.
+O:Scotland
+M:3/4
+L:1/4
+Q:1/4=130
+K:D
+A|:"D"f2d|ABA|"Em"G2 G|"A"c2B|"A"A2c|"A7"e2A|"D"f>gf/e/|d2A|
+"D"f2d|ABA|"Em"G2 G|"A"c2B|Ac e/f/|"A7"gBc|"D"d>ed/c/|1 d2 A:|2 def||
+|:"G"gBg|gBg|"D"fAf|fAf|fdf|"Bm"agf|"Em"e>fe|"A7"ede|
+"D"f2d|ABA|"Em"G2 G|"A"c2B|Ac e/f/|"A7"gBc|"D"d3-|1d2 A:|2d3|]
+
+X:19027
+T:Staten Island
+R:Hornpipe
+C:Trad.
+O:Scotland
+M:4/4
+L:1/8
+Q:1/4=140
+K:D
+AG|"D"FDFG A2A2|dfed dcBA|"G"B2GB "D"A2FA|"Em"G2E2 "A7"E2AG|
+"D"FDFG A2A2|"D"dfed "A7"dcBA|"D"d2d2 "G"efge|"D"f2d2 d2:|
+|:fg|"D"a2fa "A"g2eg|"D"f2df "A"ecA2|"C"=c2c2 efge|=c2c2 efge|
+"D"a2fa "A"g2eg|"D"f2df "A"ecA2|"D"d2d2 "A7"efge|"D"f2 "G"d2 d2:|
+
+X:19028
+T:Steamboat, The
+T:Good Natured Man, The
+R:Hornpipe
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=160
+K:G
+(3def|"G"g2bg d2gd|"G"BcdB G2AB|"C"c2ec "Am"A2cA|"D7"FGAB cdef|
+"G"g2bg d2gd|"G"BcdB G2AB|"C"cedc "D7"BAGF|"G"A2G2 G2:|
+Bc|"G"dBdB g2gd|"Am"ecec a2ag|"D7"fefd "G"gfgb|"A7"agfe "D7"defd|
+"G"g2bg d2gd|"G"BcdB G2AB|"C"cedc "D7"BAGF|"G"A2G2 G2:|
+
+X:19029
+T:Streets of Laredo
+T:Banks of the Devon
+T:Bard of Armagh
+R:Air
+C:Trad.
+O:Scotland, then Ireland, then USA
+M:3/4
+L:1/8
+Q:1/4=120
+K:G
+D2|"G"d4 c B|"C"c2 d3 c|"G"B2 A2 G2|"D7"F2 D3 D|"G"G4 F G|"C"A2 B3 c|"G"B2 A2 G2|"D7"A4 D2|
+"G"d2 ed cB|"C"c2 d3 c|"G"B2 A2 G2|"D7"F2 D2 D2|"G"G4 F G|"C"A2 d3 c|"G"B2 G2 "D7"A2|"G"G4||
+D2|"Am"A2> A2 A2|"D7"A2 B2 c2|"G"d2> e2 d2|"G"B2 A2 G2|"Am"A2> A2 A2|"C"A2 B3 c|"G"d2 c2 B2|"D7"A4 D2|
+"G"d2 ed cB|"C"c2 d3 c|"G"B2 A2 G2|"D7"F2 D2 D2|"G"G4 F G|"C"A2 d3 c|"G"B2 G2 "D7"A2|"G"G4|]
+
+X:19030
+T:Sullivan's Polka
+T:Bill Sullivan's Polka
+R:Polka
+C:Trad.
+O:Ireland
+M:2/4
+L:1/8
+Q:1/4=120
+K:G
+"G"g2 "C"g>e|"G" dB "C"g>e|"G" dB "C"g>e|"G" dB "D"AG|
+"G"g2 "C"g>e|"G" dB "C"g>e|"G"Bd   "D"A>B|"G" AG G2 :|
+|:"G"Bd dB|"C"ce ed|"G"Bd dG/A/|"D"BA AG/A/|
+"G"Bd dB|"C"ce ed|"G"Bd "D" AA/B/|"G"AG G2:|
+
+X:19031
+T:Sun Assembly
+R:March
+C:Trad. 1750
+O:England
+M:2/4
+L:1/8
+Q:1/4=85
+K:G
+"G"g2 ed|"Am"cB AG|"C"e2 G2|"D"F2 ED|"G"GB dB|"A7"A^c eg|"D"fd "A7"e^c|"D"d2 D2|
+"G"g2 ed|"Am"cB AG|"C"e2 G2|"D"F2 ED|"C"EG cE|"D7"DF Ac|"G"BA "D7"GF|"G"G2 G,2||
+"G"Bd gf|"C"e2 dc|"G"Bd gf|"C"e2 dc|"G"Bd gf|"C"fe "G"ed|"C"dc B/c/d|"D"B2 "D7"A2|
+"C"cB AG|"D"F/G/A D2|"C"cB AG|"Am7"e/f/g "D"f2|"C"eG ge|"G"dB AG|"D"D2 "D7"F2|"G"G4|]
+
+X:19032
+T:Suo Gan
+T:Welsh Lullaby
+R:Air
+C:Trad.
+O:Wales
+M:4/4
+L:1/8
+Q:1/4=80
+K:D
+"D"D3 E F A3|"Em"E3 D F E3|"D"D3 E F A3|"Em"E2 F2 "D"D4:|
+"D"F3 G A F3|"G"B3 G "D"A F3|"D"F3 G A F3|"Bm"d3 B "D"A4|
+"D"D3 E F A3|"Em"E3 D F E3|"D"D3 E F A3|"Em"E2 F2 "D"D4|]
+
+X:19033
+T:Swallowtail Jig
+R:Jig
+C:Trad.
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=220
+K:EDor
+"Em"GEE BEE|GEE BAG|"D"FDD ADD|dcd AGF|
+"Em"GEE BEE|GEG B2c|"Bm"dcd "D"AGF|"Em"GEE E3:|
+|:"Em"Bcd e2f|e2f edB|Bcd e2f|edB "D"d3|
+"Em"Bcd e2f|e2f edB|"Bm"dcd "D"AGF|"Em"GEE E3:|
+
+X:19034
+T:Swansea Town
+T:Holy Ground
+R:Polka
+C:Trad.
+O:Wales
+M:4/4
+L:1/8
+Q:1/4=160
+K:G
+G>B|"G"d2d2 "D7"c2A2|"G"G2 G4 d2|"Am"e2a2 ("D7"gf)(ed)|"G"g6 d2|"C"g3f "Em"e3d|"C"e2d2 "D7"B2(G>B)|"G"e2d2 "C"c2B2|"D7"A6 (G>A)|
+"G"B2d2 "D7"A2(BA)|"G"G2G2 G2d>d|"Em"e2a2 ("D7"gf)(ed)|"G"g6 "D7"(ed)|"G"g3f "C"e3d|"G"e2g2 "Em"B2(G>B)|"G"d3e ("D7"dc)(AF)|"G"G6 (GB)|
+"G"d3e "D7"(dc)(AF)|"G"G2G2 G2d>d|"Em"e2a2 ("D7"gf)(ed)|"G"g6 "D7"(ed)|"G"g3f "C"e3d|"G"e2g2 "Em"B2(G>B)|"G"d3e ("D7"dc)(AF)|"G"G6|]
+
+X:19035
+T:Sweet Jenny Jones
+T:Cadair Idris
+R:Waltz
+C:John Parry 1804
+O:Wales
+M:3/4
+L:1/8
+Q:1/4=120
+K:D
+A2|"D"d2 A2 F2|D3E F2|"G"G2 B2 ed|"Em"c2 A2 c2|"D"d2>A2 F2|"G"G3A B2|"D"A2 d2 c2|d4:|
+de|"D"f2 d2 f2|"A"e2 c2 A2|"G"B2>c2 de|"A"c2 A2 de|"D"f2 d2 f2|"A"e2 c2 A2|"G"d2 c2 B2|"D"A4 Bc||
+"D"d2 A2 FE|D3E F2|"G"G2 B2 ed|"Em"c2 A2 c2|"D"d2 A2 F2|"G"G3A B2|"D"A2 d2 c2|d4|]
+
+X:19036
+T:Sweets Of May, The
+R:Jig
+C:Trad.
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=200
+K:G
+dc|"G"BAG "D7"AGF|"G"G2G G2A|BcB GAB|"Am7"c3 "D7"d2c|
+"G"BAG "D7"AGF|"G"G2G G2A|"Am7"BdB "D7"cAF|"G"G3 G:|
+|:FG|"Am"ABA A2G|E2F G3|ABA c2d|e2d "Em"c2B|
+"Am"ABA A2G|E2F G3|A2A "Em"BAG|"Am"A3 A:|
+|:Bc|"D7"d3 ded|D3 D3|"C"c3 cdc|"D7"D3 D3|
+"G"G2D G2A|B2G B2c|"Am"ded "D7"cBA|"G"G3 G:|
+% --------------------------------- T ---------------------------------------
+
+X:20001
+T:Tabhair Domh Do Lamh
+T:Take My Hand
+R:Air
+C:Ruairi Dall O'Cathain, c. 1570-c.1650
+O:Ireland
+M:3/4
+L:1/4
+Q:1/4=120
+K:G
+D|:"C"EGG|"G"G2 D|"C"EGG|"G"G2 D|"C"EGG|"G"GAB|"Em"Bed|"G"B2 A/G/|
+"C"A A e/d/|"G"B B d/B/|"C"A>B A/G/|"Am7"E2 D|"C"E G G|"G"G2 D|"C"E G G|"G"G2 D|
+"C"E G G|"G"G A B|"D"D>B A/B/|"G"G2 D|"C"E G G|"G"G A B|"Am7"B e d|"G"B2 A/G/|
+"C"A A e/d/|"G"B B d/B/|"C"A>B d|"Am7"e2 d/B/|"G"dde|"Em"g2 e/d/|"C"eeg|"D"a2 g/e/|
+"C"g g d/e/|"G"g g d/e/|"C"g g a|"G"b3|"G"b b b|"G"b2 a/g/|"Am7"a>g a/b/|"D"a2 g/f/|
+"C"e e g/e/|"G"d d g/d/|"Em"B2 d/B/|"D"A>c B/A/|"G"G>B d|"G7"=f2 e/d/|"C"e e g|"Am7"e2 d/B/|
+"G"d d g/d/|"Em"B B d/B/|"D"A>c B/A/|1 "G"G2 D:|2 "G"G2 D|"C"EGG|"G"G2 D|"C"EGG|"G"G2 D|"C"EGG|"G"GAB|"G"D>B A/B/|"G"G3|]
+
+X:20002
+T:Tam Lin
+T:Tamlin; Tamlyn; Tam Lynn's
+R:Reel
+C:Trad.
+O:Scotland
+M:4/4
+L:1/8
+Q:1/4=160
+K:Em
+"Em"B,2EB, GB,EB,|"C"C2EC GCEC|"D"D2FD ADFD|GFED B,EED|
+"Em"B,2EB, GB,EB,|"C"C2EC GCEC|"D"D2FD ADFD|GFED "Em"B,EE2:|
+|:"Em"eBBB GBEB|eBBB GBEB|"D"dAAA FAAA|dAAA defd|
+"Em"eBBB GBEB|eBBB GBEB,|"C"C2CB, CDEF|"D"GEFD "Em"B,EE2:|
+
+X:20003
+T:Tarbolton, The
+R:Reel
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/8=250
+K:Em
+"Em"Beed e2BA|GBAF GFEF|"G"Ddd^c d2AG|"D"(3FED AG FDD2|
+"Em"Beed efge|"Bm"fedf edBA|"Em"GBAG FGAc|BGAF GEE2:|
+|:"Em"gfef (3gfe be|gebe afef|"D"(3ddd fd adfd|ABAG FDDF|
+"Em"GEE2 FEDF|E2ef gfed|B3c BAGA|BGAF GEE2:|
+
+X:20004
+T:Teahan's Fling
+T:Terry Cuz Teahans; Teehans
+R:Fling
+C:Trad.
+O:Ireland (after Scotland?)
+M:4/4
+L:1/8
+Q:1/4=120
+K:Emin
+|:"Bm"B2 BA "Em"B2 BA|"Bm"dB AF "D"DE FA|"Em"B2 BA "Em"B2 BA|"Bm"dB AF "Em"E3 A|
+"Bm"B2 BA "Em"B2 BA|"Bm"dB AF "D"DE FA|"Em"B2 BA "Em"B2 BA|"Bm"dB AF "Em"E3 A|
+"Bm"Be ef "Em"g2 fe|"G"d2 Bd "D"AD FA|"Em"Be ef "Em"g2 fe|"Bm"dB AF "Em"E3 A|
+"Bm"Be ef "Em"g2 fe|"G"d2 Bd "D"AD FA|"Em"Be ed "Bm"BA FE|1"Bm"DE FD "Em"EF GA:|2"Bm"DE FD "Em"E4|]
+
+X:20005
+T:Teetotaller's Reel
+T:Temperance Reel
+R:Reel
+C:Trad.
+O:Ireland
+M:4/4
+L:1/4
+Q:1/4=150
+K:G
+(3D/2E/2F/2|"G"GG/2F/2 G/2A/2B/2c/2|d/2B/2e/2B/2 d/2B/2A/2G/2|"Em"B/2E/2E/2D/2 E/2F/2G/2A/2|B/2G/2A/2F/2 "D7"G/2F/2E/2D/2|
+"G"GG/2F/2 G/2A/2B/2c/2|d/2B/2e/2B/2 d/2B/2A/2G/2|"Em"B/2E/2E/2D/2 E/2F/2G/2A/2|"D7"B/2G/2A/2F/2 "G"G:|
+|:B|"Em"B/2e/2e/2d/2 e3/2f/2|g/2e/2a/2f/2 g/2f/2e/2d/2|"D"A/2d/2d/2^c/2 d3/2e/2|f/2d/2a/2f/2 g/2f/2e/2d/2|
+"Em""C"B/2e/2e/2d/2 e3/2f/2|"C"g/2e/2a/2f/2 g/2f/2e/2d/2|"Em""G"B/2A/2G/2F/2 E/2F/2G/2A/2|"D7"B/2G/2A/2F/2 "G" G:|
+
+X:20006
+T:Tennessee Waltz, The
+R:Waltz
+C:King & Stewart 1948
+O:USA, Tennessee
+M:3/4
+L:1/4
+Q:1/4=100
+K:D
+D/>E/|"D" F A D/>E/|"Dmaj7" F A d/>e/|"D7" f f e|"G" d B B/>c/|"D" d A F|"G" B "D" A F|"A" E2 z|z2 D/>E/|
+|"D" F A D/>E/|"Dmaj7" F A d|"D7"f3/2 g/ f/>E/|"G" d B B/>c/|"D" d A F|"A7" G F E|"D" D2 z|z2:|
+d/>e/|"D" f f3/2 f/|"F#7" e2 f/>e/|"G" d B d|"D" A2 "G" B/>c/|"D" d A F|"G" B "D" A F|"E7" E2 z|"A" z2 D/>E/|
+|"D" F A D/>E/|"Dmaj7" F A d/>e/|"D7" f a f/>e/|"G" d B A/B/4c/4|"D" d A F|"A7" G F E|"D" D3|D2:|
+
+X:20007
+T:Tenpenny Bit, The
+T:Three Little Drummers, The
+R:Jig
+C:Trad.
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=200
+K:Ador
+"Am"eAA eAA|"Em"BAB GBd|"Am"eAA eAA|"Em"def "G"gfg|
+"Am"eAA eAA|"Em"BAB GAB|def ged|"G"BAG "Am"A3:|
+|:"Am"eaa aga|"Em"bag ged|"Am"eaa aga|"Em"bag a3|
+"Am"eaa aga|"Em"bag ged|def ged|"G"BAG "Am"A3:|
+
+X:20008
+T:Three Around Three
+R:Reel
+C:Trad.
+O:England
+M:4/4
+L:1/8
+Q:1/4=160
+K:G
+Bc|"G"d2BA G2G2|"D"A2BA "G"G2D2|"C"EDEF "G"G2AB|"Am"c2B2"D"B2A2|
+"G"d2BA G2G2|"D"A2BA "G"G2D2|"C"EDEF "D"G2Ac|"G"B2G2G2:|
+|:Bc|"G"d2ef "Em"gfed|"C"e2e2efge|"G"d2B2B2AG|"D"FGAB A3 B|
+"G"d2ef "Em"gfed|"C"e2e2e3d|"C"efge "D"fgaf|"G"g4g2:|
+
+X:20009
+T:Timothy March
+T:March of St. Timothy
+R:March
+C:Judi Morningstar 1985
+O:USA
+M:4/4
+L:1/8
+Q:1/4=140
+K:D
+"D"f3g a2f2|"A7"e3f g2e2|"Bm"d3e f2d2|"A7"d2c2 B2A2|
+"G"B3c d2B2|"D"A2d2 f2a2|1 "Em"g3f e2d2|"A7"c2e2 A2g2:|2 "Em"gfed "A7"c2e2|"D"d6||
+aa|\
+"A7"g2a2 e2g2|c2e2 A2aa|"D"f2a2 d2f2|A2d2 F2aa|
+"A7"g2a2 e2g2|c2e2 A2aa|"D"a2A2 B2c2|d2e2 f2aa||
+"A7"g2a2 e2g2|c2e2 A2aa|"D"f2a2 d2f2|A2d2 F2A2|
+"G"B3c d2B2|"D"A2d2 "Bm"f2a2|"Em"gfed "A7"c2e2|"D"d8|]
+
+X:20010
+T:Tommy Beadle's Polka
+R:Polka
+C:Trad.
+S:Pete Coe
+O:England, Northumberland
+M:4/4
+L:1/8
+Q:1/4=140
+K:D
+"D"AB de f2 fd|"G"g2 ge "D"f2 f2|"A"f2 ef ge ce|"D"e2 dc de dB|
+"D"AB de f2 fd|"G"g2 ge "D"f2 f2|"A"f2 ef ge ce|1 "D"e2 d2 d4:|2 "D"e2 dc de fg|:
+"D"aA (3AAA AF Ad|"G"B2 AF "D"A2 f2|"A"f2 ef ge ce|"D"e2 dc de fg|
+"D"aA (3AAA AF Ad|"G"B2 AF "D"A2 f2|"A"f2 ef ge ce|1 "D"e2 dc de fg:|2 "D"e2 dc d4|
+
+X:20011
+T:Top of Cork Road
+T:Father O'Flynn
+R:Jig
+C:Trad. O'Neill's
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=220
+K:D
+d|"D"dAF DFA|"G"Bed "A"cBA|"Bm"d2d "Em"efg|"Bm"fdf "A"ecA|
+"D"dAF DFA|"G"Bed "A"cBA|"Bm"d2d "Em"efg|"Bm"fdd d2:|
+|:g|"Bm"fdf "D"fga|"A"ecA "A"ABc|"Bm"d2d "Bm"fed|"A"cAA "A"A2c|
+"G"B2B Bcd|"D"AFD DFA|"Bm"d2d "Em"efg|"Bm"fdd "G"d2:|
+
+X:20012
+T:Toss the Feathers
+R:Reel
+C:Trad.
+O:Ireland
+M:4/4
+L:1/8
+Q:1/8=260
+K:Bm
+"Em"EBB2 "Bm"dBB2|"Em"EBB2 "D"F3A|"Em"BEE2 BABc|"Bm"d2fe "Bm"dBAF|
+"Em"EBB2 "Bm"dBB2|"Em"EBB2 "D"F3A|"Em"BEE2 BABc|"Bm"d2fe "D"dBA2||
+"Bm"(3Bcd ed "Em"e3e|"Bm"fede "Em"fee2|(3gfe be (3gfe be|"Bm"fede "Em"fee2|
+"Bm"(3Bcd ed "Em"e3e|"Bm"fede "D"faa2|"Bm"b3f "D"a3f|"Em"egfe "Bm"dBAF|]
+
+X:20013
+T:Trade Wind Hornpipe
+T:Navy Lark Theme
+R:Hornpipe
+C:Trad.
+O:England
+M:4/4
+L:1/8
+Q:1/4=140
+K:G
+|:GA|"G"B2Bc "Bm"dc BA|"G"B2G2 G2AB|"Am"cB cd ed cB|"Am"AG FE "Bm"D2d2|
+"C"E2e2"Bm"F2f2|"C"gf ga "G"g2Bc|"Bm"d^c de d=c BA|"G"B2G2"C"G2:|
+|:GF|"C"E2e2 e2fe|"Bm"d^c de "G"dB GB|"Am"cB cd cA FA|"G"BA Bc B2GF|
+"C"E2e2 e2fe|"Bm"d^c de "G"dB GB|"Am"cB cd cA FA|"G"B2G2"C"G2:|
+
+X:20014
+T:Trumpet Hornpipe, The
+T:Captain Pugwash
+R:Hornpipe
+C:Trad.
+O:England
+M:4/4
+L:1/8
+Q:1/4=130
+K:G
+D2|\
+"G"(3GGG G2 (3GGG Gd|BG Bd gd BG|"D"(3DDD D2 (3DDD DA|FD FA DA FD|
+"G"(3GGG G2 (3GGG Gd|BG Bd "G"g2 gg|"D"fa gf "A"eg fe|"D"d2d2 d2:|
+|:Bc|\
+"G"(3ddd d2 (3ddd d2|"Em"ef gf "C"ed cB|cd ed cB AG|"D"FG AG FD EF|
+"G"(3GGG G2 "Bm"(3=FFF F2|"Em"(3EEE E2"Cm"(3_EEE E2|"D"D2 fe "C"dc BA|"G"G2B2 G2:|
+
+X:20015
+T:Tripping Up the Stairs
+T:Tripping Upstairs
+R:Jig
+C:Trad.
+O:Ireland
+M:6/8
+L:1/8
+Q:1/8=220
+K:D
+AG|"D"FAA "G"GBB|"D"Add fed|"A"c>Bc ABc|"D"dfe "G"dAG|
+"D"FAA "G"GBB|"D"Add fed|"A"c>Bc ABc|"D"dfe d:|
+|:Bc|"Bm"dBB fBB|f>gf fed|"A"cAA eAA|e>fe edc|
+"Bm"dBB fBB|f>gf fed|"A"c>Bc ABc|"D"dfe d:|
+
+X:20016
+T:Turkey in the Straw
+R:Reel
+C:Trad.
+O:USA
+M:4/4
+L:1/8
+Q:1/4=140
+K:D
+"A7"fe|"D"dcde d2 FG|ABAF A2 de|f2 f2 fede|"A7"f2 e2 e2 fe|
+"D"dcde d2 FG|ABAF A2 de|f a2 b afde|"D"f2 "A7"e2 "D"d2:|
+|:a2|"D"f a2 f a2 a2|f a2 f a2 a2|"G"g b2 g b2 b2|g b2 g b2 b2
+|"D"d'2 d'2 a2 a2|f2 f2 "A7"e2 de|f a2 b afde|"D"f2 "A7"e2 "D"d2:|
+% --------------------------------- U ---------------------------------------
+% --------------------------------- V ---------------------------------------
+
+X:22001
+T:Vandals of Hammerwich
+R:Polka
+C:Trad. Morris Dance
+O:England
+M:4/4
+L:1/8
+Q:1/4=200
+K:G
+"G"D2 G2 B2 G2|D2 G2 B2 G2|d4 d3 d|d6 d2|"G"D2 G2 B2 G2|D2 G2 B2 G2|"D"d2 c2 A2 F2|"G"G6 Bc|:
+"G"d4 d3 d|d6 d2|"Em"e2 g2 f2 e2|"G"e2 d2 d3 e|"C"d2 c2 c3 c|"G"c2 B2 B3 B|"D"d2 c2 A2 F2|"G"G6 Bc:|
+
+X:22002
+T:Violate Me, in the Violet Time
+R:Waltz
+C:Trad. Bawdy song
+O:England
+M:3/4
+L:1/8
+Q:1/4=160
+K:C
+"C"G3 A G2|"Am"E2 D2 C2|"C"c3 d c2|"F"A2 F2 A2|("C"G3A) G2|"C"E2 C2 E2|("G"D6|"G"D4) z2|
+"C"G3 A G2|"Am"E2 D2 C2|"C"c3 d c2|"F"A2 F2 A2|"C"G3 A G2|"Dm"f2 e2 d2|("C"c6|"C"c4) cc|
+"G"B2 A2 G2|"G"B2 A2 G2|"C"c2 G2 G2|"C"cG G3 z|"G"B2 A2 G2|"G"B2 A2 G2|"C"c2 G2 G2|"E"BB A2 ^G2|
+"C"G3 A G2|"Am"E2 D2 C2|"C"c3 d c2|"F"A2 F2 A2|("C"G3A) G2|"G"f2 e2 d2|("C"c6|"C"c4) z2|]
+% --------------------------------- W ---------------------------------------
+
+X:23001
+T:Westering Home
+T:Trasna na dTonnta
+R:Waltz
+C:Trad. Words Hugh Roberton (1874-1952)
+O:Scotland
+M:3/4
+L:1/8
+Q:1/4=120
+K:D
+|"D"A3B A2|A2 F2 A2|d2 d2 e2|f6|"A"g3f e2|"D"f2 e2 d2|"G"B2 B2 A2|"A7"A6|
+"D"A3B A2|A2 F2 A2|d2 d2 e2|f4 g2|a3f d2|"A7"f4 e2|"D"d6|d6||
+"D"a3f d2|"Bm"d2 e2 f2|"Em"e3d e2|"A7"A6|"D"A3 B c2|"Bm"d3 e f2|"Em"g3f g2|"A7"e6|
+"D"a3f d2|"Bm"d2 e2 f2|"Em"e3d e2|"A7"A4 g2|"D"f3 e d2|"A7"f2 f2 e2|"D"d6|d2c2"G"B2|]
+
+X:23002
+T:Westphalia Waltz
+R:Waltz
+C:Trad.
+O:Poland,Germany,Texas
+M:3/4
+L:1/8
+Q:1/4=120
+K:G
+DEF|:"G"G4A2|"Bm"B4e2|"Em"d6-|"Bm"d3DEF|"G"G4A2|"E"B4c2|"Am"A4-AB|"D"A4G2|
+F4A2|"Am"c4g2|"D"f4-fg|f4e2|d3^cde|1"D7"d2^c2=c2|"G"B4-Bc|B3DEF:|2d2F2A2|"G"G6|G2B2d2|:
+"G"g6|"Bm"f6|"Em"e2f2g2|"Bm"B6|"G"B2A2B2|B2A2G2|"Am"c3Bcd|"D"c6|
+"Am"e6|"Em"e6|"C"e2f2g2|"D"f4e2|d3^cde|1d2^c2=c2|"G"B4-Bc|B4d2:|2d2F2A2|"G"G6|G3|]
+
+X:23003
+T:When Johnny Comes Marching Home
+T:Johnny I Hardly Knew Ye
+R:Jig
+C:Trad.
+N:Words by Patrick Gilmore 1863 (Civil War)
+O:Ireland, then USA
+M:6/8
+L:1/8
+Q:1/8=220
+K:C
+"Am"E|EAA A2 B|c2 B c2 A|"C"G4- GE|G4- GA|
+"Am"EAA A2 B|c2 B c2 d|e4- ec|e4- ec|
+"Am"e2 e edc|"G"d2 d d2 B|"Am"c2 c cBA|"Em"B2 B Bcd|
+"Am"e2- e d2- d|c2- c (B2 E)|EAA A2 G|A3- A2 z|]
+
+X:23004
+T:Weshin Day, The
+R:Polka
+C:Trad. song
+O:England, North East
+M:2/4
+L:1/8
+Q:1/4=120
+K:G
+de|"G"gedB|"C"c>cce|"G"gedB|"Am"A2ze|"G"gedB|"C"ccce|"G"d>cBA|"C"G2:|
+|:zd|"G"B2(BG)|"Am"c2 (cA)|"G"B2BG|"Am"A2zd|"G"B>BBA|"C"c>deg|"G"dcBA|G2:|
+
+X:23005
+T:Wi' a Hundred Pipers
+R:Jig
+C:Trad.
+O:Scotland
+M:6/8
+Q:1/8=240
+K:A
+A/2B/2|\
+"A"c2E EFE|"D"F2A A2f|"A"e2c cBA|"E7"c2B BAB|
+"A"c2E EFE|"D"F2A A2f|"A"e2c "E7"BcB|"A"(A3 A2)||
+c/2d/2|\
+"A"e2e ece|"D"f2a a2f|"A"e2c cBA|"E7"c2B B2 c/d/|
+"A"efe ece|"D"f2a a2f|"A"e2c "E7"BcB|"A"(A3 A2)|]
+
+X:23006
+T:Wild Mountain Thyme
+T:Will you go Lassie go
+T:Braes o Balquhidder
+R:Reel
+C:Trad.
+O:Scotland
+M:4/4
+L:1/8
+Q:1/4=100
+K:G
+GA|"G"B B3 "C"A3 G|("G"EG3) z2 Bd|"C"e3 e e3 d|"G"B d3 z2 Bd|
+"C"e4 "G"d2 B2|("Em"AG3) z2 AB|"G"c3 B A2 G2|E G3 G3 E|
+("G"D3E) "C"G G3|"G"G4 z2 Bd|"C"e4 e3 d|"G"B d3 z2 Bd|"C"e4 "G"d2 B2|("Em"AG3) z2 AB|
+"Am"c3 B A2 G2|"C"E G3 G2 E2|("G"D3E) "C"G G3|"G"G6|]
+
+X:23007
+T:Winster Gallop
+R:March
+C:Trad.
+O:England
+M:2/4
+L:1/16
+Q:1/4=120
+K:G
+"G"G2BB G2B2|G2B2 d4|"Am"A2cc B2A2|"G"G2B2 d4|
+"C"c2e2 f2e2|"G"d2B2 d4|"D"A3c B2A2|"G"G4G4:|
+|:"Em"g2f2 e2d2|g2f2 e2d2|g2ff e2d2|"Am"c2B2 A4|
+"D"f2e2 d4|f2e2 d4|d4A3c|"G"B2G2 G4:|
+
+X:23008
+T:Winster Processional
+R:March
+C:Trad.
+O:England
+M:4/4
+L:1/4
+Q:1/4=160
+K:G
+"G"gd "D7"de/2f/2|"G"gd "D7"de/2f/2|"G"gd "D7"dc|"G"B2 G2:|
+|:"C"ce ed/2c/2|"G"Bd dc/2B/2|"D7"A3/2B/2 cd|"G"B2 "G7"G2:|
+
+X:23009
+T:Woodland Flowers
+T:Mrs Kenny's Barn Dance
+R:Hornpipe
+C:Felix Burns 1864-1920
+O:Scotland
+M:4/4
+L:1/8
+Q:1/4=130
+K:C
+(3EF^F|"C"Gedc Gedc|"Dm"A2 df a3 g|"Dm"a2 ge f2 AB|"C"(3cBc (3ecA G2 (3EF^F|
+"C"Gedc Gedc|"Dm"A2 df a3 g|"Dm"a2 ge f2 AB|1"C"(3cBc e2 c2:|2 (3cBc "C"e2 c4||
+K:G
+"G"(3bag dg (3bag dg|"Am"(3c'ba ea (3c'ba ea|"D"fd^cd e2 f2|"G"(3gba (3gfe d2 B2|
+"G"(3bag dg (3bag dg|"Am"(3c'ba ea (3c'ba ea|"D"fd^cd e2 f2|"G"g2 f2 g4||
+"Em"BABd cBce|"G"d2 g2 g3 f|"Am"edeg agfe|"D"d6 (3edc|
+"G"B2 g2 g2 (3dcB|"D"A2 f2 f3 b|"Am"aeeg fefa|"G"(3gfg b2 g4|]
+% --------------------------------- X ---------------------------------------
+% --------------------------------- Y ---------------------------------------
+
+X:25001
+T:Young Collins
+R:Hornpipe
+C:Trad. Morris Dance
+O:England
+M:4/4
+L:1/8
+Q:1/4=180
+K:G
+"G"GABc d2 d2|"C"c2 e2 "Am"A2 Bc|"G"d2 d2 "C"e2 dc|"G"B2 A2 G4:|
+"Em"E2 D2 EF G2|"Am"A2 A2 "G"G3 A|B2 A2 Bc d2|"Em"e2 e2 "G"dcBA|
+"G"GABc d2 d2|"C"c2 e2 "Am"A2 Bc|"G"d2 d2 "C"e2 dc|"G"B2 A2 G4:|
+% --------------------------------- Z ---------------------------------------
+% --------------------------------- Addendum ---------------------------------------
+%%newpage
+%%text
+%%begintext justify
+%%Addendum of recently added tunes, which will be put into alphabetic order at the next major release.
+%%endtext
+%%text
+%%text None at present.
+%%text
+%%text The End.
+%%text
+% --------------------------------- The End ---------------------------------------
+
+
+0
