@@ -148,13 +148,13 @@ function compute_pitch(note, song)
     -- accidental in K:none applies only to following notes
     -- otherwise applies to whole measure
     -- accidental is cleared when a bar is encountered
-    if song.internal.key_data.naming.none then
+    if song.context.key_data.naming.none then
         accidental = note.pitch.accidental 
     else
         if note.pitch.accidental then
-            song.internal.accidental = note.pitch.accidental 
+            song.context.accidental = note.pitch.accidental 
         end
-        accidental = song.internal.accidental
+        accidental = song.context.accidental
     end
     
     -- accidentals / keys
@@ -162,11 +162,11 @@ function compute_pitch(note, song)
         base_pitch = base_pitch + accidental
     else        
         -- apply key signature sharpening / flattening
-        local acc = song.internal.key_mapping[string.lower(note.pitch.note)]
+        local acc = song.context.key_mapping[string.lower(note.pitch.note)]
         base_pitch = base_pitch + acc
     end
         
-    base_pitch = base_pitch + song.internal.global_transpose
+    base_pitch = base_pitch + song.context.global_transpose
     return base_pitch + 60  -- MIDI middle C
 end
 
@@ -187,8 +187,8 @@ function compute_duration(note, song)
     -- measure rest
     if note.measure_rest then   
         -- one bar =  meter ratio * note length (e.g. 1/16 = 16)
-        local note_length = song.internal.note_length or default_note_length(song)
-        return (song.internal.meter_data.num / song.internal.meter_data.den) * note_length * song.internal.timing.base_note_length * 1e6
+        local note_length = song.context.note_length or default_note_length(song)
+        return (song.context.meter_data.num / song.context.meter_data.den) * note_length * song.context.timing.base_note_length * 1e6
     end
     
     -- we are guaranteed to have filled out the num and den fields
@@ -203,8 +203,8 @@ function compute_duration(note, song)
     local prev_note = 1
     
     -- take into account previous dotted note, if needed
-    if song.internal.timing.prev_broken_note then
-        prev_note = song.internal.timing.prev_broken_note
+    if song.context.timing.prev_broken_note then
+        prev_note = song.context.timing.prev_broken_note
     else
         prev_note = 1
     end
@@ -225,11 +225,12 @@ function compute_duration(note, song)
         end
         
         -- store for later
-        song.internal.timing.prev_broken_note = next_note
+        song.context.timing.prev_broken_note = next_note
     else
-        song.internal.timing.prev_broken_note = 1
+        song.context.timing.prev_broken_note = 1
     end
-    length = length * song.internal.timing.base_note_length * this_note * prev_note * 1e6 * song.internal.timing.triplet_compress
+        
+    length = length * song.context.timing.base_note_length * this_note * prev_note * 1e6 * song.context.timing.triplet_compress
    
   
     return length
@@ -257,8 +258,8 @@ function apply_triplet(song, triplet)
     r = triplet.r 
     
     -- set compression and number of notes to apply this to
-    song.internal.timing.triplet_compress = triplet.p / triplet.q
-    song.internal.timing.triplet_state = triplet.r
+    song.context.timing.triplet_compress = triplet.q / triplet.p
+    song.context.timing.triplet_state = triplet.r
               
 end
 
@@ -317,11 +318,11 @@ function insert_grace(grace_note, song)
     -- broken note state or of triplet state)
     
     -- preserve the timing state
-    local preserved_state = deepcopy(song.internal.timing)
+    local preserved_state = deepcopy(song.context.timing)
     
-    song.internal.timing.prev_broken_note = 1
-    song.internal.timing.triplet_compress = 1
-    song.internal.timing.base_note_length = song.internal.timing.grace_note_length -- switch to grace note timing
+    song.context.timing.prev_broken_note = 1
+    song.context.timing.triplet_compress = 1
+    song.context.timing.base_note_length = song.context.timing.grace_note_length -- switch to grace note timing
     
     local grace = {}
     
@@ -333,7 +334,7 @@ function insert_grace(grace_note, song)
     end
     
     -- restore timing state
-    song.internal.timing = preserved_state
+    song.context.timing = preserved_state
     
     -- insert the grace sequence
     
@@ -365,10 +366,10 @@ function insert_note(note, song)
         end
    
         -- update tuplet counter; if back to zero, reset triplet compression
-        if song.internal.timing.triplet_state>0 then 
-            song.internal.timing.triplet_state = song.internal.timing.triplet_state - 1
+        if song.context.timing.triplet_state>0 then 
+            song.context.timing.triplet_state = song.context.timing.triplet_state - 1
         else
-            song.internal.timing.triplet_compress = 1
+            song.context.timing.triplet_compress = 1
         end
     
 end

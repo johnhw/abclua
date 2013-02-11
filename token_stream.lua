@@ -1,19 +1,19 @@
--- Functions from transforming a parsed journal stream into a song structure and then an event stream
+-- Functions from transforming a parsed token_stream stream into a song structure and then an event stream
 
 function update_timing(song)
     -- Update the base note length (in seconds), given the current L and Q settings
     local total_note = 0
     local rate = 0    
-    local note_length = song.internal.note_length or default_note_length(song)
+    local note_length = song.context.note_length or default_note_length(song)
     
-    for i,v in ipairs(song.internal.tempo) do
+    for i,v in ipairs(song.context.tempo) do
         total_note = total_note + (v.num / v.den)
     
     end                    
-    rate = 60.0 / (total_note * song.internal.tempo.div_rate)
-    song.internal.timing.base_note_length = rate / note_length
+    rate = 60.0 / (total_note * song.context.tempo.div_rate)
+    song.context.timing.base_note_length = rate / note_length
     -- grace notes assumed to be 32nds
-    song.internal.timing.grace_note_length = rate / 32
+    song.context.timing.grace_note_length = rate / 32
 end    
 
 
@@ -21,7 +21,7 @@ end
 function is_compound_time(song)
     -- return true if the meter is 6/8, 9/8 or 12/8
     -- and false otherwise
-    local meter = song.internal.meter_data
+    local meter = song.context.meter_data
     if meter then
         if meter.den==8 and (meter.num==6 or meter.num==9 or meter.num==12) then
             return true
@@ -35,8 +35,8 @@ function default_note_length(song)
     -- return the default note length
     -- if meter.num/meter.den > 0.75 then 1/8
     -- else 1/16
-    if song.internal.meter_data then
-        local ratio = song.internal.meter_data.num / song.internal.meter_data.num
+    if song.context.meter_data then
+        local ratio = song.context.meter_data.num / song.context.meter_data.num
         if ratio>=0.75 then
             return 8
         else
@@ -59,9 +59,9 @@ function apply_repeats(song, bar)
             -- mark that we will now go into a variant mode
             if bar.variant_range then
                 -- only allows first element in range to be used (e.g. can't do |1,3 within a repeat)
-                song.internal.in_variant = bar.variant_range[1]
+                song.context.in_variant = bar.variant_range[1]
             else
-                song.internal.in_variant = nil
+                song.context.in_variant = nil
             end            
         end
         
@@ -72,15 +72,15 @@ function apply_repeats(song, bar)
 end
 
 
-function expand_journal(song)
-    -- expand a journal into a song structure
+function expand_token_stream(song)
+    -- expand a token_stream into a song structure
     
-    for i,v in ipairs(song.journal) do
+    for i,v in ipairs(song.token_stream) do
    
         -- write in the ABC notation event as a string
         table.insert(song.opus, {event='abc', abc=abc_element(v)}) 
         
-        -- copy in standard events that don't change the internal state
+        -- copy in standard events that don't change the context state
         if v.event ~= 'note' then
             table.insert(song.opus, deepcopy(v))
         else
@@ -90,19 +90,19 @@ function expand_journal(song)
         -- end of header; store metadata so far
         if v.event=='header_end' then
             song.header_metadata = deepcopy(song.metadata)
-            song.header_internal = deepcopy(song.internal) 
+            song.header_context = deepcopy(song.context) 
         end
        
         -- deal with triplet definitions
         if v.event=='triplet' then                
-            -- update the internal tuplet state so that timing is correct for the next notes
+            -- update the context tuplet state so that timing is correct for the next notes
             apply_triplet(song, v.triplet)
             end
         
         -- deal with bars and repeat symbols
         if v.event=='bar' then
             apply_repeats(song, v.bar)                               
-            song.internal.accidental = nil -- clear any lingering accidentals             
+            song.context.accidental = nil -- clear any lingering accidentals             
         end
             
        
@@ -121,22 +121,22 @@ function expand_journal(song)
          
         
         if v.event=='note_length' then
-             song.internal.note_length = v.note_length
+             song.context.note_length = v.note_length
             update_timing(song)
         end
         
         if v.event=='tempo' then
-            song.internal.tempo = v.tempo
+            song.context.tempo = v.tempo
             update_timing(song)
         end
         
         if v.event=='words' then                            
-            append_table(song.internal.lyrics, v.lyrics)
+            append_table(song.context.lyrics, v.lyrics)
         end
             
         if v.event=='parts' then
-            song.internal.part_structure = v.parts
-            song.internal.part_sequence = expand_parts(song.internal.part_structure)      
+            song.context.part_structure = v.parts
+            song.context.part_sequence = expand_parts(song.context.part_structure)      
         end
         
         if v.event=='new_part' then
@@ -145,14 +145,14 @@ function expand_journal(song)
         end
         
         if v.event=='meter' then  
-            song.internal.meter_data = v.meter
+            song.context.meter_data = v.meter
             update_timing(song)   
         end
         
         -- update key
         if v.event=='key' then            
-            song.internal.key_data = v.key
-            apply_key(song, song.internal.key_data)
+            song.context.key_data = v.key
+            apply_key(song, song.context.key_data)
         end
  
     
@@ -166,40 +166,40 @@ function apply_key(song, key_data)
     -- apply transpose / octave to the song state
     if key_data.clef then                 
         if key_data.clef.octave then
-            song.internal.global_transpose = 12 * key_data.clef.octave -- octave shift
+            song.context.global_transpose = 12 * key_data.clef.octave -- octave shift
         else
-            song.internal.global_transpose = 0
+            song.context.global_transpose = 0
         end
         
         if key_data.clef.transpose then 
-            song.internal.global_transpose = song.internal.global_transpose + key_data.clef.transpose                
+            song.context.global_transpose = song.context.global_transpose + key_data.clef.transpose                
         end
     end 
     
     -- update key map
-    song.internal.key_mapping = create_key_structure(key_data.naming)
+    song.context.key_mapping = create_key_structure(key_data.naming)
 end
 
 
 function start_new_voice(song, voice)
     -- compose old voice into parts
-    if song.internal and song.internal.voice then
+    if song.context and song.context.voice then
         finalise_song(song)
-        song.voices[song.internal.voice] = {stream=song.stream, internal=song.internal}
+        song.voices[song.context.voice] = {stream=song.stream, context=song.context}
     end
 
     -- reset song state
-    -- set up internal state
-    song.internal.lyrics = {}
-    song.internal.current_part = 'default'
-    song.internal.part_map = {}
-    song.internal.pattern_map = {}
-    song.internal.timing = {}
+    -- set up context state
+    song.context.lyrics = {}
+    song.context.current_part = 'default'
+    song.context.part_map = {}
+    song.context.pattern_map = {}
+    song.context.timing = {}
     
-    song.internal.timing.triplet_state = 0
-    song.internal.timing.triplet_compress = 1
-    song.internal.timing.prev_broken_note = 1
-    song.internal.voice = voice
+    song.context.timing.triplet_state = 0
+    song.context.timing.triplet_compress = 1
+    song.context.timing.prev_broken_note = 1
+    song.context.voice = voice
     song.temp_part = {}
     song.opus = song.temp_part
         
@@ -220,12 +220,12 @@ function finalise_song(song)
  
     -- time the stream and add lyrics
     time_stream(song.stream)
-    song.stream = insert_lyrics(song.internal.lyrics, song.stream)
+    song.stream = insert_lyrics(song.context.lyrics, song.stream)
     
 end
 
-function journal_to_stream(song, internal, metadata)
-    -- Convert a journal into a full
+function token_stream_to_stream(song, context, metadata)
+    -- Convert a token_stream into a full
     -- a song datastructure. 
     -- 
     -- song.metadata contains header data about title, reference number, key etc.
@@ -235,18 +235,18 @@ function journal_to_stream(song, internal, metadata)
     -- each voice contains:
     -- voice.stream: a series of events (e.g. note on, note off)
     --  indexed by microseconds,
-    -- voice.internal contains all of the parsed song data
+    -- voice.context contains all of the parsed song data
    
     
     -- copy any inherited data from the file header
     
-    song.default_internal = internal
-    song.internal = deepcopy(song.default_internal)
+    song.default_context = context
+    song.context = deepcopy(song.default_context)
    
     song.voices = {}
     song.metadata = metadata    
     start_new_voice(song, 'default')
-    expand_journal(song)
+    expand_token_stream(song)
     
     -- finalise the voice
     start_new_voice(song, nil)

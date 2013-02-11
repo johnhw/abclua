@@ -60,7 +60,7 @@ function parse_bar(bar, song)
         variant <- ('[')
         colons <- (':' +) 
     ]]
-  
+    
   
     local type_info = re.match(bar.type, bar_pattern)
     

@@ -1,4 +1,4 @@
--- functions for writing out text represenatations of the song journal
+-- functions for writing out text represenatations of the song token_stream
 local field_tags = {key = 'K'
 ,title = 'T'
 ,ref =  'X'
@@ -581,7 +581,7 @@ function abc_note_element(element)
 end
  
 function abc_element(element)    
-    -- return the abc representation of journal element
+    -- return the abc representation of token_stream element
     if element.field then
         local field = abc_field(element)
         if element.inline then
@@ -596,11 +596,11 @@ function abc_element(element)
     
 end
 
-function journal_to_abc(journal)
--- return the journal out as a valid ABC string
+function token_stream_to_abc(token_stream)
+-- return the token_stream out as a valid ABC string
     local output = {}
     
-    for i,v in ipairs(journal) do
+    for i,v in ipairs(token_stream) do
          table.insert(output, abc_element(v))
     end
     -- concatenate into a single string

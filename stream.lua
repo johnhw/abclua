@@ -153,7 +153,7 @@ function make_midi_from_note_stream(note_stream, fname)
         1000,  -- ticks per beat
         {    -- first track
             {'set_tempo', 0, 1000000},
-            {'patch_change', 0, 1, 41},            
+            {'patch_change', 0, 1, 0},            
         },  
      }
      

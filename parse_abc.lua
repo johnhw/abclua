@@ -8,7 +8,7 @@ require "stream"
 require "fields"
 require "bar"
 require "write_abc"
-require "journal"
+require "token_stream"
 local re = require "re"
 
 
@@ -21,7 +21,7 @@ continuation <- ('\')
 beam_split <- (%s +)
 free <- ( '"' {:text: [^"]* :} '"' ) -> {}
 bar <- ( {:type: ((']' / '[') * ('|' / ':') + (']' / '[') *) :} ({:variant_range: (<range_set>) :}) ? ) -> {}
-variant <- {:type: '[' :} {:variant_range: <range_set> :}   -> {}
+variant <- ({:type: '[' :} {:variant_range: <range_set> :})   -> {}
 range_set <- (range (',' range)*)
 range <- ([0-9] ('-' [0-9]) ?)
 slurred_note <- ( (<complete_note>) -> {} / ( ({:chord: chord :} ) ? '(' (<complete_note> +) ')' )  -> {}  ) 
@@ -53,45 +53,45 @@ function read_tune_segment(tune_data, song)
    
         if v.measure_rest then
             local bars = v.measure_rest.bars or 1
-            table.insert(song.journal, {event='measure_rest', bars=bars})
+            table.insert(song.token_stream, {event='measure_rest', bars=bars})
         end
         
         -- store annotations
         if v.free_text then
             -- could be a standalone chord
             if is_chord(v.free_text.text) then
-                table.insert(song.journal, {event='chord', chord=v.free_text.text})
+                table.insert(song.token_stream, {event='chord', chord=v.free_text.text})
             else
-                table.insert(song.journal, {event='text', text=v.free_text.text})
+                table.insert(song.token_stream, {event='text', text=v.free_text.text})
             end
         end
         
         -- parse inline fields (e.g. [r:hello!])
         if v.field then                
-            -- this automatically writes it to the journal
+            -- this automatically writes it to the token_stream
             parse_field(v.field.contents, song, true)
         end
         
         -- deal with triplet definitions
         if v.triplet then                                        
-            table.insert(song.journal, {event='triplet', triplet=parse_triplet(v.triplet, song)})
+            table.insert(song.token_stream, {event='triplet', triplet=parse_triplet(v.triplet, song)})
             
         end
         
         -- beam splits
         if v.s then
-            table.insert(song.journal, {event='split'})
+            table.insert(song.token_stream, {event='split'})
         end
         
         -- linebreaks
         if v.linebreak then
-            table.insert(song.journal, {event='split_line'})
+            table.insert(song.token_stream, {event='split_line'})
         end
             
         
         -- deal with bars and repeat symbols
         if v.bar then            
-            table.insert(song.journal, {event='bar', bar=parse_bar(v.bar)  })                      
+            table.insert(song.token_stream, {event='bar', bar=parse_bar(v.bar)  })                      
         end
         
         -- chord groups
@@ -99,17 +99,17 @@ function read_tune_segment(tune_data, song)
         
             -- textual chords
             if v.chord_group.chord then
-                table.insert(song.journal, {event='chord', chord=v.chord_group.chord})                                
+                table.insert(song.token_stream, {event='chord', chord=v.chord_group.chord})                                
             end
             
             if v.chord_group[1] then
-                table.insert(song.journal, {event='chord_begin'})                                
+                table.insert(song.token_stream, {event='chord_begin'})                                
                 -- insert the individual notes
                 for i,note in ipairs(v.chord_group) do                
                     local cnote = parse_note(note)
-                    table.insert(song.journal, {event='note', note=cnote})                        
+                    table.insert(song.token_stream, {event='note', note=cnote})                        
                 end
-                table.insert(song.journal, {event='chord_end'})                                
+                table.insert(song.token_stream, {event='chord_end'})                                
             end                               
             
         end
@@ -118,24 +118,24 @@ function read_tune_segment(tune_data, song)
         if v.slur then
             
             if v.slur.chord then
-                table.insert(song.journal, {event='chord', chord=v.slur.chord})                                
+                table.insert(song.token_stream, {event='chord', chord=v.slur.chord})                                
             end
             
             -- slur groups (only put the group in if there
             -- are more than elements, or there is an associated chord name)
             if #v.slur>1  then
-                table.insert(song.journal, {event='slur_begin'} )
+                table.insert(song.token_stream, {event='slur_begin'} )
                
             end
             
             -- insert the individual notes
             for i,note in ipairs(v.slur) do                
                 local cnote = parse_note(note)                
-                table.insert(song.journal, {event='note', note=cnote})
+                table.insert(song.token_stream, {event='note', note=cnote})
             end
                 
             if #v.slur>1 then
-                table.insert(song.journal, {event='slur_end'} )
+                table.insert(song.token_stream, {event='slur_end'} )
             end
 
         end
@@ -208,38 +208,40 @@ function parse_abc_line(line, song)
     -- check if we've read the complete header; terminated on a key
     if song.parse.found_key and song.parse.in_header then
         song.parse.in_header = false
-        table.insert(song.journal, {event='header_end'})
+        table.insert(song.token_stream, {event='header_end'})
     end
 end    
 
     
 
 function parse_abc(str)
-    -- parse and ABC file and return a song with a filled in journal field
-    -- representing all of the tokens in the stream
+    -- parse and ABC file and return a song with a filled in token_stream field
+    -- representing all of the tokens in the stream    
     local lines = split(str, "[\r\n]")
     local song = {}
-    song.journal = {}
+    song.token_stream = {}
     song.parse = {in_header=true, has_notes=false, macros={}, user_macros={}}
     for i,line in pairs(lines) do 
-        local success = pcall(parse_abc_line, line, song)
-        if not success then
-            warn('Parse error reading line '  .. line)
-        end
+        parse_abc_line(line, song)
+        
+        -- local success, err = pcall(parse_abc_line, line, song)
+        -- if not success then
+            -- warn('Parse error reading line '  .. line.. '\n'.. err)
+        -- end
     end
-    
-    
+        
     return song 
 end
     
 
 
-function get_default_internal()
+function get_default_context()
     return   deepcopy({
     tempo = {div_rate=120, [1]={num=1, den=8}}, 
     use_parts = false,
     meter_data = {num=4, den=4},
-    key_data = {0,0,0,0,0,0,0,0},
+    key_data = { naming={root='C', mode='maj'}, clef={}},
+    key_mapping = {c=0,d=0,e=0,f=0,g=0,a=0,b=0},
     global_transpose = 0,
     })
 end
@@ -263,14 +265,7 @@ function parse_all_abc(str)
     -- tunes must begin with a field (although there
     -- can be directives or comments first)
     local sections = re.match(str, section_pattern)
-    local tunes = {}
-    local tune_pattern = [[
-        tune <- (comment * field + line *)
-        comment <- ('%' [^%] line)
-        field <- ([a-zA-Z] ':' line) / ('%%' line)
-        line <- ( ([^%nl] +  %nl) )
-        
-    ]]
+    local tunes = {}    
     
     -- malformed file
     if not sections or #sections==0 then
@@ -279,16 +274,17 @@ function parse_all_abc(str)
    
     -- only include patterns with a field in them; ignore 
     -- free text blocks
-    for i,v in ipairs(sections) do
-        if re.match(v, tune_pattern) then
+    for i,v in ipairs(sections) do    
+        if v:gmatch('\n[a-zA-Z]:') then            
             table.insert(tunes, v)  
         end
     end
+        
     
     -- set defaults for the whole tune
     local default_metadata = {}
     
-    local default_internal = get_default_internal()
+    local default_context = get_default_context()
     
     -- no tunes!
     if #tunes<1 then
@@ -299,14 +295,14 @@ function parse_all_abc(str)
     
     -- first tune might be a file header
     local first_tune = parse_abc(tunes[1]) 
-    journal_to_stream(first_tune,  deepcopy(default_internal), deepcopy(default_metadata))
+    token_stream_to_stream(first_tune,  deepcopy(default_context), deepcopy(default_metadata))
     table.insert(songs, first_tune)
     
-  
+    
     -- if no notes, is a global header for this whole file
     if not first_tune.parse.has_notes then
         default_metadata = first_tune.metadata
-        default_internal = first_tune.internal
+        default_context = first_tune.context
     end
     
    
@@ -315,7 +311,7 @@ function parse_all_abc(str)
         -- don't add first tune twice
         if i~=1 then
             local tune = parse_abc(v) 
-            journal_to_stream(tune, deepcopy(default_internal), deepcopy(default_metadata))    
+            token_stream_to_stream(tune, deepcopy(default_context), deepcopy(default_metadata))    
             table.insert(songs, tune)
         end
     end
@@ -331,19 +327,61 @@ function parse_abc_file(filename)
     return parse_all_abc(contents)
 end
 
--- Does not support:
+function parse_abc_fragment(str, parse)
+    -- Parse a short abc fragment, and return the token stream table
+    local song = {}
+    song.token_stream = {}
+    -- use default parse structure if not one specified
+    song.parse = parse or {in_header=false, has_notes=false, macros={}, user_macros={}}    
+    
+    if not pcall(parse_abc_line, str, song) then
+        song.token_stream = nil -- return nil if the fragment is unparsable
+    end
+    return song.token_stream
+end
 
--- fix part handling
--- function for parsing an abc fragement (e.g. parse_abc_fragment('Ab')
--- function for rendering a journal fragment in a context (extract_abc(song, fragment))
--- convert midi to abc (quantize, find key, map notes, specify chord channel (and match chords))
---directives table from I: fields
---check for misused globals
+function fragment_to_stream(tokens, context)
+    --Converts a token stream from a fragment into a timed event stream
+    -- Returns the event stream if this is a single voice fragment, or
+    -- a table of voices, if it is a multi-voice fragment
+    --
+    -- Note that this is a relatively slow function to execute, as it
+    -- must copy the context, expand the stream and then finalise the song
+    context = context or get_default_context()
+    
+    local song = {context=deepcopy(context), token_stream=tokens}
+            
+    song.voices = {}
+    song.metadata = metadata        
+    start_new_voice(song, 'default')
+    expand_token_stream(song)    
+    
+    -- finalise the voice
+    start_new_voice(song, nil)
+    
+    if #song.voices>1 then
+        local voice_stream = {}
+        -- return a table of voices
+        for i,v in pairs(song.voices) do
+            voice_streams[i] = v.stream
+        end
+        return voice_streams
+    else    
+        -- return the default voice stream
+        return song.voices['default'].stream    
+    end
+end
+
+
 
 
 -- TODO:
+-- test part handling and triplets
+-- convert midi to abc (quantize, find key, map notes, specify chord channel (and match chords))
+-- directives table from I: fields
+
 -- grace notes
--- create test suite
 -- styling for playback
--- tolerant error handling
+-- create test suite
+
 
