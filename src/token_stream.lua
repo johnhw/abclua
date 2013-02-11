@@ -1,5 +1,22 @@
 -- Functions from transforming a parsed token_stream stream into a song structure and then an event stream
 
+
+function default_note_length(song)
+    -- return the default note length
+    -- if meter.num/meter.den > 0.75 then 1/8
+    -- else 1/16
+    if song.context.meter_data then
+        local ratio = song.context.meter_data.num / song.context.meter_data.num
+        if ratio>=0.75 then
+            return 8
+        else
+            return 16
+        end
+    end
+    return 8
+end
+
+
 function update_timing(song)
     -- Update the base note length (in seconds), given the current L and Q settings
     local total_note = 0
@@ -31,20 +48,6 @@ function is_compound_time(song)
 end
 
 
-function default_note_length(song)
-    -- return the default note length
-    -- if meter.num/meter.den > 0.75 then 1/8
-    -- else 1/16
-    if song.context.meter_data then
-        local ratio = song.context.meter_data.num / song.context.meter_data.num
-        if ratio>=0.75 then
-            return 8
-        else
-            return 16
-        end
-    end
-end
-
 function apply_repeats(song, bar)
         -- clear any existing material
         if bar.type=='start_repeat' then
@@ -69,6 +72,69 @@ function apply_repeats(song, bar)
         if bar.type=='variant' then
             start_variant_part(song, bar)
         end        
+end
+
+
+function apply_key(song, key_data) 
+    -- apply transpose / octave to the song state
+    if key_data.clef then                 
+        if key_data.clef.octave then
+            song.context.global_transpose = 12 * key_data.clef.octave -- octave shift
+        else
+            song.context.global_transpose = 0
+        end
+        
+        if key_data.clef.transpose then 
+            song.context.global_transpose = song.context.global_transpose + key_data.clef.transpose                
+        end
+    end 
+    
+    -- update key map
+    song.context.key_mapping = create_key_structure(key_data.naming)
+end
+
+function finalise_song(song)
+    -- Finalise a song's event stream
+    -- Composes the parts, repeats into a single stream
+    -- Inserts absolute times into the events 
+    -- Inserts the lyrics into the song
+
+    compose_parts(song)
+    
+    -- clear temporary data
+    song.opus = nil
+    song.temp_part = nil 
+ 
+    -- time the stream and add lyrics
+    time_stream(song.stream)
+    song.stream = insert_lyrics(song.context.lyrics, song.stream)
+    
+end
+
+
+function start_new_voice(song, voice)
+    -- compose old voice into parts
+    if song.context and song.context.voice then
+        finalise_song(song)
+        song.voices[song.context.voice] = {stream=song.stream, context=song.context}
+    end
+
+    -- reset song state
+    -- set up context state
+    song.context.lyrics = {}
+    song.context.current_part = 'default'
+    song.context.part_map = {}
+    song.context.pattern_map = {}
+    song.context.timing = {}
+    
+    song.context.timing.triplet_state = 0
+    song.context.timing.triplet_compress = 1
+    song.context.timing.prev_broken_note = 1
+    song.context.voice = voice
+    song.temp_part = {}
+    song.opus = song.temp_part
+        
+    update_timing(song) -- make sure default timing takes effect    
 end
 
 
@@ -162,67 +228,7 @@ end
 
 
 
-function apply_key(song, key_data) 
-    -- apply transpose / octave to the song state
-    if key_data.clef then                 
-        if key_data.clef.octave then
-            song.context.global_transpose = 12 * key_data.clef.octave -- octave shift
-        else
-            song.context.global_transpose = 0
-        end
-        
-        if key_data.clef.transpose then 
-            song.context.global_transpose = song.context.global_transpose + key_data.clef.transpose                
-        end
-    end 
-    
-    -- update key map
-    song.context.key_mapping = create_key_structure(key_data.naming)
-end
 
-
-function start_new_voice(song, voice)
-    -- compose old voice into parts
-    if song.context and song.context.voice then
-        finalise_song(song)
-        song.voices[song.context.voice] = {stream=song.stream, context=song.context}
-    end
-
-    -- reset song state
-    -- set up context state
-    song.context.lyrics = {}
-    song.context.current_part = 'default'
-    song.context.part_map = {}
-    song.context.pattern_map = {}
-    song.context.timing = {}
-    
-    song.context.timing.triplet_state = 0
-    song.context.timing.triplet_compress = 1
-    song.context.timing.prev_broken_note = 1
-    song.context.voice = voice
-    song.temp_part = {}
-    song.opus = song.temp_part
-        
-    update_timing(song) -- make sure default timing takes effect    
-end
-
-function finalise_song(song)
-    -- Finalise a song's event stream
-    -- Composes the parts, repeats into a single stream
-    -- Inserts absolute times into the events 
-    -- Inserts the lyrics into the song
-
-    compose_parts(song)
-    
-    -- clear temporary data
-    song.opus = nil
-    song.temp_part = nil 
- 
-    -- time the stream and add lyrics
-    time_stream(song.stream)
-    song.stream = insert_lyrics(song.context.lyrics, song.stream)
-    
-end
 
 function token_stream_to_stream(song, context, metadata)
     -- Convert a token_stream into a full

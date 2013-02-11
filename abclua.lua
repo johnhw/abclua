@@ -41,8 +41,7 @@ local re = require "re"
 --
 -- From source file: utils.lua
 --
-
-local function repeat_string(str, times)
+function repeat_string(str, times)
     -- return the concatenation of a string a given number of times
     -- e.g. repeat_string('abc', '3') = 'abcabcabc'
     local reps = {}
@@ -146,9 +145,6 @@ end
 --
 -- Functions for handling key signatures and modes
 -- and working out sharps and flats in keys.
-
-require "utils"
-local re = require 're'
 
 local function midi_to_frequency(midi, reference)
     -- transform a midi note to a frequency (in Hz)
@@ -382,6 +378,23 @@ end
 -- Functions for dealing with parts, repeats and sub-patterns
 
 
+local function add_section(song, repeats)
+    -- add the current temporary buffer to the song as a new pattern
+    -- repeat it repeat times
+    repeats = repeats or 1
+        
+    if not song.context.in_variant then
+        table.insert(song.context.pattern_map, {section=song.opus, repeats=repeats, variants={}})
+    else
+        table.insert(song.context.pattern_map[#song.context.pattern_map].variants, song.opus)
+    end
+    
+    song.temp_part = {}
+    song.opus = song.temp_part
+    
+end
+
+
 local function start_new_part(song, name)
     -- start a new part with the given name. writes the old part into the part table
     -- and clears the current section
@@ -435,6 +448,29 @@ local function start_variant_part(song, bar)
     
 end
 
+local function expand_patterns(patterns)
+    -- expand a pattern list table into a single event stream
+    local result = {}
+    
+    for i,v in ipairs(patterns) do
+        
+        for i=1,v.repeats do
+            -- repeated measures (including single repeats!)
+            append_table(result, v.section)    
+            
+            -- append variant endings
+            if #v.variants>=i then
+                append_table(result, v.variants[i])    
+            
+            end
+        end
+    end
+    
+    return result        
+end
+
+
+
 local function compose_parts(song)
     -- Compose each of the parts in the song into one single event stream
     -- using the parts indicator. If no parts indicator, just uses the default part
@@ -479,45 +515,10 @@ local function compose_parts(song)
 end
 
 
-local function expand_patterns(patterns)
-    -- expand a pattern list table into a single event stream
-    local result = {}
-    
-    for i,v in ipairs(patterns) do
-        
-        for i=1,v.repeats do
-            -- repeated measures (including single repeats!)
-            append_table(result, v.section)    
-            
-            -- append variant endings
-            if #v.variants>=i then
-                append_table(result, v.variants[i])    
-            
-            end
-        end
-    end
-    
-    return result        
-end
 
 
 
 
-local function add_section(song, repeats)
-    -- add the current temporary buffer to the song as a new pattern
-    -- repeat it repeat times
-    repeats = repeats or 1
-        
-    if not song.context.in_variant then
-        table.insert(song.context.pattern_map, {section=song.opus, repeats=repeats, variants={}})
-    else
-        table.insert(song.context.pattern_map[#song.context.pattern_map].variants, song.opus)
-    end
-    
-    song.temp_part = {}
-    song.opus = song.temp_part
-    
-end
     
 
 
@@ -528,26 +529,6 @@ end
 --
 local pitch_table = {C=0, D=2, E=4, F=5, G=7, A=9, B=11}
 
-local function parse_note(note)
-    -- Parse a note structure. 
-    -- Clean up the duration and pitch of notes and any grace notes
-    -- Replace the decoration string with a sequence of decorators
-    
-    
-    -- fix the note itself
-    if note.note_def then
-        parse_note_def(note.note_def)
-    end
-    
-    -- and the grace notes
-    if note.grace then
-        for i,v in ipairs(note.grace) do
-            parse_note_def(v)
-        end
-    end
-    return note
-    
-end
 
 local function parse_note_def(note)
     -- Canonicalise a note, filling in the full duration field. 
@@ -651,6 +632,28 @@ local function parse_note_def(note)
     
     
 end
+
+local function parse_note(note)
+    -- Parse a note structure. 
+    -- Clean up the duration and pitch of notes and any grace notes
+    -- Replace the decoration string with a sequence of decorators
+    
+    
+    -- fix the note itself
+    if note.note_def then
+        parse_note_def(note.note_def)
+    end
+    
+    -- and the grace notes
+    if note.grace then
+        for i,v in ipairs(note.grace) do
+            parse_note_def(v)
+        end
+    end
+    return note
+    
+end
+
 
 local function compute_pitch(note, song)
     -- compute the real pitch (in MIDI notes) of a note event
@@ -908,6 +911,7 @@ end
 -- From source file: lyrics.lua
 --
 -- functions for dealing with lyrics
+
 local function parse_lyrics(lyrics)
     -- Parse a lyric definition string
     -- Returns a table containing a sequence of syllables and advance field
@@ -1451,24 +1455,6 @@ local function print_lyrics_notes(stream)
     
 end
 
-local function make_midi(song, fname)
-    -- make a midi file from a song
-    -- merge all of the voices into a single event stream
-    local channel = 0
-    
-    local merged_stream = {}
-    
-    -- merge in each voice
-    for i,v in pairs(song.voices) do
-        channel = channel + 1        
-        append_table(merged_stream, get_note_stream(v.stream, channel)) 
-    end
-    
-    -- this will automatically sort the event order
-    make_midi_from_note_stream(merged_stream, fname)
-    
-end
-
 local function make_midi_from_note_stream(note_stream, fname)
     -- Turn a note stream into a MIDI file
      local MIDI = require 'MIDI'
@@ -1497,12 +1483,30 @@ local function make_midi_from_note_stream(note_stream, fname)
      midifile:close()
 end
 
+local function make_midi(song, fname)
+    -- make a midi file from a song
+    -- merge all of the voices into a single event stream
+    local channel = 0
+    
+    local merged_stream = {}
+    
+    -- merge in each voice
+    for i,v in pairs(song.voices) do
+        channel = channel + 1        
+        append_table(merged_stream, get_note_stream(v.stream, channel)) 
+    end
+    
+    -- this will automatically sort the event order
+    make_midi_from_note_stream(merged_stream, fname)
+    
+end
+
+
+
 
 --
 -- From source file: macro.lua
 --
-local re = require "re"
-
 -- subsitution macro handling
 
 -- tables for shifting notes (diatonically)
@@ -1570,7 +1574,8 @@ end
 --
 -- From source file: fields.lua
 --
--- Routines for parsing metadata in headers and inline inside songsrequire "macro"
+-- Routines for parsing metadata in headers and inline inside songs
+
 
 -- create the various pattern matchers
 local matchers = {}
@@ -1606,6 +1611,20 @@ fields.end_words =  [[('W:' %s * {.*}) -> {}]]
 fields.transcriber =  [[('Z:' %s * {.*}) -> {}]]
 fields.continuation =  [[('+:' %s * {.*}) -> {}]]
 
+local function parse_parts(m)
+    -- Parse a parts definition that specifies the parts to be played
+    -- including any repeats
+    -- Returns a fully expanded part list
+    
+    local captures = re.match(m,  [[
+    parts <- (part +) -> {}
+    part <- ( ({element}  / ( '(' part + ')' ) )  {:repeat: [0-9]* :}) -> {}    
+    element <- [A-Za-z]    
+    ]])
+    
+    return captures
+    
+end
 
 local function parse_voice(voice)
     -- Parse a voice definition string
@@ -1882,28 +1901,13 @@ local function parse_field(f, song, inline)
  
 end
 
-local function parse_parts(m)
-    -- Parse a parts definition that specifies the parts to be played
-    -- including any repeats
-    -- Returns a fully expanded part list
-    
-    local captures = re.match(m,  [[
-    parts <- (part +) -> {}
-    part <- ( ({element}  / ( '(' part + ')' ) )  {:repeat: [0-9]* :}) -> {}    
-    element <- [A-Za-z]    
-    ]])
-    
-    return captures
-    
-end
+
 
 
 --
 -- From source file: bar.lua
 --
-local re = require "re"
-
-local function parse_range_list(range_list)
+function parse_range_list(range_list)
     -- parses a range identifier
     -- as a comma separated list of numbers or ranges
     -- (e.g. "1", "1,2", "2-3", "1-3,5-6")
@@ -2642,6 +2646,23 @@ end
 --
 -- Functions from transforming a parsed token_stream stream into a song structure and then an event stream
 
+
+local function default_note_length(song)
+    -- return the default note length
+    -- if meter.num/meter.den > 0.75 then 1/8
+    -- else 1/16
+    if song.context.meter_data then
+        local ratio = song.context.meter_data.num / song.context.meter_data.num
+        if ratio>=0.75 then
+            return 8
+        else
+            return 16
+        end
+    end
+    return 8
+end
+
+
 local function update_timing(song)
     -- Update the base note length (in seconds), given the current L and Q settings
     local total_note = 0
@@ -2673,20 +2694,6 @@ local function is_compound_time(song)
 end
 
 
-local function default_note_length(song)
-    -- return the default note length
-    -- if meter.num/meter.den > 0.75 then 1/8
-    -- else 1/16
-    if song.context.meter_data then
-        local ratio = song.context.meter_data.num / song.context.meter_data.num
-        if ratio>=0.75 then
-            return 8
-        else
-            return 16
-        end
-    end
-end
-
 local function apply_repeats(song, bar)
         -- clear any existing material
         if bar.type=='start_repeat' then
@@ -2711,6 +2718,69 @@ local function apply_repeats(song, bar)
         if bar.type=='variant' then
             start_variant_part(song, bar)
         end        
+end
+
+
+local function apply_key(song, key_data) 
+    -- apply transpose / octave to the song state
+    if key_data.clef then                 
+        if key_data.clef.octave then
+            song.context.global_transpose = 12 * key_data.clef.octave -- octave shift
+        else
+            song.context.global_transpose = 0
+        end
+        
+        if key_data.clef.transpose then 
+            song.context.global_transpose = song.context.global_transpose + key_data.clef.transpose                
+        end
+    end 
+    
+    -- update key map
+    song.context.key_mapping = create_key_structure(key_data.naming)
+end
+
+local function finalise_song(song)
+    -- Finalise a song's event stream
+    -- Composes the parts, repeats into a single stream
+    -- Inserts absolute times into the events 
+    -- Inserts the lyrics into the song
+
+    compose_parts(song)
+    
+    -- clear temporary data
+    song.opus = nil
+    song.temp_part = nil 
+ 
+    -- time the stream and add lyrics
+    time_stream(song.stream)
+    song.stream = insert_lyrics(song.context.lyrics, song.stream)
+    
+end
+
+
+local function start_new_voice(song, voice)
+    -- compose old voice into parts
+    if song.context and song.context.voice then
+        finalise_song(song)
+        song.voices[song.context.voice] = {stream=song.stream, context=song.context}
+    end
+
+    -- reset song state
+    -- set up context state
+    song.context.lyrics = {}
+    song.context.current_part = 'default'
+    song.context.part_map = {}
+    song.context.pattern_map = {}
+    song.context.timing = {}
+    
+    song.context.timing.triplet_state = 0
+    song.context.timing.triplet_compress = 1
+    song.context.timing.prev_broken_note = 1
+    song.context.voice = voice
+    song.temp_part = {}
+    song.opus = song.temp_part
+        
+    update_timing(song) -- make sure default timing takes effect    
 end
 
 
@@ -2804,67 +2874,7 @@ end
 
 
 
-local function apply_key(song, key_data) 
-    -- apply transpose / octave to the song state
-    if key_data.clef then                 
-        if key_data.clef.octave then
-            song.context.global_transpose = 12 * key_data.clef.octave -- octave shift
-        else
-            song.context.global_transpose = 0
-        end
-        
-        if key_data.clef.transpose then 
-            song.context.global_transpose = song.context.global_transpose + key_data.clef.transpose                
-        end
-    end 
-    
-    -- update key map
-    song.context.key_mapping = create_key_structure(key_data.naming)
-end
 
-
-local function start_new_voice(song, voice)
-    -- compose old voice into parts
-    if song.context and song.context.voice then
-        finalise_song(song)
-        song.voices[song.context.voice] = {stream=song.stream, context=song.context}
-    end
-
-    -- reset song state
-    -- set up context state
-    song.context.lyrics = {}
-    song.context.current_part = 'default'
-    song.context.part_map = {}
-    song.context.pattern_map = {}
-    song.context.timing = {}
-    
-    song.context.timing.triplet_state = 0
-    song.context.timing.triplet_compress = 1
-    song.context.timing.prev_broken_note = 1
-    song.context.voice = voice
-    song.temp_part = {}
-    song.opus = song.temp_part
-        
-    update_timing(song) -- make sure default timing takes effect    
-end
-
-local function finalise_song(song)
-    -- Finalise a song's event stream
-    -- Composes the parts, repeats into a single stream
-    -- Inserts absolute times into the events 
-    -- Inserts the lyrics into the song
-
-    compose_parts(song)
-    
-    -- clear temporary data
-    song.opus = nil
-    song.temp_part = nil 
- 
-    -- time the stream and add lyrics
-    time_stream(song.stream)
-    song.stream = insert_lyrics(song.context.lyrics, song.stream)
-    
-end
 
 local function token_stream_to_stream(song, context, metadata)
     -- Convert a token_stream into a full
@@ -2902,18 +2912,6 @@ end
 --
 -- From source file: parse_abc.lua
 --
-require "utils"
-require "keys"
-require "parts"
-require "notes"
-require "lyrics"
-require "chords"
-require "stream"
-require "fields"
-require "bar"
-require "write_abc"
-require "token_stream"
-
 -- Grammar for parsing tune definitions
 local tune_pattern = [[
 elements <- ( ( <element>)  +) -> {}

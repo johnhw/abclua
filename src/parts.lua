@@ -1,6 +1,21 @@
 -- Functions for dealing with parts, repeats and sub-patterns
-local re = require "re"
 
+
+function add_section(song, repeats)
+    -- add the current temporary buffer to the song as a new pattern
+    -- repeat it repeat times
+    repeats = repeats or 1
+        
+    if not song.context.in_variant then
+        table.insert(song.context.pattern_map, {section=song.opus, repeats=repeats, variants={}})
+    else
+        table.insert(song.context.pattern_map[#song.context.pattern_map].variants, song.opus)
+    end
+    
+    song.temp_part = {}
+    song.opus = song.temp_part
+    
+end
 
 
 function start_new_part(song, name)
@@ -56,6 +71,29 @@ function start_variant_part(song, bar)
     
 end
 
+function expand_patterns(patterns)
+    -- expand a pattern list table into a single event stream
+    local result = {}
+    
+    for i,v in ipairs(patterns) do
+        
+        for i=1,v.repeats do
+            -- repeated measures (including single repeats!)
+            append_table(result, v.section)    
+            
+            -- append variant endings
+            if #v.variants>=i then
+                append_table(result, v.variants[i])    
+            
+            end
+        end
+    end
+    
+    return result        
+end
+
+
+
 function compose_parts(song)
     -- Compose each of the parts in the song into one single event stream
     -- using the parts indicator. If no parts indicator, just uses the default part
@@ -100,44 +138,9 @@ function compose_parts(song)
 end
 
 
-function expand_patterns(patterns)
-    -- expand a pattern list table into a single event stream
-    local result = {}
-    
-    for i,v in ipairs(patterns) do
-        
-        for i=1,v.repeats do
-            -- repeated measures (including single repeats!)
-            append_table(result, v.section)    
-            
-            -- append variant endings
-            if #v.variants>=i then
-                append_table(result, v.variants[i])    
-            
-            end
-        end
-    end
-    
-    return result        
-end
 
 
 
 
-function add_section(song, repeats)
-    -- add the current temporary buffer to the song as a new pattern
-    -- repeat it repeat times
-    repeats = repeats or 1
-        
-    if not song.context.in_variant then
-        table.insert(song.context.pattern_map, {section=song.opus, repeats=repeats, variants={}})
-    else
-        table.insert(song.context.pattern_map[#song.context.pattern_map].variants, song.opus)
-    end
-    
-    song.temp_part = {}
-    song.opus = song.temp_part
-    
-end
     
 

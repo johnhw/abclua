@@ -1,5 +1,4 @@
 -- functions for dealing with lyrics
-local re = require "re"
 
 function parse_lyrics(lyrics)
     -- Parse a lyric definition string

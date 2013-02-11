@@ -1,25 +1,5 @@
 local pitch_table = {C=0, D=2, E=4, F=5, G=7, A=9, B=11}
 
-function parse_note(note)
-    -- Parse a note structure. 
-    -- Clean up the duration and pitch of notes and any grace notes
-    -- Replace the decoration string with a sequence of decorators
-    
-    
-    -- fix the note itself
-    if note.note_def then
-        parse_note_def(note.note_def)
-    end
-    
-    -- and the grace notes
-    if note.grace then
-        for i,v in ipairs(note.grace) do
-            parse_note_def(v)
-        end
-    end
-    return note
-    
-end
 
 function parse_note_def(note)
     -- Canonicalise a note, filling in the full duration field. 
@@ -123,6 +103,28 @@ function parse_note_def(note)
     
     
 end
+
+function parse_note(note)
+    -- Parse a note structure. 
+    -- Clean up the duration and pitch of notes and any grace notes
+    -- Replace the decoration string with a sequence of decorators
+    
+    
+    -- fix the note itself
+    if note.note_def then
+        parse_note_def(note.note_def)
+    end
+    
+    -- and the grace notes
+    if note.grace then
+        for i,v in ipairs(note.grace) do
+            parse_note_def(v)
+        end
+    end
+    return note
+    
+end
+
 
 function compute_pitch(note, song)
     -- compute the real pitch (in MIDI notes) of a note event

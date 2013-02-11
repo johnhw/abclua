@@ -1,6 +1,4 @@
 -- Chord handling functions
-local re = require "re"
-
 local chords = 
 {
 ["+2"] = { 0, 2, },

@@ -1,4 +1,3 @@
-
 function repeat_string(str, times)
     -- return the concatenation of a string a given number of times
     -- e.g. repeat_string('abc', '3') = 'abcabcabc'

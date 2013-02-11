@@ -1,5 +1,3 @@
-local re = require "re"
-
 -- subsitution macro handling
 
 -- tables for shifting notes (diatonically)

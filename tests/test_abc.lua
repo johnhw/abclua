@@ -60,7 +60,7 @@ function test_parts()
     --table_print(songs[1].token_stream)
     --table_print(songs[1].voices['default'].stream)
     abclua.make_midi(songs[1], 'parts.mid')
-    print_notes(songs[1].voices['default'].stream)
+    abclua.print_notes(songs[1].voices['default'].stream)
 end
     
 function test_skye()

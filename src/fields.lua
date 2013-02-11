@@ -1,6 +1,5 @@
 -- Routines for parsing metadata in headers and inline inside songs
-local re = require "re"
-require "macro"
+
 
 -- create the various pattern matchers
 local matchers = {}
@@ -36,6 +35,20 @@ fields.end_words =  [[('W:' %s * {.*}) -> {}]]
 fields.transcriber =  [[('Z:' %s * {.*}) -> {}]]
 fields.continuation =  [[('+:' %s * {.*}) -> {}]]
 
+function parse_parts(m)
+    -- Parse a parts definition that specifies the parts to be played
+    -- including any repeats
+    -- Returns a fully expanded part list
+    
+    local captures = re.match(m,  [[
+    parts <- (part +) -> {}
+    part <- ( ({element}  / ( '(' part + ')' ) )  {:repeat: [0-9]* :}) -> {}    
+    element <- [A-Za-z]    
+    ]])
+    
+    return captures
+    
+end
 
 function parse_voice(voice)
     -- Parse a voice definition string
@@ -312,17 +325,3 @@ function parse_field(f, song, inline)
  
 end
 
-function parse_parts(m)
-    -- Parse a parts definition that specifies the parts to be played
-    -- including any repeats
-    -- Returns a fully expanded part list
-    
-    local captures = re.match(m,  [[
-    parts <- (part +) -> {}
-    part <- ( ({element}  / ( '(' part + ')' ) )  {:repeat: [0-9]* :}) -> {}    
-    element <- [A-Za-z]    
-    ]])
-    
-    return captures
-    
-end

@@ -1,5 +1,3 @@
-local re = require "re"
-
 function parse_range_list(range_list)
     -- parses a range identifier
     -- as a comma separated list of numbers or ranges

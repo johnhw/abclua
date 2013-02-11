@@ -50,13 +50,10 @@ out:write([[
 out:write('local re = require "re"')
     
 for i,v in ipairs(files) do    
-    local f = io.open(v..'.lua', 'r')
+    local f = io.open('src/'..v..'.lua', 'r')
     local contents = f:read('*a')
     f:close()
-    
-    -- remove require lines
-    contents = contents:gsub('\n[^\n]* require "[^\n]*\n', '')
-    
+            
     -- make all functions local
     contents = contents:gsub('\nfunction ([^\n]*)\n', '\nlocal function %1\n')
     

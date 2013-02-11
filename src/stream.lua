@@ -124,24 +124,6 @@ function print_lyrics_notes(stream)
     
 end
 
-function make_midi(song, fname)
-    -- make a midi file from a song
-    -- merge all of the voices into a single event stream
-    local channel = 0
-    
-    local merged_stream = {}
-    
-    -- merge in each voice
-    for i,v in pairs(song.voices) do
-        channel = channel + 1        
-        append_table(merged_stream, get_note_stream(v.stream, channel)) 
-    end
-    
-    -- this will automatically sort the event order
-    make_midi_from_note_stream(merged_stream, fname)
-    
-end
-
 function make_midi_from_note_stream(note_stream, fname)
     -- Turn a note stream into a MIDI file
      local MIDI = require 'MIDI'
@@ -169,3 +151,22 @@ function make_midi_from_note_stream(note_stream, fname)
      midifile:write(MIDI.opus2midi(score))
      midifile:close()
 end
+
+function make_midi(song, fname)
+    -- make a midi file from a song
+    -- merge all of the voices into a single event stream
+    local channel = 0
+    
+    local merged_stream = {}
+    
+    -- merge in each voice
+    for i,v in pairs(song.voices) do
+        channel = channel + 1        
+        append_table(merged_stream, get_note_stream(v.stream, channel)) 
+    end
+    
+    -- this will automatically sort the event order
+    make_midi_from_note_stream(merged_stream, fname)
+    
+end
+

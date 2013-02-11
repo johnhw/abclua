@@ -1,17 +1,3 @@
-require "utils"
-require "keys"
-require "parts"
-require "notes"
-require "lyrics"
-require "chords"
-require "stream"
-require "fields"
-require "bar"
-require "write_abc"
-require "token_stream"
-local re = require "re"
-
-
 -- Grammar for parsing tune definitions
 local tune_pattern = [[
 elements <- ( ( <element>)  +) -> {}

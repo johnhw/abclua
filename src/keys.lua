@@ -1,9 +1,6 @@
 -- Functions for handling key signatures and modes
 -- and working out sharps and flats in keys.
 
-require "utils"
-local re = require 're'
-
 function midi_to_frequency(midi, reference)
     -- transform a midi note to a frequency (in Hz)
     -- optionally use a different tuning than concert A
