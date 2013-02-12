@@ -997,9 +997,21 @@ function time_stream(stream)
     
     t = 0
     
+    local last_bar = 0
     
     for i,event in ipairs(stream) do        
         event.t = t
+        
+        -- record position of last bar
+        if event.event=='bar' then
+            last_bar = event.t
+        end
+        
+        -- now, if we get an overlay, jump time
+        -- back to the start of that bar
+        if event.event=='overlay' then
+            t = last_bar
+        end
         
         -- rests and notes
         if event.event=='rest' or event.event=='note' then
@@ -1028,6 +1040,9 @@ function time_stream(stream)
        
        
     end
+    
+    -- make sure events are in order
+    table.sort(stream, function(a,b) return a.t<b.t end)
     
 end
 
@@ -1494,8 +1509,7 @@ local macro_matcher = re.compile([[
 function parse_macro(macro)
     -- take a raw ABC string block and expand any macros defined it
     -- expansion takes place *before* any other parsing
-    local match = macro_matcher:match(macro)
- 
+    local match = macro_matcher:match(macro) 
     return match
     
 end
@@ -1525,18 +1539,58 @@ function directive_set_grace_note_length(song, directive, arguments)
     update_timing(song) -- must recompute note lengths
 end
 
+
+
+
+function abc_include(song, directive, arguments)
+    -- Include a file. We can just directly invoke parse_abc_song() on 
+    -- the file contents. The include file must have only one tune -- no multi-tune files
+    
+    local filename = arguments[1]
+    if filename then
+        local f = io.open(filename, 'r')            
+        song.includes = song.includes or {}
+        
+        -- disallow include loops!
+        if song.includes[filename] then
+            return 
+        end
+        
+        -- remember we included this file
+        song.includes[filename] = filename
+        
+        -- check if the file exists
+        if f then
+            -- and we can read it...
+            local contents = f:read('*a')
+            if contents then
+                -- then recursively invoke parse_abc_song
+                parse_abc_song(song, contents)
+            end
+        end
+    end
+end
+
 -- table maps directive names to functions
 -- each function takes two arguments: the song structure, and an argument list from
 -- the directive (as a table)
 local directive_table = {
-gracenote  = directive_set_grace_note_length
+gracenote  = directive_set_grace_note_length,
+['abc-include'] = abc_include
+}
+
+-- directives listed here must be executed at parse time,
+-- not at compile time (because they change the parsing of future
+-- text, e.g. by inserting new tokens)
+local parse_directives = {
+    'abc-include'
 }
 
 function apply_directive(song, directive, arguments)
     -- Apply a directive; look it up in the directive table,
     -- and if there is a match, execute it
-    if directive_table[directive] then
-        print(directive)
+    
+    if directive_table[directive] then        
         directive_table[directive](song, directive, arguments)
     end
 
@@ -1552,12 +1606,19 @@ end
 
 function parse_directive(directive)
     -- parse a directive into a directive, followed by sequence of space separated directives
+    -- returns true if this directive must be executed at parse time (e.g. abc-include)
     local directive_pattern = [[
     directives <- (%s * ({:directive: %S+ :} ) %s+ ?  {:arguments: ( ({%S+} %s +) * {%S+}  ) -> {}  :} )  -> {}
     ]]
     
     local match = re.match(directive, directive_pattern)
-    return match
+    
+    if match and is_in(match.directive, parse_directives) then
+        return true, match
+    else
+        return false, match
+    end
+    
 end
 
 
@@ -1835,8 +1896,15 @@ function parse_field(f, song, inline)
     
      -- parse lyric definitions
     if field_name=='instruction' then                       
-         directive = parse_directive(content)
-         table.insert(song.token_stream, {event='instruction', directive=directive, field=field, inline=inline})            
+         local parse_time, directive = parse_directive(content)
+         -- must execute parse time directives immediately
+         
+         if parse_time and not song.parse.no_expand then
+            apply_directive(song, directive.directive, directive.arguments)
+         else
+            -- otherwise defer
+            table.insert(song.token_stream, {event='instruction', directive=directive, field=field, inline=inline})            
+         end
     end
             
      -- parse voice definitions
@@ -1877,20 +1945,26 @@ function parse_field(f, song, inline)
     end
     
     if field_name=='macro' then
-        -- we DON'T insert macros into the token_stream. Instead
-        -- we expand them as we find them
-        local macro = parse_macro(content)
-        
-        -- transposing macro
-        if re.find(macro.lhs, "'n'") then
-            local notes = {'a', 'b', 'c', 'd', 'e', 'f', 'g'} 
-            for i,v in ipairs(notes) do
-                table.insert(song.parse.macros, transpose_macro(macro.lhs, v, macro.rhs)) 
-                table.insert(song.parse.macros, transpose_macro(macro.lhs, string.upper(v), macro.rhs)) 
-            end
+        if song.parse.no_expand then
+            table.insert(song.token_stream, {event='field_text', name='macro', content=content, inline=inline, field=field})                    
         else
-            -- non-transposing macro
-            table.insert(song.parse.macros, macro)
+            -- we DON'T insert macros into the token_stream. Instead
+            -- we expand them as we find them
+            local macro = parse_macro(content)
+            
+            -- transposing macro
+            if re.find(macro.lhs, "'n'") then
+                local notes = {'a', 'b', 'c', 'd', 'e', 'f', 'g'}             
+                local note                   
+                -- insert one macro for each possible note
+                for i,v in ipairs(notes) do
+                    table.insert(song.parse.macros, transpose_macro(macro.lhs, v, macro.rhs)) 
+                    table.insert(song.parse.macros, transpose_macro(macro.lhs, string.upper(v), macro.rhs))                                                    
+                end
+            else
+                -- non-transposing macro
+                table.insert(song.parse.macros, macro)
+            end
         end
     end
     
@@ -1926,7 +2000,7 @@ function parse_range_list(range_list)
     -- (e.g. "1", "1,2", "2-3", "1-3,5-6")
     -- Returns each value in this range
     
-    local matches = range_matcher:match(range_pattern)    
+    local matches = range_matcher:match(range_list)    
     local sequence = {}    
     -- append each element of the range list
     for i,v in ipairs(matches) do
@@ -3012,6 +3086,9 @@ function abc_note_element(element)
             return '"' .. element.chord .. '"'
     end
     
+    if element.event=='overlay' then
+        return '&'
+    end
     
     if element.event=='chord_begin' then
             return '['        
@@ -3194,9 +3271,9 @@ function finalise_song(song)
     song.temp_part = nil 
  
     -- time the stream and add lyrics    
+   
+    time_stream(song.stream)   
     song.stream = insert_lyrics(song.context.lyrics, song.stream)
-    time_stream(song.stream)
-    
 end
 
 
@@ -3204,6 +3281,7 @@ function start_new_voice(song, voice)
     -- compose old voice into parts
     if song.context and song.context.voice then
         finalise_song(song)
+                
         song.voices[song.context.voice] = {stream=song.stream, context=song.context}
     end
 
@@ -3236,7 +3314,7 @@ function expand_token_stream(song)
         
         -- copy in standard events that don't change the context state
         if v.event ~= 'note' then
-            table.insert(song.opus, deepcopy(v))
+           table.insert(song.opus, deepcopy(v))
         else
            insert_note(v.note, song)                                         
         end
@@ -3274,7 +3352,9 @@ function expand_token_stream(song)
         end
         
         if v.event=='instruction' then
-            apply_directive(song, v.directive.directive, v.directive.arguments)
+            if v.directive then
+                apply_directive(song, v.directive.directive, v.directive.arguments)
+            end
         end
          
         
@@ -3288,7 +3368,8 @@ function expand_token_stream(song)
             update_timing(song)
         end
         
-        if v.event=='words' then                            
+        if v.event=='words' then         
+            
             append_table(song.context.lyrics, v.lyrics)
         end
             
@@ -3361,8 +3442,9 @@ end
 -- Grammar for parsing tune definitions
 local tune_pattern = [[
 elements <- ( ( <element>)  +) -> {}
-element <- (  {:field: field :}  / ({:slur: <slurred_note> :}) / ({:chord_group: <chord_group> :})  / {:bar: (<bar> / <variant>) :}   / {:free_text: free :} / {:triplet: triplet :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
+element <- (  {:field: field :}  / ({:slur: <slurred_note> :}) / ({:chord_group: <chord_group> :})  / {:overlay: <overlay> :} / {:bar: (<bar> / <variant>) :}   / {:free_text: free :} / {:triplet: triplet :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
 
+overlay <- ('&')
 continuation <- ('\')
 beam_split <- (%s +)
 free <- ( '"' {:text: [^"]* :} '"' ) -> {}
@@ -3374,7 +3456,7 @@ slurred_note <- ( ((<complete_note>) -> {}) / ( ({:chord: chord :} ) ? '(' ((<co
 
 
 chord_group <- ( ({:chord: chord :} ) ? ('[' ((<complete_note> %s*) +) ']' ) ) -> {} 
-complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: {(decoration +)}->{} :}) ? {:note_def: full_note  :} ({:tie: (tie)  :}) ? ) -> {}
+complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: {(decoration +)}->{} :}) ? {:note_def: full_note  :} (%s * {:tie: (tie)  :}) ? ) -> {}
 triplet <- ('(' {[1-9]} (':' {[1-9] ?}  (':' {[1-9]} ? ) ?) ?) -> {}
 grace <- ('{' full_note + '}') -> {}
 tie <- ('-')
@@ -3425,6 +3507,11 @@ function read_tune_segment(tune_data, song)
         if v.triplet then                                        
             table.insert(song.token_stream, {event='triplet', triplet=parse_triplet(v.triplet, song)})
             
+        end
+        
+        -- voice overlay
+        if v.overlay then
+            table.insert(song.token_stream, {event='overlay'})
         end
         
         -- beam splits
@@ -3491,6 +3578,26 @@ function read_tune_segment(tune_data, song)
     
 end
 
+function expand_macros(song, line)
+    -- expand any macros in a line   
+    local converged = false
+    local iterations = 0
+    local expanded_line
+    
+    expanded_line = apply_macros(song.parse.macros, line)
+    expanded_line = apply_macros(song.parse.user_macros, expanded_line)
+        
+    -- macros changed this line; must now re-parse the line
+    match = tune_matcher:match(expanded_line)
+    if not match then
+        warn('Macro expansion produced invalid output '..line..expanded_line)
+        return nil -- if macro expansion broke the parsing, ignore this line
+    end
+    
+    return match    
+    
+end
+
 function parse_abc_line(line, song)
     -- Parse one line of ABC, updating the song
     -- datastructure. Temporary state is held in
@@ -3520,17 +3627,12 @@ function parse_abc_line(line, song)
         -- if it was a tune line, then parse it
         -- (if not, it should be a metadata field)
         if match then            
+        
             -- check for macros
-            if #song.parse.macros>0 or #song.parse.user_macros>0  then
-                local expanded_line = apply_macros(song.parse.macros, line)
-                expanded_line = apply_macros(song.parse.user_macros, expanded_line)
-                if expanded_line ~= line then
-                    -- macros changed this line; must now re-parse the line
-                    match = tune_matcher:match(expanded_line)
-                    if not match then
-                        warn('Macro expansion produced invalid output '..line..expanded_line)
-                        return -- if macro expansion broke the parsing, ignore this line
-                    end
+            if not song.parse.no_expand and (#song.parse.macros>0 or #song.parse.user_macros>0)  then               
+                match = expand_macros(song, line)
+                if not match then 
+                    return nil -- bad macro messed this line up
                 end
             end
             
@@ -3558,24 +3660,33 @@ function parse_abc_line(line, song)
     end
 end    
 
+
+function parse_abc_song(song, str)    
+    -- parse an ABC file and fill in the song structure
+    -- this is a separate method so that recursive calls can be made to it 
+    -- to include subfiles
+    local lines = split(str, "[\r\n]")
+    for i,line in pairs(lines) do 
+        --parse_abc_line(line, song)
+        
+        local success, err = pcall(parse_abc_line, line, song)
+        if not success then
+            warn('Parse error reading line '  .. line.. '\n'.. err)
+        end
+    end
+end
     
 
-function parse_abc(str)
+function parse_abc(str, options)
     -- parse and ABC file and return a song with a filled in token_stream field
     -- representing all of the tokens in the stream    
-    local lines = split(str, "[\r\n]")
-    local song = {}
+    local song = {}    
+    
     song.token_stream = {}
-    song.parse = {in_header=true, has_notes=false, macros={}, user_macros={}}
-    for i,line in pairs(lines) do 
-        parse_abc_line(line, song)
-        
-        -- local success, err = pcall(parse_abc_line, line, song)
-        -- if not success then
-            -- warn('Parse error reading line '  .. line.. '\n'.. err)
-        -- end
-    end
-        
+    options = options or {}    
+    song.parse = {in_header=true, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand or false}    
+    parse_abc_song(song, str)
+     
     return song 
 end
     
@@ -3601,7 +3712,7 @@ local section_matcher = re.compile([[
      last_line <- ( ([^%nl]+) )
     ]] 
 )    
-function parse_all_abc(str)
+function parse_abc_multisong(str, options)
          
     -- split file into sections
    
@@ -3641,7 +3752,7 @@ function parse_all_abc(str)
     local songs = {}
     
     -- first tune might be a file header
-    local first_tune = parse_abc(tunes[1]) 
+    local first_tune = parse_abc(tunes[1], options) 
     token_stream_to_stream(first_tune,  deepcopy(default_context), deepcopy(default_metadata))
     table.insert(songs, first_tune)
     
@@ -3657,7 +3768,7 @@ function parse_all_abc(str)
     for i,v in ipairs(tunes) do
         -- don't add first tune twice
         if i~=1 then
-            local tune = parse_abc(v) 
+            local tune = parse_abc(v, options) 
             token_stream_to_stream(tune, deepcopy(default_context), deepcopy(default_metadata))    
             table.insert(songs, tune)
         end
@@ -3666,20 +3777,21 @@ function parse_all_abc(str)
     return songs
 end
 
-function parse_abc_file(filename)
+function parse_abc_file(filename, options)
     -- Read a file and send it for parsing. Returns the 
     -- corresponding song table.
     local f = io.open(filename, 'r')
     local contents = f:read('*a')
-    return parse_all_abc(contents)
+    return parse_abc_multisong(contents, options)
 end
 
-function parse_abc_fragment(str, parse)
+function parse_abc_fragment(str, parse, options)
     -- Parse a short abc fragment, and return the token stream table
     local song = {}
+    options = options or {}
     song.token_stream = {}
     -- use default parse structure if not one specified
-    song.parse = parse or {in_header=false, has_notes=false, macros={}, user_macros={}}    
+    song.parse = parse or {in_header=false, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand}    
     
     if not pcall(parse_abc_line, str, song) then
         song.token_stream = nil -- return nil if the fragment is unparsable
@@ -3723,7 +3835,7 @@ end
 -- module exports
 abclua = {
 name="abclua",
-parse_all_abc = parse_all_abc,
+parse_abc_multisong = parse_abc_multisong,
 parse_abc = parse_abc,
 parse_abc_fragment = parse_abc_fragment,
 fragment_to_stream = fragment_to_stream,
@@ -3748,13 +3860,15 @@ abc_element = abc_element
 -- convert midi to abc (quantize, find key, map notes, specify chord channel (and match chords))
 -- render decorations
 -- match against instrument notes (penalties for notes)
--- abc-include
+
 -- consider macros when octave modifiers and ties are applied
 -- tidy up stream rendering
 
 -- fix lyrics alignment (2.0 compatible and verses)
--- voice overlay with &
 -- voice transpose/octave/+8-8
+
+-- stream modifiers: swing
+-- decorators with extended effect (e.g. crescendo, accelerando)
 
 -- styling for playback
 -- extend test suite
