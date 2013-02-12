@@ -1,8 +1,9 @@
 -- Grammar for parsing tune definitions
 local tune_pattern = [[
 elements <- ( ( <element>)  +) -> {}
-element <- (  {:field: field :}  / ({:slur: <slurred_note> :}) / ({:chord_group: <chord_group> :})  / {:bar: (<bar> / <variant>) :}   / {:free_text: free :} / {:triplet: triplet :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
+element <- (  {:field: field :}  / ({:slur: <slurred_note> :}) / ({:chord_group: <chord_group> :})  / {:overlay: <overlay> :} / {:bar: (<bar> / <variant>) :}   / {:free_text: free :} / {:triplet: triplet :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
 
+overlay <- ('&')
 continuation <- ('\')
 beam_split <- (%s +)
 free <- ( '"' {:text: [^"]* :} '"' ) -> {}
@@ -14,7 +15,7 @@ slurred_note <- ( ((<complete_note>) -> {}) / ( ({:chord: chord :} ) ? '(' ((<co
 
 
 chord_group <- ( ({:chord: chord :} ) ? ('[' ((<complete_note> %s*) +) ']' ) ) -> {} 
-complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: {(decoration +)}->{} :}) ? {:note_def: full_note  :} ({:tie: (tie)  :}) ? ) -> {}
+complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: {(decoration +)}->{} :}) ? {:note_def: full_note  :} (%s * {:tie: (tie)  :}) ? ) -> {}
 triplet <- ('(' {[1-9]} (':' {[1-9] ?}  (':' {[1-9]} ? ) ?) ?) -> {}
 grace <- ('{' full_note + '}') -> {}
 tie <- ('-')
@@ -65,6 +66,11 @@ function read_tune_segment(tune_data, song)
         if v.triplet then                                        
             table.insert(song.token_stream, {event='triplet', triplet=parse_triplet(v.triplet, song)})
             
+        end
+        
+        -- voice overlay
+        if v.overlay then
+            table.insert(song.token_stream, {event='overlay'})
         end
         
         -- beam splits
@@ -131,6 +137,26 @@ function read_tune_segment(tune_data, song)
     
 end
 
+function expand_macros(song, line)
+    -- expand any macros in a line   
+    local converged = false
+    local iterations = 0
+    local expanded_line
+    
+    expanded_line = apply_macros(song.parse.macros, line)
+    expanded_line = apply_macros(song.parse.user_macros, expanded_line)
+        
+    -- macros changed this line; must now re-parse the line
+    match = tune_matcher:match(expanded_line)
+    if not match then
+        warn('Macro expansion produced invalid output '..line..expanded_line)
+        return nil -- if macro expansion broke the parsing, ignore this line
+    end
+    
+    return match    
+    
+end
+
 function parse_abc_line(line, song)
     -- Parse one line of ABC, updating the song
     -- datastructure. Temporary state is held in
@@ -160,17 +186,12 @@ function parse_abc_line(line, song)
         -- if it was a tune line, then parse it
         -- (if not, it should be a metadata field)
         if match then            
+        
             -- check for macros
-            if #song.parse.macros>0 or #song.parse.user_macros>0  then
-                local expanded_line = apply_macros(song.parse.macros, line)
-                expanded_line = apply_macros(song.parse.user_macros, expanded_line)
-                if expanded_line ~= line then
-                    -- macros changed this line; must now re-parse the line
-                    match = tune_matcher:match(expanded_line)
-                    if not match then
-                        warn('Macro expansion produced invalid output '..line..expanded_line)
-                        return -- if macro expansion broke the parsing, ignore this line
-                    end
+            if not song.parse.no_expand and (#song.parse.macros>0 or #song.parse.user_macros>0)  then               
+                match = expand_macros(song, line)
+                if not match then 
+                    return nil -- bad macro messed this line up
                 end
             end
             
@@ -198,24 +219,33 @@ function parse_abc_line(line, song)
     end
 end    
 
+
+function parse_abc_song(song, str)    
+    -- parse an ABC file and fill in the song structure
+    -- this is a separate method so that recursive calls can be made to it 
+    -- to include subfiles
+    local lines = split(str, "[\r\n]")
+    for i,line in pairs(lines) do 
+        --parse_abc_line(line, song)
+        
+        local success, err = pcall(parse_abc_line, line, song)
+        if not success then
+            warn('Parse error reading line '  .. line.. '\n'.. err)
+        end
+    end
+end
     
 
-function parse_abc(str)
+function parse_abc(str, options)
     -- parse and ABC file and return a song with a filled in token_stream field
     -- representing all of the tokens in the stream    
-    local lines = split(str, "[\r\n]")
-    local song = {}
+    local song = {}    
+    
     song.token_stream = {}
-    song.parse = {in_header=true, has_notes=false, macros={}, user_macros={}}
-    for i,line in pairs(lines) do 
-        parse_abc_line(line, song)
-        
-        -- local success, err = pcall(parse_abc_line, line, song)
-        -- if not success then
-            -- warn('Parse error reading line '  .. line.. '\n'.. err)
-        -- end
-    end
-        
+    options = options or {}    
+    song.parse = {in_header=true, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand or false}    
+    parse_abc_song(song, str)
+     
     return song 
 end
     
@@ -241,7 +271,7 @@ local section_matcher = re.compile([[
      last_line <- ( ([^%nl]+) )
     ]] 
 )    
-function parse_all_abc(str)
+function parse_abc_multisong(str, options)
          
     -- split file into sections
    
@@ -281,7 +311,7 @@ function parse_all_abc(str)
     local songs = {}
     
     -- first tune might be a file header
-    local first_tune = parse_abc(tunes[1]) 
+    local first_tune = parse_abc(tunes[1], options) 
     token_stream_to_stream(first_tune,  deepcopy(default_context), deepcopy(default_metadata))
     table.insert(songs, first_tune)
     
@@ -297,7 +327,7 @@ function parse_all_abc(str)
     for i,v in ipairs(tunes) do
         -- don't add first tune twice
         if i~=1 then
-            local tune = parse_abc(v) 
+            local tune = parse_abc(v, options) 
             token_stream_to_stream(tune, deepcopy(default_context), deepcopy(default_metadata))    
             table.insert(songs, tune)
         end
@@ -306,20 +336,21 @@ function parse_all_abc(str)
     return songs
 end
 
-function parse_abc_file(filename)
+function parse_abc_file(filename, options)
     -- Read a file and send it for parsing. Returns the 
     -- corresponding song table.
     local f = io.open(filename, 'r')
     local contents = f:read('*a')
-    return parse_all_abc(contents)
+    return parse_abc_multisong(contents, options)
 end
 
-function parse_abc_fragment(str, parse)
+function parse_abc_fragment(str, parse, options)
     -- Parse a short abc fragment, and return the token stream table
     local song = {}
+    options = options or {}
     song.token_stream = {}
     -- use default parse structure if not one specified
-    song.parse = parse or {in_header=false, has_notes=false, macros={}, user_macros={}}    
+    song.parse = parse or {in_header=false, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand}    
     
     if not pcall(parse_abc_line, str, song) then
         song.token_stream = nil -- return nil if the fragment is unparsable
@@ -363,7 +394,7 @@ end
 -- module exports
 abclua = {
 name="abclua",
-parse_all_abc = parse_all_abc,
+parse_abc_multisong = parse_abc_multisong,
 parse_abc = parse_abc,
 parse_abc_fragment = parse_abc_fragment,
 fragment_to_stream = fragment_to_stream,
@@ -388,13 +419,15 @@ abc_element = abc_element
 -- convert midi to abc (quantize, find key, map notes, specify chord channel (and match chords))
 -- render decorations
 -- match against instrument notes (penalties for notes)
--- abc-include
+
 -- consider macros when octave modifiers and ties are applied
 -- tidy up stream rendering
 
 -- fix lyrics alignment (2.0 compatible and verses)
--- voice overlay with &
 -- voice transpose/octave/+8-8
+
+-- stream modifiers: swing
+-- decorators with extended effect (e.g. crescendo, accelerando)
 
 -- styling for playback
 -- extend test suite

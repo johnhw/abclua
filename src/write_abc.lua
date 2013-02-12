@@ -572,6 +572,9 @@ function abc_note_element(element)
             return '"' .. element.chord .. '"'
     end
     
+    if element.event=='overlay' then
+        return '&'
+    end
     
     if element.event=='chord_begin' then
             return '['        

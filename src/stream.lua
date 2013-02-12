@@ -11,9 +11,21 @@ function time_stream(stream)
     
     t = 0
     
+    local last_bar = 0
     
     for i,event in ipairs(stream) do        
         event.t = t
+        
+        -- record position of last bar
+        if event.event=='bar' then
+            last_bar = event.t
+        end
+        
+        -- now, if we get an overlay, jump time
+        -- back to the start of that bar
+        if event.event=='overlay' then
+            t = last_bar
+        end
         
         -- rests and notes
         if event.event=='rest' or event.event=='note' then
@@ -42,6 +54,9 @@ function time_stream(stream)
        
        
     end
+    
+    -- make sure events are in order
+    table.sort(stream, function(a,b) return a.t<b.t end)
     
 end
 

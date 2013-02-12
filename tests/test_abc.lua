@@ -24,7 +24,7 @@ function table_print (tt, indent, done)
   end
 end
 
-require "abclua"
+require "abclua_all"
 
 skye=[[
 % this is a comment
@@ -222,6 +222,10 @@ function test_macros()
     
     songs = abclua.parse_all_abc(macros)      
     abclua.print_notes(songs[1].voices['default'].stream)
+    print(abclua.token_stream_to_abc(songs[1].token_stream))
+    
+    songs = abclua.parse_all_abc(macros, {no_expand=true})      
+    print(abclua.token_stream_to_abc(songs[1].token_stream))
     abclua.make_midi(songs[1], 'out/macros.mid')
 end
 

@@ -51,9 +51,15 @@ function repeat_string(str, times)
     return table.concat(reps)
 end
 
+-- set a field of the whole table
+function set_property(t, key, value)
+    for i,v in pairs(t) do
+        v[key] = value
+    end
+end
 
 -- copy a table completely
-local function deepcopy(orig)
+function deepcopy(orig)
     local orig_type = type(orig)
     local copy
     if orig_type == 'table' then
@@ -69,7 +75,7 @@ local function deepcopy(orig)
 end
 
 -- Print anything - including nested tables
-local function table_print (tt, indent, done)
+function table_print (tt, indent, done)
   done = done or {}
   indent = indent or 0
   if type(tt) == "table" then
@@ -94,7 +100,7 @@ local function table_print (tt, indent, done)
 end
 
 
-local function invert_table(t)
+function invert_table(t)
     -- invert a table so that values map to keys
     local n = {}
     for i,v in pairs(t) do
@@ -104,7 +110,7 @@ local function invert_table(t)
 end
 
 
-local function append_table(a, b)
+function append_table(a, b)
     -- Append b to a. Operates in-place, and returns a copy
     -- of the modified array
     for i,v in ipairs(b) do    
@@ -114,7 +120,7 @@ local function append_table(a, b)
 end
 
 -- Compatibility: Lua-5.1
-local function split(str, pat)
+function split(str, pat)
    local t = {}  -- NOTE: use {n = 0} in Lua-5.0
    local fpat = "(.-)" .. pat
    local last_end = 1
@@ -134,7 +140,7 @@ local function split(str, pat)
 end
 
 
-local function warn(message)
+function warn(message)
 -- print a warning message
     print(message)
 end
@@ -146,7 +152,7 @@ end
 -- Functions for handling key signatures and modes
 -- and working out sharps and flats in keys.
 
-local function midi_to_frequency(midi, reference)
+function midi_to_frequency(midi, reference)
     -- transform a midi note to a frequency (in Hz)
     -- optionally use a different tuning than concert A
     -- specify frequency of A in Hz as the second parameter if required
@@ -220,6 +226,13 @@ ab = {0,-1,-1,0,0,-1,-1},
 db = {0,-1,-1,0,-1,-1,-1},
 gb = {-1,-1,-1,0,-1,-1,-1},
 cb = {-1,-1,-1,-1,-1,-1,-1},
+
+-- not real keys, but sound correct
+as = {0,0,-1,0,0,0,0},
+ds = {0,0,-1,0,0,-1,-1},
+gs = {0,-1,-1,0,0,-1,-1},
+fs = {-1,-1,-1,0,-1,-1,-1},
+bs = {-1,-1,-1,-1,-1,-1,-1},
 }
 
 
@@ -234,7 +247,7 @@ local mode_offsets = {maj=0, min=3, mix=5, dor=10, phr=8, lyd=7, loc=1}
 
 
 
-local function compute_mode(offset)
+function compute_mode(offset)
     -- compute a mapping from notes in a given mode to the corresponding major key
     -- e.g. compute_mode(3) gives the relative major keys of each possible minor key
     -- return value is a table mapping from the modal key (e.g. E min) to the 
@@ -247,9 +260,8 @@ local function compute_mode(offset)
     return notes
 end
 
-local function parse_key(k)
-    -- Parse a key definition, in the format <root>[b][#][mode] [accidentals] [expaccidentals]
-    local key_pattern = [[
+
+local key_matcher = re.compile([[
     key <- ( {:none: ('none') :} / {:pipe: ('Hp' / 'HP') :} / (
         {:root: ([a-gA-G]):}  ({:flat: ('b'):}) ? ({:sharp: ('#'):}) ?  
         (%s * {:mode: (mode %S*):}) ? 
@@ -257,38 +269,58 @@ local function parse_key(k)
          ({:clef:  ((%s + <clef>) +) -> {}   :})  ?           
         )) -> {} 
         
-    clef <-  (({:clef: clefs :} / clef_def /  middle  / transpose / octave / stafflines )  ) 
+    clef <-  (({:clef: clefs :}  / clef_def /  middle  / transpose / octave / stafflines / custom )  ) 
     
-    
-    clef_def <- ('clef=' {:clef: <clefs> :} (%s + number) ? (%s + ( '+8' / '-8' )) ? ) 
+    custom <- ([^:] + ':' [^=] + '=' [%S] +)
+    clef_def <- ('clef=' {:clef: <clefs> :} [0-9] ? ({:plus8: (  '+8' / '-8' ) :})  ? ) 
     clefs <- ('alto' / 'bass' / 'none' / 'perc' / 'tenor' / 'treble' )
     middle <- ('middle=' {:middle: <number> :})
-    transpose <- ('transpose=' {:transpose: <number> :}) 
+    transpose <- (('transpose='/'t=')  {:transpose: <number> :}) 
     octave <- ('octave=' {:octave: <number> :}) 
     stafflines <- ('stafflines=' {:stafflines: <number> :})
     
     
-    number <- ('-' ? '+' ? [0-9]+)
+    number <- ( ('+' / '-') ? [0-9]+)
     
     mode <- ( ({'maj'}) / ({'aeo'}) / ({'ion'}) / ({'mix'}) / ({'dor'}) / ({'phr'}) / ({'lyd'}) /
           ({'loc'}) /  ({'exp'}) / ({'min'}) / {'m'}) 
     accidentals <- ( {accidental} (%s+ {accidental}) * ) -> {}
     accidental <- ( ('^' / '_' / '__' / '^^' / '=') [a-g] )
-]]
+]])
+
+function parse_key(k)
+    -- Parse a key definition, in the format <root>[b][#][mode] [accidentals] [expaccidentals]
+    
 
     k = k:lower()
-    local captures = re.match(k,  key_pattern)    
+    local captures = key_matcher:match(k)
+    
+    --replace +8 / -8 with a straightforward transpose
+    if captures.clef and captures.clef.plus8 then
+        if captures.clef.plus8=='-8' then
+            captures.clef.octave = (captures.clef.octave or 0) + 1
+        else
+            captures.clefoctave = (captures.clef.octave or 0) - 1 
+        end
+        captures.clef.plus8 = nil
+    end
+    
+    -- replace transpose with t
+    if captures.clef and captures.clef.t then
+        captures.clef.transpose = captures.clef.t
+        captures.clef.t = nil
+    end
     
     return {naming = captures,  clef=captures.clef}
     
 end
 
 
-local function create_key_structure(k)
+function create_key_structure(k)
     -- Create a key structure, which lists each note as written (e.g. A or B)
     -- and maps it to the correct semitone in the interval
     
-    local key_mapping = {}
+    local key_mapping = {}    
     
     -- default: C major if no signature
     for i,v in pairs(key_table['c']) do                        
@@ -333,8 +365,11 @@ local function create_key_structure(k)
             
             -- get the modal offset
             local modal_root = root            
-            local major_mapping = compute_mode(mode_offsets[k.mode])
-            root = major_mapping[root] -- get relative major key                        
+            
+            if mode_offsets[k.mode] then
+                local major_mapping = compute_mode(mode_offsets[k.mode])
+                root = major_mapping[root] -- get relative major key                        
+            end            
         end
                 
       
@@ -378,7 +413,7 @@ end
 -- Functions for dealing with parts, repeats and sub-patterns
 
 
-local function add_section(song, repeats)
+function add_section(song, repeats)
     -- add the current temporary buffer to the song as a new pattern
     -- repeat it repeat times
     repeats = repeats or 1
@@ -395,7 +430,7 @@ local function add_section(song, repeats)
 end
 
 
-local function start_new_part(song, name)
+function start_new_part(song, name)
     -- start a new part with the given name. writes the old part into the part table
     -- and clears the current section
     
@@ -414,7 +449,7 @@ local variant_tag = 0
 
 
 
-local function start_variant_part(song, bar)
+function start_variant_part(song, bar)
     -- start a variant part. The variant specifier indicates the ranges that 
     -- this variant will apply to.
     -- Enters a part called (current_part).N where N is each range this part applies to
@@ -448,7 +483,7 @@ local function start_variant_part(song, bar)
     
 end
 
-local function expand_patterns(patterns)
+function expand_patterns(patterns)
     -- expand a pattern list table into a single event stream
     local result = {}
     
@@ -471,7 +506,7 @@ end
 
 
 
-local function compose_parts(song)
+function compose_parts(song)
     -- Compose each of the parts in the song into one single event stream
     -- using the parts indicator. If no parts indicator, just uses the default part
     -- Combines all repeats etc. inside each part into a stream as well
@@ -529,7 +564,7 @@ end
 --
 -- functions for dealing with lyrics
 
-local function parse_lyrics(lyrics)
+function parse_lyrics(lyrics)
     -- Parse a lyric definition string
     -- Returns a table containing a sequence of syllables and advance field
     -- each advance field specifies how far to move for the next syllable
@@ -593,7 +628,7 @@ local function parse_lyrics(lyrics)
 end
 
 
-local function insert_lyrics(lyrics, stream)
+function insert_lyrics(lyrics, stream)
     -- Takes a lyrics structure and an event stream, and inserts the lyric
     -- events into the stream accordingly. Returns a new event stream
     -- with the lyrics in place
@@ -659,7 +694,7 @@ local function insert_lyrics(lyrics, stream)
 end
 
 
-local function test_lyric_parsing()
+function test_lyric_parsing()
     -- test the lyrics parser
     tests = {
     'hello',
@@ -841,7 +876,13 @@ bb=10,
 bs=12
 }
 
-local function match_chord(chord)
+
+local chord_matcher = re.compile([[
+        chord <- ({:root: root :} ({:type: %S +:}) ? ) -> {}
+        root <- ([a-g] ('b' / 's') ?)
+    ]])
+
+function match_chord(chord)
     -- Matches chord definitions, returning the root note
     -- the chord type, and the notes in that chord (as semitone offsets)
     -- convert sharp signs to s and lowercase
@@ -850,12 +891,8 @@ local function match_chord(chord)
     chord = string.lower(chord)
     
     
-    local chord_pattern = [[
-        chord <- ({:root: root :} ({:type: %S +:}) ? ) -> {}
-        root <- ([a-g] ('b' / 's') ?)
-    ]]
     
-    local match = re.match(chord, chord_pattern)
+    local match = chord_matcher:match(chord)
     if not match or not match.root then
         return nil
     end
@@ -863,8 +900,9 @@ local function match_chord(chord)
     local base_pitch = note_table[match.root]
     match.type = match.type or 'maj' -- default to major chord
     
+    local chord_offsets
     if chords[match.type] then
-        local chord_offsets = chords[match.type]
+        chord_offsets = chords[match.type]
     else    
         return nil -- not a valid chord
     end
@@ -874,7 +912,7 @@ local function match_chord(chord)
 end
 
 
-local function is_chord(str)
+function is_chord(str)
     -- Return true if this string is a valid chord identifier
     if match_chord(str) then
         return true
@@ -883,7 +921,7 @@ local function is_chord(str)
     end
 end
     
-local function create_chord(chord)
+function create_chord(chord)
 -- takes a chord defintion string (e.g. "Gm" or "Fm7" or "Asus2") and returns the notes in it
 -- as a table of pitches (with C=0)
 
@@ -900,7 +938,7 @@ local function create_chord(chord)
     
 end
 
-local function voice_chord(notes, octave)
+function voice_chord(notes, octave)
     -- Takes a note sequence for a chord and expands the chord across several octaves
     -- Returns a MIDI note number set
     local octave = octave or 5
@@ -930,7 +968,7 @@ local function voice_chord(notes, octave)
 end
 
 
-local function test_chords()
+function test_chords()
     
     local test_chords = {'Gm', 'G', 'F#min7', 'dM9', 'bbmin'}
     for i,v in ipairs(test_chords) do
@@ -948,7 +986,7 @@ end
 --
 -- Functions from transforming an raw stream into a timed event stream
 
-local function time_stream(stream)
+function time_stream(stream)
     -- take a stream of events and insert time indicators (in microseconds)
     -- as the t field in each event
     -- Time advances only on notes or rests
@@ -993,7 +1031,7 @@ local function time_stream(stream)
     
 end
 
-local function get_note_stream(timed_stream, channel)
+function get_note_stream(timed_stream, channel)
     -- Extract all play events from a timed stream, as sequence of note on / note off events
     -- take into account ties in computing note offs
     
@@ -1019,7 +1057,7 @@ local function get_note_stream(timed_stream, channel)
 end
 
 
-local function print_notes(stream)
+function print_notes(stream)
     -- print out the notes, as a sequence of pitches
     local notes = {}
     
@@ -1043,7 +1081,7 @@ local function print_notes(stream)
 end
 
 
-local function filter_event_stream(stream, includes)
+function filter_event_stream(stream, includes)
     -- return a copy of the stream, keeping only those specified events in the stream
     local filtered = {}
     
@@ -1071,7 +1109,7 @@ local function filter_event_stream(stream, includes)
     return filtered   
 end
 
-local function duration_stream(stream)
+function duration_stream(stream)
     -- return the duration of the stream, from the first event, to
     -- the end of the last note
     if #stream==0 then
@@ -1086,7 +1124,15 @@ local function duration_stream(stream)
     return end_time
 end
 
-local function zero_time_stream(stream)
+function start_time_stream(stream)
+    -- return the time of the first event
+    if #stream==0 then
+        return 0
+    end    
+    return stream[1].t
+end
+
+function zero_time_stream(stream)
     -- fix the time of the first element of the stream to t=0, and shift
     -- the rest of the stream to match
     -- Modifies the stream in place -- copy it if you don't want to modify the 
@@ -1102,7 +1148,37 @@ local function zero_time_stream(stream)
     
 end
 
-local function trim_event_stream(stream,  mode, start_time, end_time)
+
+function render_grace_notes(stream)
+    -- Return a copy of the stream with grace notes rendered in 
+    -- as ordinary notes. These notes will cut into the following note 
+    local out = {}
+    for i,v in ipairs(stream) do
+        if v.event=='note' and v.note.grace then
+        
+            local sequence = v.note.grace.sequence
+             
+            local duration = 0 -- total duration of the grace notes
+            for j,n in ipairs(sequence) do
+                
+                table.insert(out, {event='note', t=duration+v.t, duration=n.duration, pitch=n.pitch, note=n.grace})
+                duration = duration + n.duration
+            end            
+            
+            -- cut into the time of the next note, and push it along
+            local cut_note = deepcopy(v)
+            cut_note.duration = cut_note.duration - duration
+            cut_note.t = cut_note.t + duration
+            table.insert(out, cut_note) 
+        else
+            table.insert(out, v)
+        end
+    end    
+    return out
+end
+
+
+function trim_event_stream(stream,  mode, start_time, end_time)
     -- return a copy of the stream, including only events that fall inside
     -- [start_time:end_time] (given in microseconds)
     -- mode can be = 'starts' which returns event that start in the given period
@@ -1165,25 +1241,28 @@ local function trim_event_stream(stream,  mode, start_time, end_time)
                 
                 -- starts, but is too long
                 if start_in and not end_in then
-                    v.duration = end_time - v.t
+                    event.duration = end_time - event.t
                 end
                 
                 -- starts before, but ends in
                 if end_in and not start_in then
-                    v.duration = (v.t+v.duration)-start_time
-                    v.t = start_time                    
+                    event.duration = (event.t+event.duration)-start_time
+                    event.t = start_time                    
                 end
+                table.insert(filtered, event)
              end
         end
         
     end
+    
+    return filtered
 end
     
     
     
 
 
-local function print_lyrics_notes(stream)
+function print_lyrics_notes(stream)
     -- print out the notes and lyrics, as a sequence of pitches interleaved with 
     -- syllables
     local notes = {}
@@ -1212,7 +1291,7 @@ local function print_lyrics_notes(stream)
     
 end
 
-local function note_stream_to_opus(note_stream)
+function note_stream_to_opus(note_stream)
     -- make sure events are in time order
     table.sort(note_stream, function(a,b) return a.t<b.t end)
     
@@ -1221,18 +1300,74 @@ local function note_stream_to_opus(note_stream)
     local dtime
     for i,event in ipairs(note_stream) do
         dtime = (event.t - last_t)/1000.0 -- microseconds to milliseconds
-        table.insert(score, {event.event, dtime, event.channel, event.pitch, 100})
+        table.insert(score, {event.event, dtime, event.channel or 1, event.pitch, event.velocity or 127})
         last_t = event.t
     end
     return score
 end
 
-local function stream_to_opus(stream, channel, patch)
+
+
+function get_chord_stream(stream, octave)
+    -- extract all the named chords from a stream (e.g. "Cm7" or "Dmaj") and write 
+    -- them in as note events in a stream
+   local out = {}
+   local notes_on = {}
+   local t
+   local channel = channel or 1
+   octave = octave or 5
+   
+   for i,event in ipairs(stream) do        
+        
+        if (event.event=='note' and event.note.chord) or event.event=='chord' then                
+            local chord = event.note.chord or event.chord
+            
+            t = event.t
+            -- turn off last chord!
+            for j, n in ipairs(notes_on) do
+                table.insert(out, {event='note_off', t=t, channel})                                           
+                notes_on = {}
+            end
+            
+            -- get the notes for this chord and put them in the sequence
+            notes = voice_chord(create_chord(chord), octave)
+            for j, n in ipairs(notes) do
+                 table.insert(out, {event='note_on', t=t, pitch=n, channel})                           
+                 notes_on[n] = true
+            end                    
+        end
+    end
+    
+    -- turn off last chord
+    for j, n in ipairs(notes_on) do
+            table.insert(out, {event='note_off', t=t, channel=channel})                                           
+            notes_on = {}
+    end            
+    
+    return out 
+end
+
+
+function merge_streams(streams)
+    -- merge a list of streams into one single, ordered stream
+    local merged_stream = {}
+    
+    for i,v in pairs(streams) do
+        append_table(merged_stream, v)         
+    end    
+    table.sort(merged_stream, function(a,b) return a.t<b.t end)
+    return merged_stream    
+end
+
+-- sort out stream functions
+
+function stream_to_opus(stream,  patch)
     -- return the opus form of a single note stream song, with millisecond timing    
     channel = channel or 1
     patch = patch or 41 -- default to violin
     
     local note_stream = get_note_stream(stream, channel)
+    
      local score = {
         1000,  -- ticks per beat
         {    -- first track
@@ -1244,9 +1379,11 @@ local function stream_to_opus(stream, channel, patch)
     return score  
 end
 
-local function song_to_opus(song, patches)
+
+function song_to_opus(song, patches)
     -- return the opus form of all the voices song, with millisecond timing
     -- one channel per voice
+    
     
     patches = patches or {}
     local channel = 0    
@@ -1276,7 +1413,7 @@ local function song_to_opus(song, patches)
 end
 
 
-local function make_midi_from_stream(stream, fname)
+function make_midi_from_stream(stream, fname)
     -- Turn a note stream into a MIDI file
      local MIDI = require 'MIDI'
 
@@ -1286,7 +1423,7 @@ local function make_midi_from_stream(stream, fname)
      midifile:close()
 end
 
-local function make_midi(song, fname)
+function make_midi(song, fname)
     -- make a midi file from a song
     -- merge all of the voices into a single event stream
     local MIDI = require 'MIDI'
@@ -1317,8 +1454,8 @@ local transpose_notes = {
     
 local transpose_note_lookup = invert_table(transpose_notes)
 
-local function transpose_note(note, offset)
-    -- transpose a note (a-g A-G) by the given number of steps
+function transpose_note(note, offset)
+    -- transpose a note (a-g A-G) by the given number of (diatonic) steps
     -- e.g. transpose_note('a', 1) = 'b'
     --      transpose_note('g', 3) = 'c''
     --      transpose_note('E', -1) = 'D'
@@ -1326,7 +1463,7 @@ local function transpose_note(note, offset)
     return transpose_notes[transpose_note_lookup[note]+offset]
 end
 
-local function transpose_macro(lhs, note, rhs)
+function transpose_macro(lhs, note, rhs)
     -- create the macro expansion for lhs -> rhs
 -- replace n in lhs with note
 -- and any letters h..z in rhs with relatively offset pitches
@@ -1342,8 +1479,7 @@ local function transpose_macro(lhs, note, rhs)
 end
 
 
-local function apply_macros(macros, line)
-    
+function apply_macros(macros, line)
     -- expand macros in the line
     for i,v in ipairs(macros) do
         line = line:gsub(v.lhs, v.rhs)
@@ -1351,18 +1487,77 @@ local function apply_macros(macros, line)
     return line
 end
     
-
-local function parse_macro(macro)
+local macro_matcher = re.compile([[
+    macro <- (%s * ({:lhs: [^=%s] + :}) %s * '=' %s * ({:rhs: ([^%nl] *) :})) -> {} 
+    ]])
+    
+function parse_macro(macro)
     -- take a raw ABC string block and expand any macros defined it
     -- expansion takes place *before* any other parsing
-    macro_pattern = [[
-    macro <- (%s * ({:lhs: [^=%s] + :}) %s * '=' %s * ({:rhs: ([^%nl] *) :})) -> {} 
-    ]]
-    
-    local match = re.match(macro, macro_pattern)
-    
+    local match = macro_matcher:match(macro)
+ 
     return match
     
+end
+
+
+
+--
+-- From source file: directives.lua
+--
+-- functions for handling custom directives
+
+local grace_matcher = re.compile([[ 
+    length <- ({:num: (number) :} '/' {:den: (number) :}) -> {}
+    number <- ([0-9]+)
+    ]])
+
+function directive_set_grace_note_length(song, directive, arguments)
+    -- set the length of grace notes
+    -- Directive should be of the form I:gracenotes 1/64
+    if arguments[1] then
+        -- extract ratio
+        local ratio = grace_matcher:match(arguments[1])
+        if ratio then
+            song.context.grace_note_length = {num=ratio.num, den=ratio.den}
+        end
+    end
+    update_timing(song) -- must recompute note lengths
+end
+
+-- table maps directive names to functions
+-- each function takes two arguments: the song structure, and an argument list from
+-- the directive (as a table)
+local directive_table = {
+gracenote  = directive_set_grace_note_length
+}
+
+function apply_directive(song, directive, arguments)
+    -- Apply a directive; look it up in the directive table,
+    -- and if there is a match, execute it
+    if directive_table[directive] then
+        print(directive)
+        directive_table[directive](song, directive, arguments)
+    end
+
+end
+
+function register_user_directive(directive, fn)
+    -- Register a user directive. Will call fn(song, directive, arguments) when
+    -- the given directive is found
+    directive_table[directive] = fn
+    
+end
+
+
+function parse_directive(directive)
+    -- parse a directive into a directive, followed by sequence of space separated directives
+    local directive_pattern = [[
+    directives <- (%s * ({:directive: %S+ :} ) %s+ ?  {:arguments: ( ({%S+} %s +) * {%S+}  ) -> {}  :} )  -> {}
+    ]]
+    
+    local match = re.match(directive, directive_pattern)
+    return match
 end
 
 
@@ -1374,8 +1569,6 @@ end
 
 
 -- create the various pattern matchers
-local matchers = {}
-matchers.doctype = [[ doctype <- ('%abc' '-'? {[0-9.]+} %nl) -> {}]]
 
 local fields = {}
 fields.key = [[('K:' {.*} ) -> {}]]
@@ -1407,43 +1600,46 @@ fields.end_words =  [[('W:' %s * {.*}) -> {}]]
 fields.transcriber =  [[('Z:' %s * {.*}) -> {}]]
 fields.continuation =  [[('+:' %s * {.*}) -> {}]]
 
-local function parse_parts(m)
-    -- Parse a parts definition that specifies the parts to be played
-    -- including any repeats
-    -- Returns a fully expanded part list
-    
-    local captures = re.match(m,  [[
+
+-- compile field matchers
+for i,v in pairs(fields) do
+    fields[i] = re.compile(v)
+end
+
+local parts_matcher = re.compile(
+[[
     parts <- (part +) -> {}
     part <- ( ({element}  / ( '(' part + ')' ) )  {:repeat: [0-9]* :}) -> {}    
     element <- [A-Za-z]    
     ]])
     
+function parse_parts(m)
+    -- Parse a parts definition that specifies the parts to be played
+    -- including any repeats
+    -- Returns a fully expanded part list
+    
+    local captures = parts_matcher:match(m)
+    
     return captures
     
 end
 
-local function parse_voice(voice)
+local voice_matcher = re.compile([[
+    voice <- (({:id: [%S]+ :}) %s * {:specifiers: (<specifier> *) -> {} :}) -> {}
+    specifier <- (%s * {:lhs: ([^=] +) :} + '=' {:rhs: [^%s]* :}) -> {} 
+    ]])
+
+function parse_voice(voice)
     -- Parse a voice definition string
     -- Voices of the form V:ID [specifier] [specifier] ...
     -- Returns a table with an ID and a specifiers table
     -- e.g. V:tenor becomes {id="tenor", specifiers={}}
     -- V:tenor clef=treble becomes {id="tenor", specifiers={lhs='clef', rhs='treble'}}
-    local voice_pattern = [[
-    voice <- (({:id: [%S]+ :}) %s * {:specifiers: (<specifier> *) -> {} :}) -> {}
-    specifier <- (%s * {:lhs: ([^=] +) :} + '=' {:rhs: [^%s]* :}) -> {} 
-    ]]
-    
-    return re.match(voice, voice_pattern)
+    return voice_matcher:match(voice)
 end
 
 
-local function parse_tempo(l)
-    -- Parse a tempo string
-    -- Returns a tempo table, with an (optional) name and div_rate field
-    -- div_rate is in units per second
-    -- the numbered elements specify the unit lengths to be played up to that point
-    -- each element has a "num" and "den" field to specify the numerator and denominator
-    local tempo_pattern = [[
+local tempo_matcher = re.compile([[
 tempo <- (
 ({:name: qstring :} %s +) ?
     ( 
@@ -1457,17 +1653,24 @@ tempo <- (
 div <- ({:num: number:} %s * '/' %s * {:den: number:}) -> {}
 number <- ( [0-9] + )
 qstring <- ( ["] [^"]* ["] )
-]]
-    local captures = re.match(l,  tempo_pattern)    
+]])
+
+function parse_tempo(l)
+    -- Parse a tempo string
+    -- Returns a tempo table, with an (optional) name and div_rate field
+    -- div_rate is in units per second
+    -- the numbered elements specify the unit lengths to be played up to that point
+    -- each element has a "num" and "den" field to specify the numerator and denominator
+    local captures = tempo_matcher:match(l)    
   
     return captures
 end
 
-
-local function parse_length(l)
+local length_matcher = re.compile("('1' ('/' {[0-9] +}) ?)")
+function parse_length(l)
     -- Parse a string giving note length, as a fraction "1/n" (or plain "1")
     -- Returns integer representing denominator.
-    local captures = re.match(l,  "('1' ('/' {[0-9] +}) ?)")    
+    local captures = length_matcher:match(l) 
     if captures then
         return captures+0
     else
@@ -1477,7 +1680,7 @@ end
 
 
 
-local function get_simplified_meter(meter)
+function get_simplified_meter(meter)
     -- return meter as a simple num/den form
     -- with the beat emphasis separate
     -- by summing up all num elements
@@ -1493,10 +1696,7 @@ local function get_simplified_meter(meter)
     return {num=total_num, den=meter.den, emphasis=emphasis}
 end
 
-local function parse_meter(m)
-    -- Parse a string giving the meter definition
-    -- Returns fraction as a two element table
-    local captures = re.match(m,  [[
+local meter_matcher = re.compile([[
     meter <- (fraction / cut / common / none) 
     common <- ({:num: '' -> '4':} {:den: '' -> '4':} 'C') -> {}
     cut <- ({:num: '' -> '2':} {:den: '' -> '2' :} 'C|' ) -> {}
@@ -1505,13 +1705,18 @@ local function parse_meter(m)
     complex <- ( '(' ? ((number + '+') * number) ->{} ')' ? )
     number <- {([0-9]+)}     
     ]])
+
+function parse_meter(m)
+    -- Parse a string giving the meter definition
+    -- Returns fraction as a two element table
+    local captures = meter_matcher:match(m)
    
     return get_simplified_meter(captures)
     
 end
 
 
-local function expand_parts(parts)
+function expand_parts(parts)
     -- Recurisvely expand a parts table into a string
     -- Input is a table with entries which are either an array of tables or
     -- a table with entries [1] = terminal, repeat = repeat count
@@ -1545,7 +1750,7 @@ local function expand_parts(parts)
     return sym
 end
 
-local function is_in(str, tab)
+function is_in(str, tab)
 -- return true if str is in the given table of strings
     for i,v in ipairs(tab) do
         if str==v then
@@ -1557,15 +1762,15 @@ end
 
 
 
-local function parse_field(f, song, inline)
+function parse_field(f, song, inline)
     -- parse a metadata field, of the form X: stuff
     -- (either as a line on its own, or as an inline [x:stuff] field
      local name, field, match, field_name, content
-     
+          
      -- find matching field
      local field_name = nil
      for name, field in pairs(fields) do
-        match = re.match(f, field)         
+        match = field:match(f)         
         if match then
             field_name = name
             content = match[1]
@@ -1586,8 +1791,7 @@ local function parse_field(f, song, inline)
      end    
         
    
-   
-    local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'macro', 'user', 'voice'} -- those fields we parse individually
+    local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'macro', 'user', 'voice', 'instruction'} -- those fields we parse individually
     local field = {name=field_name, content=content}
     -- continuation
     if field_name=='continuation' then
@@ -1627,6 +1831,12 @@ local function parse_field(f, song, inline)
     -- parse lyric definitions
     if field_name=='words' then                        
          table.insert(song.token_stream, {event='words', lyrics=parse_lyrics(content), field=field, inline=inline})            
+    end
+    
+     -- parse lyric definitions
+    if field_name=='instruction' then                       
+         directive = parse_directive(content)
+         table.insert(song.token_stream, {event='instruction', directive=directive, field=field, inline=inline})            
     end
             
      -- parse voice definitions
@@ -1703,19 +1913,20 @@ end
 --
 -- From source file: bar.lua
 --
+local range_matcher = re.compile([[
+    range_list <- ((<range>) (',' <range>) *) -> {}
+    range <- (   <range_id> / <number> ) -> {}
+    range_id <- (<number> '-' <number>)
+    number <- ({ [0-9]+ }) 
+    ]])
+
 function parse_range_list(range_list)
     -- parses a range identifier
     -- as a comma separated list of numbers or ranges
     -- (e.g. "1", "1,2", "2-3", "1-3,5-6")
     -- Returns each value in this range
     
-    local range_pattern = [[
-    range_list <- ((<range>) (',' <range>) *) -> {}
-    range <- (   <range_id> / <number> ) -> {}
-    range_id <- (<number> '-' <number>)
-    number <- ({ [0-9]+ }) 
-    ]]    
-    local matches = re.match(range_list, range_pattern)    
+    local matches = range_matcher:match(range_pattern)    
     local sequence = {}    
     -- append each element of the range list
     for i,v in ipairs(matches) do
@@ -1738,17 +1949,7 @@ function parse_range_list(range_list)
 end
 
 
-local function parse_bar(bar, song)
--- Parse a bar symbol and repeat/variant markers. Bars can be
--- plain bars (|)
--- bars with thick lines (][)
--- repeat begin (|:)
--- repeat end (:|)
--- repeat middle (:||: or :: or :|:)
--- variant markers [range
-
-    local bar_pattern = [[
-        bar <- (  
+local bar_matcher = re.compile([[bar <- (  
         {:mid_repeat: <mid_repeat> :} /  {:end_repeat: <end_repeat> :}  / {:start_repeat: <start_repeat> :} / {:double: <double> :}
         /  {:thickthin: <thickthin> :} / {:thinthick: <thinthick> :} /  {:plain: <plain> :} / {:variant: <variant> :} / {:just_colons: <just_colons> :} ) -> {}        
         mid_repeat <- ({}<colons> {}<plain>{} <colons>{}) -> {}
@@ -1762,10 +1963,17 @@ local function parse_bar(bar, song)
         
         variant <- ('[')
         colons <- (':' +) 
-    ]]
-    
-    
-    local type_info = re.match(bar.type, bar_pattern)
+]])
+
+function parse_bar(bar, song)
+-- Parse a bar symbol and repeat/variant markers. Bars can be
+-- plain bars (|)
+-- bars with thick lines (][)
+-- repeat begin (|:)
+-- repeat end (:|)
+-- repeat middle (:||: or :: or :|:)
+-- variant markers [range
+   local type_info = bar_matcher:match(bar.type)
     
     -- compute number of colons around bar (which is the number of repeats of this section)
     if type_info.mid_repeat then
@@ -1832,7 +2040,7 @@ end
 local pitch_table = {C=0, D=2, E=4, F=5, G=7, A=9, B=11}
 
 
-local function default_note_length(song)
+function default_note_length(song)
     -- return the default note length
     -- if meter.num/meter.den > 0.75 then 1/8
     -- else 1/16
@@ -1847,7 +2055,7 @@ local function default_note_length(song)
     return 8
 end
 
-local function parse_note_def(note)
+function parse_note_def(note)
     -- Canonicalise a note, filling in the full duration field. 
     -- Remove slashes from the duration
     -- Fills in full duration field
@@ -1950,7 +2158,7 @@ local function parse_note_def(note)
     
 end
 
-local function parse_note(note)
+function parse_note(note)
     -- Parse a note structure. 
     -- Clean up the duration and pitch of notes and any grace notes
     -- Replace the decoration string with a sequence of decorators
@@ -1974,7 +2182,7 @@ local function parse_note(note)
 end
 
 
-local function compute_pitch(note, song)
+function compute_pitch(note, song)
     -- compute the real pitch (in MIDI notes) of a note event
     -- taking into account: 
     --  written pitch
@@ -2020,7 +2228,7 @@ local function compute_pitch(note, song)
     return base_pitch + 60  -- MIDI middle C
 end
 
-local function compute_duration(note, song)
+function compute_duration(note, song)
     -- compute the duration (in microseconds) of a note_def
     
     -- takes into account:
@@ -2089,7 +2297,7 @@ end
 
 
 
-local function apply_triplet(song, triplet)
+function apply_triplet(song, triplet)
     -- set the triplet fields in the song
     local p,q,r
     
@@ -2113,7 +2321,7 @@ local function apply_triplet(song, triplet)
               
 end
 
-local function parse_triplet(triplet, song)
+function parse_triplet(triplet, song)
 -- parse a triplet/tuplet definition, which specifies the contraction of the following
 -- n notes. General form of p notes in the time of q for the next r notes
 
@@ -2162,7 +2370,7 @@ local function parse_triplet(triplet, song)
     return {p=p, q=q, r=r}
 end
 
-local function insert_grace(grace_note, song)
+function expand_grace(song, grace_note)
     -- insert a grace note sequence into a song
     -- grace notes have their own separate timing (i.e. no carryover of
     -- broken note state or of triplet state)
@@ -2188,12 +2396,13 @@ local function insert_grace(grace_note, song)
     
     -- insert the grace sequence
     
-    table.insert(song.opus, {event='grace', grace=grace_note, sequence=grace})
+    return grace
+    
     
 
 end
     
-local function insert_note(note, song)
+function insert_note(note, song)
         -- insert a new note into the song
         local note_def = note.note_def
         local pitch = compute_pitch(note_def, song)
@@ -2201,7 +2410,7 @@ local function insert_note(note, song)
        
         -- insert grace notes before the main note, if there are any
         if note.grace then
-            insert_grace(note.grace, song)
+            note.grace.sequence = expand_grace(song, note.grace) 
         end
         
         -- insert the note events
@@ -2260,7 +2469,7 @@ local field_tags = {key = 'K'
 ,continuation =  '+'
 }
 
-local function abc_meter(meter)
+function abc_meter(meter)
     -- return the string representation of a meter
     -- e.g. {num=3, den=4} becomes 'M:3/4'
     -- if there is an explicit emphasis then this produces
@@ -2292,7 +2501,7 @@ local function abc_meter(meter)
     
 end
 
-local function abc_tempo(tempo)
+function abc_tempo(tempo)
     -- return the string represenation of a tempo definition
     -- e.g. Q:1/4=120 or Q=1/2 1/4 1/2=80 "allegro"
     local q = ''
@@ -2317,7 +2526,7 @@ local function abc_tempo(tempo)
    return string.format('Q:%s', q)
 end
 
-local function abc_key(key)
+function abc_key(key)
     -- return the string representation of a key 
     local clef = ''
     local acc = ''
@@ -2366,7 +2575,7 @@ local function abc_key(key)
     return string.format('K:%s%s%s', root , acc, clef )
 end
 
-local function abc_part_string(part_table)
+function abc_part_string(part_table)
     -- return the string representation of a parts table
     local ret = ''
     for i,v in  ipairs(part_table) do
@@ -2390,16 +2599,16 @@ local function abc_part_string(part_table)
    
 end
 
-local function abc_parts(parts)
+function abc_parts(parts)
     -- return the string representation of a parts structure
     return 'P:'..abc_part_string(parts)
 end
 
-local function abc_note_length(note_length)
+function abc_note_length(note_length)
     return 'L:1/' .. note_length
 end
 
-local function abc_lyrics(lyrics)
+function abc_lyrics(lyrics)
     -- return the ABC string for a given lyric structure
     -- lyrics should have:
     --    syllable field giving the syllable
@@ -2440,7 +2649,7 @@ local function abc_lyrics(lyrics)
 end
 
 
-local function abc_voice(voice)
+function abc_voice(voice)
     -- return the ABC string represenation of a voice. Has
     -- an ID, and a set of optional specifiers 
     local str = 'V:'..voice.id
@@ -2453,12 +2662,37 @@ local function abc_voice(voice)
     
 end
 
-local function abc_new_part(part)
+function abc_new_part(part)
     -- return the abc definition of a new part
     return 'P:'..part
 end
 
-local function abc_field(v)
+
+function abc_directive(directive, inline)
+    -- Return the ABC notation for a directive (I: or %%)
+    -- Uses %% for all non-standard directives and I: only
+    -- for standard ones. Forces I: if in inline mode
+    local standard_directives = {'abc-charset', 'abc-version', 'abc-include', 'abc-creator'}
+    local str
+    
+    if not directive then
+        return ''
+    end
+    
+    if is_in(directive.directive, standard_directives) or inline then
+        str = 'I:'..directive.directive
+    else
+         str = '%%'..directive.directive
+    end
+    
+    -- append space separated arguments
+    for i,v in ipairs(directive.arguments) do
+        str = str .. ' ' .. v
+    end
+    return str
+end
+
+function abc_field(v)
     -- abc out a field entry (either inline [x:stuff] or 
     -- as its own line 
     -- X:stuff
@@ -2491,6 +2725,11 @@ local function abc_field(v)
         return abc_tempo(v.tempo)
     end
     
+    if v.event=='instruction' then
+        return abc_directive(v.directive, v.inline)
+    end
+
+    
     if v.event=='parts' then
         return abc_parts(v.parts)
     end
@@ -2512,7 +2751,7 @@ local function abc_field(v)
 end
 
 
-local function abc_triplet(triplet)
+function abc_triplet(triplet)
     -- abc the string represenation of a triplet specifier
     -- Uses the simplest ABC form
     -- 1-3 elements p:q:r
@@ -2548,7 +2787,7 @@ local function abc_triplet(triplet)
 end
 
 
-local function abc_pitch(note_pitch)
+function abc_pitch(note_pitch)
     -- get the string represenation of a pitch table
     -- pitch; lowercase = +1 octave
     
@@ -2601,7 +2840,7 @@ local function abc_pitch(note_pitch)
 end
 
 
-local function abc_duration(note_duration)
+function abc_duration(note_duration)
     -- get the string representation of the duration of the note
     -- e.g. as a fraction (A/4 or A2/3 or A>)
 
@@ -2638,7 +2877,7 @@ local function abc_duration(note_duration)
 end
 
 
-local function abc_note_def(note)
+function abc_note_def(note)
     local note_str = ''
     
     -- measure rests
@@ -2660,7 +2899,7 @@ local function abc_note_def(note)
     return note_str
 end
 
-local function abc_note(note)
+function abc_note(note)
     -- abc a note out
     -- Return the string version of the note definition
     -- Includes pitch and duration
@@ -2698,7 +2937,7 @@ end
 
 
 
-local function abc_bar(bar)
+function abc_bar(bar)
     -- Return a string representing a bar element
     -- a bar can be
     -- | single bar
@@ -2756,7 +2995,7 @@ local function abc_bar(bar)
 end
 
 
-local function abc_note_element(element)
+function abc_note_element(element)
     -- Return a string representing a note element 
     -- can be a note, rest, bar symbol
     -- chord group, slur group, triplet/tuplet
@@ -2811,9 +3050,10 @@ local function abc_note_element(element)
     
 end
  
-local function abc_element(element)    
+function abc_element(element)    
     -- return the abc representation of token_stream element
     if element.field then
+
         local field = abc_field(element)
         if element.inline then
             return '['..field..']'
@@ -2827,7 +3067,7 @@ local function abc_element(element)
     
 end
 
-local function token_stream_to_abc(token_stream)
+function token_stream_to_abc(token_stream)
 -- return the token_stream out as a valid ABC string
     local output = {}
     
@@ -2836,6 +3076,23 @@ local function token_stream_to_abc(token_stream)
     end
     -- concatenate into a single string
     return table.concat(output)
+end
+
+function abc_from_songs(songs, creator)
+    -- return the ABC representation of a table of songs
+    -- the creator field can optionally be specified to identify
+    -- the program that created this code
+    local out = {}
+    creator = creator or 'abclua'
+    -- write out header
+    table.insert(out, '%abc-2.1\n')
+    table.insert(out, '%%abc-creator='..creator..'\n')
+    
+    -- each song segment separated by two newlines
+    for i,v in ipairs(songs) do
+        table.insert(out, token_stream_to_abc(v.token_stream))
+        table.insert(out, '\n\n')
+    end
 end
 
 
@@ -2847,7 +3104,7 @@ end
 
 
 
-local function update_timing(song)
+function update_timing(song)
     -- Update the base note length (in seconds), given the current L and Q settings
     local total_note = 0
     local rate = 0    
@@ -2860,12 +3117,13 @@ local function update_timing(song)
     rate = 60.0 / (total_note * song.context.tempo.div_rate)
     song.context.timing.base_note_length = rate / note_length
     -- grace notes assumed to be 32nds
-    song.context.timing.grace_note_length = rate / 32
+    
+    song.context.timing.grace_note_length = rate / (song.context.grace_length.num / song.context.grace_length.den)
 end    
 
 
 
-local function is_compound_time(song)
+function is_compound_time(song)
     -- return true if the meter is 6/8, 9/8 or 12/8
     -- and false otherwise
     local meter = song.context.meter_data
@@ -2878,7 +3136,7 @@ local function is_compound_time(song)
 end
 
 
-local function apply_repeats(song, bar)
+function apply_repeats(song, bar)
         -- clear any existing material
         if bar.type=='start_repeat' then
             add_section(song, 1)
@@ -2905,7 +3163,7 @@ local function apply_repeats(song, bar)
 end
 
 
-local function apply_key(song, key_data) 
+function apply_key(song, key_data) 
     -- apply transpose / octave to the song state
     if key_data.clef then                 
         if key_data.clef.octave then
@@ -2923,7 +3181,7 @@ local function apply_key(song, key_data)
     song.context.key_mapping = create_key_structure(key_data.naming)
 end
 
-local function finalise_song(song)
+function finalise_song(song)
     -- Finalise a song's event stream
     -- Composes the parts, repeats into a single stream
     -- Inserts absolute times into the events 
@@ -2942,7 +3200,7 @@ local function finalise_song(song)
 end
 
 
-local function start_new_voice(song, voice)
+function start_new_voice(song, voice)
     -- compose old voice into parts
     if song.context and song.context.voice then
         finalise_song(song)
@@ -2968,7 +3226,7 @@ local function start_new_voice(song, voice)
 end
 
 
-local function expand_token_stream(song)
+function expand_token_stream(song)
     -- expand a token_stream into a song structure
     
     for i,v in ipairs(song.token_stream) do
@@ -3013,6 +3271,10 @@ local function expand_token_stream(song)
         -- new voice
         if v.event=='voice_change' then
             start_new_voice(song, v.voice.id)
+        end
+        
+        if v.event=='instruction' then
+            apply_directive(song, v.directive.directive, v.directive.arguments)
         end
          
         
@@ -3060,7 +3322,7 @@ end
 
 
 
-local function token_stream_to_stream(song, context, metadata)
+function token_stream_to_stream(song, context, metadata)
     -- Convert a token_stream into a full
     -- a song datastructure. 
     -- 
@@ -3099,7 +3361,7 @@ end
 -- Grammar for parsing tune definitions
 local tune_pattern = [[
 elements <- ( ( <element>)  +) -> {}
-element <- ( ({:slur: <slurred_note> :}) / ({:chord_group: <chord_group> :})  / {:bar: (<bar> / <variant>) :} / {:field: field :}  / {:free_text: free :} / {:triplet: triplet :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
+element <- (  {:field: field :}  / ({:slur: <slurred_note> :}) / ({:chord_group: <chord_group> :})  / {:bar: (<bar> / <variant>) :}   / {:free_text: free :} / {:triplet: triplet :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
 
 continuation <- ('\')
 beam_split <- (%s +)
@@ -3108,8 +3370,10 @@ bar <- ( {:type: ((']' / '[') * ('|' / ':') + (']' / '[') *) :} ({:variant_range
 variant <- ({:type: '[' :} {:variant_range: <range_set> :})   -> {}
 range_set <- (range (',' range)*)
 range <- ([0-9] ('-' [0-9]) ?)
-slurred_note <- ( (<complete_note>) -> {} / ( ({:chord: chord :} ) ? '(' (<complete_note> +) ')' )  -> {}  ) 
-chord_group <- ( ({:chord: chord :} ) ? ('[' (<complete_note> +) ']' ) ) -> {} 
+slurred_note <- ( ((<complete_note>) -> {}) / ( ({:chord: chord :} ) ? '(' ((<complete_note> %s*)+) ')' )  -> {}  ) 
+
+
+chord_group <- ( ({:chord: chord :} ) ? ('[' ((<complete_note> %s*) +) ']' ) ) -> {} 
 complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: {(decoration +)}->{} :}) ? {:note_def: full_note  :} ({:tie: (tie)  :}) ? ) -> {}
 triplet <- ('(' {[1-9]} (':' {[1-9] ?}  (':' {[1-9]} ? ) ?) ?) -> {}
 grace <- ('{' full_note + '}') -> {}
@@ -3124,17 +3388,18 @@ decoration <- ('.' / [~] / 'H' / 'L' / 'M' / 'O' / 'P' / 'S' / 'T' / 'u' / 'v' /
 octave <- (( ['] / ',') +)
 accidental <- (  '^^' /  '__' /  '^' / '_' / '=' )
 duration <- ( (({:num: ([1-9] +) :}) ? ({:slashes: ('/' +)  :})?  ({:den: ((  [1-9]+  ) ) :})?))  -> {}
-field <- ( {:contents: '['  field_element  ':'  [^] ] +  ']' :}) -> {}
+
+field <- (  '['  {:contents: field_element  ':'  [^]`] + :} ']' ) -> {}
 field_element <- ([A-Za-z])
 
 ]]
 local tune_matcher = re.compile(tune_pattern)
 
-local function read_tune_segment(tune_data, song)
+function read_tune_segment(tune_data, song)
     -- read the next token in the note stream
     
     for i,v in ipairs(tune_data) do
-   
+        
         if v.measure_rest then
             local bars = v.measure_rest.bars or 1
             table.insert(song.token_stream, {event='measure_rest', bars=bars})
@@ -3152,7 +3417,7 @@ local function read_tune_segment(tune_data, song)
         
         -- parse inline fields (e.g. [r:hello!])
         if v.field then                
-            -- this automatically writes it to the token_stream
+            -- this automatically writes it to the token_stream            
             parse_field(v.field.contents, song, true)
         end
         
@@ -3199,8 +3464,7 @@ local function read_tune_segment(tune_data, song)
         end
         
         -- if we have slur groups then there are some notes to parse...
-        if v.slur then
-            
+        if v.slur then            
             if v.slur.chord then
                 table.insert(song.token_stream, {event='chord', chord=v.slur.chord})                                
             end
@@ -3227,7 +3491,7 @@ local function read_tune_segment(tune_data, song)
     
 end
 
-local function parse_abc_line(line, song)
+function parse_abc_line(line, song)
     -- Parse one line of ABC, updating the song
     -- datastructure. Temporary state is held in
     -- information from line to line
@@ -3252,12 +3516,10 @@ local function parse_abc_line(line, song)
         
         -- try and match notes
         local match = tune_matcher:match(line)
-        
-        
+                
         -- if it was a tune line, then parse it
         -- (if not, it should be a metadata field)
-        if match then
-            
+        if match then            
             -- check for macros
             if #song.parse.macros>0 or #song.parse.user_macros>0  then
                 local expanded_line = apply_macros(song.parse.macros, line)
@@ -3298,7 +3560,7 @@ end
 
     
 
-local function parse_abc(str)
+function parse_abc(str)
     -- parse and ABC file and return a song with a filled in token_stream field
     -- representing all of the tokens in the stream    
     local lines = split(str, "[\r\n]")
@@ -3319,7 +3581,7 @@ end
     
 
 
-local function get_default_context()
+function get_default_context()
     return   deepcopy({
     tempo = {div_rate=120, [1]={num=1, den=8}}, 
     use_parts = false,
@@ -3327,28 +3589,29 @@ local function get_default_context()
     key_data = { naming={root='C', mode='maj'}, clef={}},
     key_mapping = {c=0,d=0,e=0,f=0,g=0,a=0,b=0},
     global_transpose = 0,
+    grace_length = {num=1, den=32}
     })
 end
     
-    
-local function parse_all_abc(str)
-         
-    -- split file into sections
-   
-    
-    str = str..'\n'
-    local section_pattern = [[
+local section_matcher = re.compile([[
      abc_tunes <- (section (break section) * last_line ?) -> {}
      break <- (([ ] * %nl)  )
      section <- { (line +)  }
      line <- ( ([^%nl] +  %nl) )
      last_line <- ( ([^%nl]+) )
     ]] 
+)    
+function parse_all_abc(str)
+         
+    -- split file into sections
+   
+    
+    str = str..'\n'
     
     
     -- tunes must begin with a field (although there
     -- can be directives or comments first)
-    local sections = re.match(str, section_pattern)
+    local sections = section_matcher:match(str)
     local tunes = {}    
     
     -- malformed file
@@ -3403,7 +3666,7 @@ local function parse_all_abc(str)
     return songs
 end
 
-local function parse_abc_file(filename)
+function parse_abc_file(filename)
     -- Read a file and send it for parsing. Returns the 
     -- corresponding song table.
     local f = io.open(filename, 'r')
@@ -3411,7 +3674,7 @@ local function parse_abc_file(filename)
     return parse_all_abc(contents)
 end
 
-local function parse_abc_fragment(str, parse)
+function parse_abc_fragment(str, parse)
     -- Parse a short abc fragment, and return the token stream table
     local song = {}
     song.token_stream = {}
@@ -3424,7 +3687,7 @@ local function parse_abc_fragment(str, parse)
     return song.token_stream
 end
 
-local function fragment_to_stream(tokens, context)
+function fragment_to_stream(tokens, context)
     --Converts a token stream from a fragment into a timed event stream
     -- Returns the event stream if this is a single voice fragment, or
     -- a table of voices, if it is a multi-voice fragment
@@ -3470,16 +3733,29 @@ print_lyrics_notes = print_lyrics_notes,
 token_stream_to_abc = token_stream_to_abc,
 song_to_opus = song_to_opus,
 stream_to_opus = stream_to_opus,
-make_midi = make_midi}
+make_midi = make_midi,
+make_midi_from_stream = make_midi_from_stream,
+trim_event_stream = trim_event_stream,
+render_grace_notes = render_grace_notes,
+register_user_directive = register_user_directive,
+abc_from_songs = abc_from_songs,
+abc_element = abc_element
+}
 
 
 
 -- TODO:
 -- convert midi to abc (quantize, find key, map notes, specify chord channel (and match chords))
--- directives table from I: fields
--- filter events
+-- render decorations
+-- match against instrument notes (penalties for notes)
+-- abc-include
+-- consider macros when octave modifiers and ties are applied
+-- tidy up stream rendering
 
--- grace notes
+-- fix lyrics alignment (2.0 compatible and verses)
+-- voice overlay with &
+-- voice transpose/octave/+8-8
+
 -- styling for playback
 -- extend test suite
 

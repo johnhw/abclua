@@ -93,9 +93,9 @@ function finalise_song(song)
     song.temp_part = nil 
  
     -- time the stream and add lyrics    
+   
+    time_stream(song.stream)   
     song.stream = insert_lyrics(song.context.lyrics, song.stream)
-    time_stream(song.stream)
-    
 end
 
 
@@ -103,6 +103,7 @@ function start_new_voice(song, voice)
     -- compose old voice into parts
     if song.context and song.context.voice then
         finalise_song(song)
+                
         song.voices[song.context.voice] = {stream=song.stream, context=song.context}
     end
 
@@ -135,7 +136,7 @@ function expand_token_stream(song)
         
         -- copy in standard events that don't change the context state
         if v.event ~= 'note' then
-            table.insert(song.opus, deepcopy(v))
+           table.insert(song.opus, deepcopy(v))
         else
            insert_note(v.note, song)                                         
         end
@@ -173,7 +174,9 @@ function expand_token_stream(song)
         end
         
         if v.event=='instruction' then
-            apply_directive(song, v.directive.directive, v.directive.arguments)
+            if v.directive then
+                apply_directive(song, v.directive.directive, v.directive.arguments)
+            end
         end
          
         
@@ -187,7 +190,8 @@ function expand_token_stream(song)
             update_timing(song)
         end
         
-        if v.event=='words' then                            
+        if v.event=='words' then         
+            
             append_table(song.context.lyrics, v.lyrics)
         end
             

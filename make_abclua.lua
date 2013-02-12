@@ -55,7 +55,7 @@ for i,v in ipairs(files) do
     f:close()
             
     -- make all functions local
-    contents = contents:gsub('\nfunction ([^\n]*)\n', '\nlocal function %1\n')
+    contents = contents:gsub('\nfunction ([^\n]*)\n', '\nfunction %1\n')
     
     out:write('\n')
     out:write('--\n')

@@ -52,8 +52,7 @@ local macro_matcher = re.compile([[
 function parse_macro(macro)
     -- take a raw ABC string block and expand any macros defined it
     -- expansion takes place *before* any other parsing
-    local match = macro_matcher:match(macro)
- 
+    local match = macro_matcher:match(macro) 
     return match
     
 end

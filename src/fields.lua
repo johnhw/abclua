@@ -268,8 +268,15 @@ function parse_field(f, song, inline)
     
      -- parse lyric definitions
     if field_name=='instruction' then                       
-         directive = parse_directive(content)
-         table.insert(song.token_stream, {event='instruction', directive=directive, field=field, inline=inline})            
+         local parse_time, directive = parse_directive(content)
+         -- must execute parse time directives immediately
+         
+         if parse_time and not song.parse.no_expand then
+            apply_directive(song, directive.directive, directive.arguments)
+         else
+            -- otherwise defer
+            table.insert(song.token_stream, {event='instruction', directive=directive, field=field, inline=inline})            
+         end
     end
             
      -- parse voice definitions
@@ -310,20 +317,26 @@ function parse_field(f, song, inline)
     end
     
     if field_name=='macro' then
-        -- we DON'T insert macros into the token_stream. Instead
-        -- we expand them as we find them
-        local macro = parse_macro(content)
-        
-        -- transposing macro
-        if re.find(macro.lhs, "'n'") then
-            local notes = {'a', 'b', 'c', 'd', 'e', 'f', 'g'} 
-            for i,v in ipairs(notes) do
-                table.insert(song.parse.macros, transpose_macro(macro.lhs, v, macro.rhs)) 
-                table.insert(song.parse.macros, transpose_macro(macro.lhs, string.upper(v), macro.rhs)) 
-            end
+        if song.parse.no_expand then
+            table.insert(song.token_stream, {event='field_text', name='macro', content=content, inline=inline, field=field})                    
         else
-            -- non-transposing macro
-            table.insert(song.parse.macros, macro)
+            -- we DON'T insert macros into the token_stream. Instead
+            -- we expand them as we find them
+            local macro = parse_macro(content)
+            
+            -- transposing macro
+            if re.find(macro.lhs, "'n'") then
+                local notes = {'a', 'b', 'c', 'd', 'e', 'f', 'g'}             
+                local note                   
+                -- insert one macro for each possible note
+                for i,v in ipairs(notes) do
+                    table.insert(song.parse.macros, transpose_macro(macro.lhs, v, macro.rhs)) 
+                    table.insert(song.parse.macros, transpose_macro(macro.lhs, string.upper(v), macro.rhs))                                                    
+                end
+            else
+                -- non-transposing macro
+                table.insert(song.parse.macros, macro)
+            end
         end
     end
     

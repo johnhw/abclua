@@ -11,7 +11,7 @@ function parse_range_list(range_list)
     -- (e.g. "1", "1,2", "2-3", "1-3,5-6")
     -- Returns each value in this range
     
-    local matches = range_matcher:match(range_pattern)    
+    local matches = range_matcher:match(range_list)    
     local sequence = {}    
     -- append each element of the range list
     for i,v in ipairs(matches) do
