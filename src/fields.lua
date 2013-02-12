@@ -2,8 +2,6 @@
 
 
 -- create the various pattern matchers
-local matchers = {}
-matchers.doctype = [[ doctype <- ('%abc' '-'? {[0-9.]+} %nl) -> {}]]
 
 local fields = {}
 fields.key = [[('K:' {.*} ) -> {}]]
@@ -35,20 +33,34 @@ fields.end_words =  [[('W:' %s * {.*}) -> {}]]
 fields.transcriber =  [[('Z:' %s * {.*}) -> {}]]
 fields.continuation =  [[('+:' %s * {.*}) -> {}]]
 
-function parse_parts(m)
-    -- Parse a parts definition that specifies the parts to be played
-    -- including any repeats
-    -- Returns a fully expanded part list
-    
-    local captures = re.match(m,  [[
+
+-- compile field matchers
+for i,v in pairs(fields) do
+    fields[i] = re.compile(v)
+end
+
+local parts_matcher = re.compile(
+[[
     parts <- (part +) -> {}
     part <- ( ({element}  / ( '(' part + ')' ) )  {:repeat: [0-9]* :}) -> {}    
     element <- [A-Za-z]    
     ]])
     
+function parse_parts(m)
+    -- Parse a parts definition that specifies the parts to be played
+    -- including any repeats
+    -- Returns a fully expanded part list
+    
+    local captures = parts_matcher:match(m)
+    
     return captures
     
 end
+
+local voice_matcher = re.compile([[
+    voice <- (({:id: [%S]+ :}) %s * {:specifiers: (<specifier> *) -> {} :}) -> {}
+    specifier <- (%s * {:lhs: ([^=] +) :} + '=' {:rhs: [^%s]* :}) -> {} 
+    ]])
 
 function parse_voice(voice)
     -- Parse a voice definition string
@@ -56,22 +68,11 @@ function parse_voice(voice)
     -- Returns a table with an ID and a specifiers table
     -- e.g. V:tenor becomes {id="tenor", specifiers={}}
     -- V:tenor clef=treble becomes {id="tenor", specifiers={lhs='clef', rhs='treble'}}
-    local voice_pattern = [[
-    voice <- (({:id: [%S]+ :}) %s * {:specifiers: (<specifier> *) -> {} :}) -> {}
-    specifier <- (%s * {:lhs: ([^=] +) :} + '=' {:rhs: [^%s]* :}) -> {} 
-    ]]
-    
-    return re.match(voice, voice_pattern)
+    return voice_matcher:match(voice)
 end
 
 
-function parse_tempo(l)
-    -- Parse a tempo string
-    -- Returns a tempo table, with an (optional) name and div_rate field
-    -- div_rate is in units per second
-    -- the numbered elements specify the unit lengths to be played up to that point
-    -- each element has a "num" and "den" field to specify the numerator and denominator
-    local tempo_pattern = [[
+local tempo_matcher = re.compile([[
 tempo <- (
 ({:name: qstring :} %s +) ?
     ( 
@@ -85,17 +86,24 @@ tempo <- (
 div <- ({:num: number:} %s * '/' %s * {:den: number:}) -> {}
 number <- ( [0-9] + )
 qstring <- ( ["] [^"]* ["] )
-]]
-    local captures = re.match(l,  tempo_pattern)    
+]])
+
+function parse_tempo(l)
+    -- Parse a tempo string
+    -- Returns a tempo table, with an (optional) name and div_rate field
+    -- div_rate is in units per second
+    -- the numbered elements specify the unit lengths to be played up to that point
+    -- each element has a "num" and "den" field to specify the numerator and denominator
+    local captures = tempo_matcher:match(l)    
   
     return captures
 end
 
-
+local length_matcher = re.compile("('1' ('/' {[0-9] +}) ?)")
 function parse_length(l)
     -- Parse a string giving note length, as a fraction "1/n" (or plain "1")
     -- Returns integer representing denominator.
-    local captures = re.match(l,  "('1' ('/' {[0-9] +}) ?)")    
+    local captures = length_matcher:match(l) 
     if captures then
         return captures+0
     else
@@ -121,10 +129,7 @@ function get_simplified_meter(meter)
     return {num=total_num, den=meter.den, emphasis=emphasis}
 end
 
-function parse_meter(m)
-    -- Parse a string giving the meter definition
-    -- Returns fraction as a two element table
-    local captures = re.match(m,  [[
+local meter_matcher = re.compile([[
     meter <- (fraction / cut / common / none) 
     common <- ({:num: '' -> '4':} {:den: '' -> '4':} 'C') -> {}
     cut <- ({:num: '' -> '2':} {:den: '' -> '2' :} 'C|' ) -> {}
@@ -133,6 +138,11 @@ function parse_meter(m)
     complex <- ( '(' ? ((number + '+') * number) ->{} ')' ? )
     number <- {([0-9]+)}     
     ]])
+
+function parse_meter(m)
+    -- Parse a string giving the meter definition
+    -- Returns fraction as a two element table
+    local captures = meter_matcher:match(m)
    
     return get_simplified_meter(captures)
     
@@ -193,7 +203,7 @@ function parse_field(f, song, inline)
      -- find matching field
      local field_name = nil
      for name, field in pairs(fields) do
-        match = re.match(f, field)         
+        match = field:match(f)         
         if match then
             field_name = name
             content = match[1]

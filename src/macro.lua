@@ -13,7 +13,7 @@ local transpose_notes = {
 local transpose_note_lookup = invert_table(transpose_notes)
 
 function transpose_note(note, offset)
-    -- transpose a note (a-g A-G) by the given number of steps
+    -- transpose a note (a-g A-G) by the given number of (diatonic) steps
     -- e.g. transpose_note('a', 1) = 'b'
     --      transpose_note('g', 3) = 'c''
     --      transpose_note('E', -1) = 'D'
@@ -38,7 +38,6 @@ end
 
 
 function apply_macros(macros, line)
-    
     -- expand macros in the line
     for i,v in ipairs(macros) do
         line = line:gsub(v.lhs, v.rhs)
@@ -46,16 +45,15 @@ function apply_macros(macros, line)
     return line
 end
     
-
+local macro_matcher = re.compile([[
+    macro <- (%s * ({:lhs: [^=%s] + :}) %s * '=' %s * ({:rhs: ([^%nl] *) :})) -> {} 
+    ]])
+    
 function parse_macro(macro)
     -- take a raw ABC string block and expand any macros defined it
     -- expansion takes place *before* any other parsing
-    macro_pattern = [[
-    macro <- (%s * ({:lhs: [^=%s] + :}) %s * '=' %s * ({:rhs: ([^%nl] *) :})) -> {} 
-    ]]
-    
-    local match = re.match(macro, macro_pattern)
-    
+    local match = macro_matcher:match(macro)
+ 
     return match
     
 end

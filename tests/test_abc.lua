@@ -182,6 +182,24 @@ function test_repeats()
 end
 
 
+function test_macros()
+    -- Test macros, transposing macros and user macros
+    macros = [[
+    X:1
+    U:n=G/G
+    U:p=A/A
+    m:d2=d//f//d2
+    m:n4=o//n//t//n4
+    K:g
+    A B C | p n p | d2 A | a4 B | d4 B | e,4 B |
+   ]]
+    
+    songs = abclua.parse_all_abc(macros)      
+    abclua.print_notes(songs[1].voices['default'].stream)
+    abclua.make_midi(songs[1], 'out/macros.mid')
+end
+
+
 function test_accidentals()
     -- Test accidentals (sharp, flat, implied)
     accs = [[
@@ -286,16 +304,23 @@ function test_clefs()
 end
 
 
+
 function test_directives()
+    local function print_args(song, directive, arguments)
+        for i,v in ipairs(arguments) do
+            print(v)
+        end
+    end
+    abclua.register_user_directive('printargs', print_args)
     directives = [[
     I:gracenote 1/64
     I:pagesize A4
     I:abc-version 2.0
+    %%printargs these are arguments
     K:g
     A B [R:this is a] G
     ]]
     songs = abclua.parse_all_abc(directives)
-    table_print(songs[1].token_stream)
     print(abclua.token_stream_to_abc(songs[1].token_stream))
 end
 
@@ -338,7 +363,8 @@ function test_file()
     end 
 end
 
-test_directives()
+test_macros()
+-- test_directives()
 -- test_clefs()
 -- test_decorations()
 -- test_inline()
@@ -356,3 +382,4 @@ test_directives()
 -- test_triplets()
 -- test_skye()
 -- test_file()
+

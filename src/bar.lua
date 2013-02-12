@@ -1,16 +1,17 @@
+local range_matcher = re.compile([[
+    range_list <- ((<range>) (',' <range>) *) -> {}
+    range <- (   <range_id> / <number> ) -> {}
+    range_id <- (<number> '-' <number>)
+    number <- ({ [0-9]+ }) 
+    ]])
+
 function parse_range_list(range_list)
     -- parses a range identifier
     -- as a comma separated list of numbers or ranges
     -- (e.g. "1", "1,2", "2-3", "1-3,5-6")
     -- Returns each value in this range
     
-    local range_pattern = [[
-    range_list <- ((<range>) (',' <range>) *) -> {}
-    range <- (   <range_id> / <number> ) -> {}
-    range_id <- (<number> '-' <number>)
-    number <- ({ [0-9]+ }) 
-    ]]    
-    local matches = re.match(range_list, range_pattern)    
+    local matches = range_matcher:match(range_pattern)    
     local sequence = {}    
     -- append each element of the range list
     for i,v in ipairs(matches) do
@@ -33,17 +34,7 @@ function parse_range_list(range_list)
 end
 
 
-function parse_bar(bar, song)
--- Parse a bar symbol and repeat/variant markers. Bars can be
--- plain bars (|)
--- bars with thick lines (][)
--- repeat begin (|:)
--- repeat end (:|)
--- repeat middle (:||: or :: or :|:)
--- variant markers [range
-
-    local bar_pattern = [[
-        bar <- (  
+local bar_matcher = re.compile([[bar <- (  
         {:mid_repeat: <mid_repeat> :} /  {:end_repeat: <end_repeat> :}  / {:start_repeat: <start_repeat> :} / {:double: <double> :}
         /  {:thickthin: <thickthin> :} / {:thinthick: <thinthick> :} /  {:plain: <plain> :} / {:variant: <variant> :} / {:just_colons: <just_colons> :} ) -> {}        
         mid_repeat <- ({}<colons> {}<plain>{} <colons>{}) -> {}
@@ -57,10 +48,17 @@ function parse_bar(bar, song)
         
         variant <- ('[')
         colons <- (':' +) 
-    ]]
-    
-    
-    local type_info = re.match(bar.type, bar_pattern)
+]])
+
+function parse_bar(bar, song)
+-- Parse a bar symbol and repeat/variant markers. Bars can be
+-- plain bars (|)
+-- bars with thick lines (][)
+-- repeat begin (|:)
+-- repeat end (:|)
+-- repeat middle (:||: or :: or :|:)
+-- variant markers [range
+   local type_info = bar_matcher:match(bar.type)
     
     -- compute number of colons around bar (which is the number of repeats of this section)
     if type_info.mid_repeat then

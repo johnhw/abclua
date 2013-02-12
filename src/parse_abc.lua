@@ -29,7 +29,7 @@ octave <- (( ['] / ',') +)
 accidental <- (  '^^' /  '__' /  '^' / '_' / '=' )
 duration <- ( (({:num: ([1-9] +) :}) ? ({:slashes: ('/' +)  :})?  ({:den: ((  [1-9]+  ) ) :})?))  -> {}
 
-field <- (  '['  {:contents: field_element  ':'  [^] ] + :} ']' ) -> {}
+field <- (  '['  {:contents: field_element  ':'  [^]`] + :} ']' ) -> {}
 field_element <- ([A-Za-z])
 
 ]]
@@ -233,25 +233,25 @@ function get_default_context()
     })
 end
     
-    
-function parse_all_abc(str)
-         
-    -- split file into sections
-   
-    
-    str = str..'\n'
-    local section_pattern = [[
+local section_matcher = re.compile([[
      abc_tunes <- (section (break section) * last_line ?) -> {}
      break <- (([ ] * %nl)  )
      section <- { (line +)  }
      line <- ( ([^%nl] +  %nl) )
      last_line <- ( ([^%nl]+) )
     ]] 
+)    
+function parse_all_abc(str)
+         
+    -- split file into sections
+   
+    
+    str = str..'\n'
     
     
     -- tunes must begin with a field (although there
     -- can be directives or comments first)
-    local sections = re.match(str, section_pattern)
+    local sections = section_matcher:match(str)
     local tunes = {}    
     
     -- malformed file
@@ -376,7 +376,10 @@ stream_to_opus = stream_to_opus,
 make_midi = make_midi,
 make_midi_from_stream = make_midi_from_stream,
 trim_event_stream = trim_event_stream,
-render_grace_notes = render_grace_notes
+render_grace_notes = render_grace_notes,
+register_user_directive = register_user_directive,
+abc_from_songs = abc_from_songs,
+abc_element = abc_element
 }
 
 
@@ -386,8 +389,12 @@ render_grace_notes = render_grace_notes
 -- render decorations
 -- match against instrument notes (penalties for notes)
 -- abc-include
--- move all patterns outside of functions and precompile
--- fix spaces in inline fields
+-- consider macros when octave modifiers and ties are applied
+-- tidy up stream rendering
+
+-- fix lyrics alignment (2.0 compatible and verses)
+-- voice overlay with &
+-- voice transpose/octave/+8-8
 
 -- styling for playback
 -- extend test suite

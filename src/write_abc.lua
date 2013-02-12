@@ -637,3 +637,20 @@ function token_stream_to_abc(token_stream)
     -- concatenate into a single string
     return table.concat(output)
 end
+
+function abc_from_songs(songs, creator)
+    -- return the ABC representation of a table of songs
+    -- the creator field can optionally be specified to identify
+    -- the program that created this code
+    local out = {}
+    creator = creator or 'abclua'
+    -- write out header
+    table.insert(out, '%abc-2.1\n')
+    table.insert(out, '%%abc-creator='..creator..'\n')
+    
+    -- each song segment separated by two newlines
+    for i,v in ipairs(songs) do
+        table.insert(out, token_stream_to_abc(v.token_stream))
+        table.insert(out, '\n\n')
+    end
+end

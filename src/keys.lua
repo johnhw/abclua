@@ -109,9 +109,8 @@ function compute_mode(offset)
     return notes
 end
 
-function parse_key(k)
-    -- Parse a key definition, in the format <root>[b][#][mode] [accidentals] [expaccidentals]
-    local key_pattern = [[
+
+local key_matcher = re.compile([[
     key <- ( {:none: ('none') :} / {:pipe: ('Hp' / 'HP') :} / (
         {:root: ([a-gA-G]):}  ({:flat: ('b'):}) ? ({:sharp: ('#'):}) ?  
         (%s * {:mode: (mode %S*):}) ? 
@@ -136,11 +135,15 @@ function parse_key(k)
           ({'loc'}) /  ({'exp'}) / ({'min'}) / {'m'}) 
     accidentals <- ( {accidental} (%s+ {accidental}) * ) -> {}
     accidental <- ( ('^' / '_' / '__' / '^^' / '=') [a-g] )
-]]
+]])
+
+function parse_key(k)
+    -- Parse a key definition, in the format <root>[b][#][mode] [accidentals] [expaccidentals]
+    
 
     k = k:lower()
-    local captures = re.match(k,  key_pattern)
-
+    local captures = key_matcher:match(k)
+    
     --replace +8 / -8 with a straightforward transpose
     if captures.clef and captures.clef.plus8 then
         if captures.clef.plus8=='-8' then

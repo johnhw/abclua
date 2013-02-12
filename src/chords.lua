@@ -157,6 +157,12 @@ bb=10,
 bs=12
 }
 
+
+local chord_matcher = re.compile([[
+        chord <- ({:root: root :} ({:type: %S +:}) ? ) -> {}
+        root <- ([a-g] ('b' / 's') ?)
+    ]])
+
 function match_chord(chord)
     -- Matches chord definitions, returning the root note
     -- the chord type, and the notes in that chord (as semitone offsets)
@@ -166,12 +172,8 @@ function match_chord(chord)
     chord = string.lower(chord)
     
     
-    local chord_pattern = [[
-        chord <- ({:root: root :} ({:type: %S +:}) ? ) -> {}
-        root <- ([a-g] ('b' / 's') ?)
-    ]]
     
-    local match = re.match(chord, chord_pattern)
+    local match = chord_matcher:match(chord)
     if not match or not match.root then
         return nil
     end
