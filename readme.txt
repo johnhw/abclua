@@ -14,9 +14,81 @@ DESCRIPTION
     stream into an ABC string, transform a token stream into an event stream
     (with timing, repeats expanded etc.), and event streams into MIDI.
     
+    
 USAGE
     You can use this file just by requiring abclua_all.lua, which has all the
     functions in one single file as a convenience.
+    
+API
+
+    The basic datastructure is the song structure. 
+        song
+            song.context ->         table representing the current state of the song 
+                                    (e.g. meter, tempo, key)
+            song.token_stream ->    parsed input as a stream of tokens
+
+            song.stream ->          event stream generated from the token stream
+            
+            
+        Every token has
+                event.event          The type of this token
+                along with custom fields for each token
+            
+        Every event has 
+                event.event         String giving event type
+                event.t             Time of event, in microseconds
+                along with custom fields for each event
+                                    
+    
+    parse_abc_file(filename, [options])
+        Parse the given ABC file, and return a table of songs, one for
+        each tune in the songbook.
+                
+            songs = parse_abc_file('example.abc')
+            -- songs[1] is the first tune
+            -- songs[2] is the second tune etc.
+    
+    parse_abc_multisong(str, [options])
+        Parse the given string as ABC, which can be blocks of ABC and
+        plain text interspersed, separated by blank lines (e.g. a songbook).
+        Returns a table of song structures.
+        
+    parse_abc(str, [options])  
+        Parse a single ABC notation string, and return a song structure.
+        
+    parse_abc_fragment(str, [context])
+        Parse a fragment of ABC (e.g. 'abc | def') in a given context. Returns
+        the token sequence for that fragment.
+        
+            songs = parse_abc_file('example.abc')
+            -- parse the fragment in the context of the first song loaded
+            parse_abc_fragment('de>d', songs[1].context)
+        
+    fragment_to_stream(tokens)
+        Convert a token stream into an event stream, with timing information.
+        
+            songs = parse_abc_file('example.abc')
+            -- parse the fragment in the context of the first song loaded
+            tokens = parse_abc_fragment('de>d', songs[1].context)
+            stream = fragment_to_stream(tokens)
+        
+    token_stream_to_abc(tokens)
+        Return an ABC string represenation of a given token stream
+            songs = parse_abc_file('example.abc')
+            -- should print out something close to the first tune in the original example.abc
+            print(token_stream_to_abc(songs[1].token_stream))
+                    
+    abc_from_songs(songs)
+        Return a songbook from a set of songs.
+            songs = parse_abc_file('example.abc')
+            -- should print out something close to the original example.abc
+            print(abc_from_songs(songs))
+            
+    make_midi(song, filename)
+        Simple MIDI conversion; writes the MIDI file to filename.
+            songs = parse_abc_file('example.abc')            
+            make_midi(songs[1], 'example.mid')
+        
     
 TEST/EXAMPLES
     tests/reproduce_abc.lua takes a filename as an argument, and creates a file called
