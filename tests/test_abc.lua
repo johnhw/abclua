@@ -1,3 +1,29 @@
+
+-- Print anything - including nested tables
+function table_print (tt, indent, done)
+  done = done or {}
+  indent = indent or 0
+  if type(tt) == "table" then
+    for key, value in pairs (tt) do
+      io.write(string.rep (" ", indent)) -- indent it
+      if type (value) == "table" and not done [value] then
+        done [value] = true
+        io.write(string.format("[%s] => table\n", tostring (key)));
+        io.write(string.rep (" ", indent+4)) -- indent it
+        io.write("(\n");
+        table_print (value, indent + 7, done)
+        io.write(string.rep (" ", indent+4)) -- indent it
+        io.write(")\n");
+      else
+        io.write(string.format("[%s] => %s\n",
+            tostring (key), tostring(value)))
+      end
+    end
+  else
+    io.write(tt .. "\n")
+  end
+end
+
 require "abclua"
 
 skye=[[
@@ -339,6 +365,36 @@ function test_decorations()
     print(abclua.token_stream_to_abc(songs[1].token_stream))
 end
 
+
+function test_overlay()
+    -- Test voice overlay with &
+    overlay = [[
+    X:1    
+    K:G
+    ceg & C3 | dfa & D3 | C3 & E3 & G/ G/ G/  G/G/G/ |
+    ]]
+    songs = abclua.parse_all_abc(overlay)
+    abclua.make_midi(songs[1], 'out/overlay.mid')    
+    print(abclua.token_stream_to_abc(songs[1].token_stream))
+end
+
+function test_include()
+    -- test file inclusion
+    includes = [[
+    %%abc-include tests/notarealfile.abc
+    X:4    
+    K:G
+    %%abc-include tests/setkey.abc
+    CDEFGab z2
+    %%abc-include tests/tune.abc
+    [I:abc-include tests/tune.abc]
+    %%abc-include tests/recursive.abc
+    ]]
+    songs = abclua.parse_all_abc(includes)
+    abclua.make_midi(songs[1], 'out/includes.mid')    
+    print(abclua.token_stream_to_abc(songs[1].token_stream))
+end
+
     
 function test_skye()
     -- test a simple tune
@@ -357,12 +413,21 @@ function test_file()
         title = v.metadata.title or 'untitled'
         title = title:gsub(' ', '_')
         title = title:gsub('/', '')        
+        title = title:gsub('?', '')        
+        title = title:gsub('#', '')        
+        title = title:gsub('~', '')        
+        title = title:gsub('"', '')        
+        title = title:gsub("'", '')        
+        title = title:gsub("`", '')        
+        title = title:gsub("%%", '')        
         
         abclua.make_midi(v, 'out/songs/'..title..'.mid')
         
     end 
 end
 
+-- test_include()
+--test_overlay()
 test_macros()
 -- test_directives()
 -- test_clefs()
