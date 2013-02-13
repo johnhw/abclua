@@ -64,13 +64,13 @@ API
             -- parse the fragment in the context of the first song loaded
             parse_abc_fragment('de>d', songs[1].context)
         
-    fragment_to_stream(tokens)
+    compile_tokens(tokens)
         Convert a token stream into an event stream, with timing information.
         
             songs = parse_abc_file('example.abc')
             -- parse the fragment in the context of the first song loaded
             tokens = parse_abc_fragment('de>d', songs[1].context)
-            stream = fragment_to_stream(tokens)
+            stream = compile_tokens(tokens)
         
     token_stream_to_abc(tokens)
         Return an ABC string represenation of a given token stream

@@ -128,12 +128,12 @@ function test_fragments()
     -- token streams, and that token -> event conversion works
     tokens = abclua.parse_abc_fragment('A>bA')
     table_print(tokens)
-    events = abclua.fragment_to_stream(tokens)
+    events = abclua.compile_tokens(tokens)
     table_print(events)
     
     tokens = abclua.parse_abc_fragment('X:title')
     table_print(tokens)    
-    events = abclua.fragment_to_stream(tokens)
+    events = abclua.compile_tokens(tokens)
     table_print(events)
 end
 
@@ -147,7 +147,7 @@ function test_inline()
     ]]
     
     songs = abclua.parse_abc_multisong(inline)    
-    print(abclua.token_stream_to_abc(songs[1].token_stream))
+    print(abclua.emit_abc(songs[1].token_stream))
     abclua.make_midi(songs[1], 'out/inline.mid')        
 end
 
@@ -179,7 +179,7 @@ function test_keys()
     ]]
     
     songs = abclua.parse_abc_multisong(keys)    
-    print(abclua.token_stream_to_abc(songs[1].token_stream))
+    print(abclua.emit_abc(songs[1].token_stream))
     abclua.make_midi(songs[1], 'out/keys.mid')
 end
 
@@ -192,7 +192,7 @@ function test_triplets()
     ]]
 
     songs = abclua.parse_abc_multisong(triplets)    
-    print(abclua.token_stream_to_abc(songs[1].token_stream))
+    print(abclua.emit_abc(songs[1].token_stream))
     abclua.make_midi(songs[1], 'out/triplets.mid')
 end
 
@@ -226,10 +226,10 @@ function test_macros()
     
     songs = abclua.parse_abc_multisong(macros)      
     abclua.print_notes(songs[1].voices['default'].stream)
-    print(abclua.token_stream_to_abc(songs[1].token_stream))
+    print(abclua.emit_abc(songs[1].token_stream))
     
     songs = abclua.parse_abc_multisong(macros, {no_expand=true})      
-    print(abclua.token_stream_to_abc(songs[1].token_stream))
+    print(abclua.emit_abc(songs[1].token_stream))
     abclua.make_midi(songs[1], 'out/macros.mid')
 end
 
@@ -247,7 +247,7 @@ function test_accidentals()
     ]]
     
     songs = abclua.parse_abc_multisong(accs)          
-    print(abclua.token_stream_to_abc(songs[1].token_stream))
+    print(abclua.emit_abc(songs[1].token_stream))
     abclua.make_midi(songs[1], 'out/accidentals.mid')
 end
 
@@ -262,7 +262,7 @@ function test_lyrics()
     ]]
 
     songs = abclua.parse_abc_multisong(lyrics)    
-    print(abclua.token_stream_to_abc(songs[1].token_stream))
+    print(abclua.emit_abc(songs[1].token_stream))
     abclua.print_lyrics_notes(songs[1].voices['default'].stream)
     
 end
@@ -318,7 +318,7 @@ function test_rhythms()
     ]]
     songs = abclua.parse_abc_multisong(rhythms)
     abclua.make_midi(songs[1], 'out/rhythms.mid')
-    print(abclua.token_stream_to_abc(songs[1].token_stream))
+    print(abclua.emit_abc(songs[1].token_stream))
 end
 
 
@@ -337,7 +337,7 @@ function test_voices()
     ]]
     songs = abclua.parse_abc_multisong(voices)
     abclua.make_midi(songs[1], 'out/voices.mid')    
-    print(abclua.token_stream_to_abc(songs[1].token_stream))
+    print(abclua.emit_abc(songs[1].token_stream))
 end
 
 function test_clefs()
@@ -353,7 +353,7 @@ function test_clefs()
     K:G clef=treble-8
     ]]
     songs = abclua.parse_abc_multisong(clefs)
-    print(abclua.token_stream_to_abc(songs[1].token_stream))
+    print(abclua.emit_abc(songs[1].token_stream))
 end
 
 
@@ -374,7 +374,7 @@ function test_directives()
     A B [R:this is a] G
     ]]
     songs = abclua.parse_abc_multisong(directives)
-    print(abclua.token_stream_to_abc(songs[1].token_stream))
+    print(abclua.emit_abc(songs[1].token_stream))
 end
 
 function test_decorations()
@@ -389,7 +389,7 @@ function test_decorations()
     ]]
     songs = abclua.parse_abc_multisong(decorations)
     abclua.make_midi(songs[1], 'out/decorations.mid')    
-    print(abclua.token_stream_to_abc(songs[1].token_stream))
+    print(abclua.emit_abc(songs[1].token_stream))
 end
 
 
@@ -402,7 +402,7 @@ function test_overlay()
     ]]
     songs = abclua.parse_abc_multisong(overlay)
     abclua.make_midi(songs[1], 'out/overlay.mid')    
-    print(abclua.token_stream_to_abc(songs[1].token_stream))
+    print(abclua.emit_abc(songs[1].token_stream))
 end
 
 function test_include()
@@ -419,7 +419,7 @@ function test_include()
     ]]
     songs = abclua.parse_abc_multisong(includes)
     abclua.make_midi(songs[1], 'out/includes.mid')    
-    print(abclua.token_stream_to_abc(songs[1].token_stream))
+    print(abclua.emit_abc(songs[1].token_stream))
 end
 
     
@@ -429,7 +429,7 @@ function test_skye()
     local songs = abclua.parse_abc_multisong(skye)
     for i,v in ipairs(songs) do
         abclua.make_midi(songs[1], 'out/skye.mid')        
-        print(abclua.token_stream_to_abc(v.token_stream))
+        print(abclua.emit_abc(v.token_stream))
     end 
 end
 

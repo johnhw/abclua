@@ -641,7 +641,7 @@ function abc_element(element)
     
 end
 
-function token_stream_to_abc(token_stream)
+function emit_abc(token_stream)
 -- return the token_stream out as a valid ABC string
     local output = {}
     
@@ -664,7 +664,7 @@ function abc_from_songs(songs, creator)
     
     -- each song segment separated by two newlines
     for i,v in ipairs(songs) do
-        table.insert(out, token_stream_to_abc(v.token_stream))
+        table.insert(out, emit_abc(v.token_stream))
         table.insert(out, '\n\n')
     end
 end

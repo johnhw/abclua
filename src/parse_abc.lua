@@ -367,7 +367,7 @@ function parse_abc_fragment(str, parse, options)
     return song.token_stream
 end
 
-function fragment_to_stream(tokens, context)
+function compile_tokens(tokens, context)
     --Converts a token stream from a fragment into a timed event stream
     -- Returns the event stream if this is a single voice fragment, or
     -- a table of voices, if it is a multi-voice fragment
@@ -406,11 +406,11 @@ name="abclua",
 parse_abc_multisong = parse_abc_multisong,
 parse_abc = parse_abc,
 parse_abc_fragment = parse_abc_fragment,
-fragment_to_stream = fragment_to_stream,
+compile_tokens = compile_tokens,
 parse_abc_file = parse_abc_file,
 print_notes = print_notes,
 print_lyrics_notes = print_lyrics_notes,
-token_stream_to_abc = token_stream_to_abc,
+emit_abc = emit_abc,
 song_to_opus = song_to_opus,
 stream_to_opus = stream_to_opus,
 make_midi = make_midi,
