@@ -351,7 +351,7 @@ function parse_abc_fragment(str, parse, options)
     song.token_stream = {}
     -- use default parse structure if not one specified
     song.parse = parse or {in_header=false, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand}    
-    
+    parse_abc_line(str, song)
     if not pcall(parse_abc_line, str, song) then
         song.token_stream = nil -- return nil if the fragment is unparsable
     end
@@ -416,20 +416,24 @@ abc_element = abc_element
 
 
 -- TODO:
--- convert midi to abc (quantize, find key, map notes, specify chord channel (and match chords))
+-- from midi: rename to abc_from_midi
+--  guess bar locations; break every 4 bars
+--  guess broken rhythm
+
+-- simplify note events (note_def etc.)
 -- render decorations
 -- match against instrument notes (penalties for notes)
+-- diatonic transpose
 
--- consider macros when octave modifiers and ties are applied
+-- transposing macros don't work when octave modifiers and ties are applied
 -- tidy up stream rendering
+-- check fragment parsing (e.g. "K:g")
 
 -- fix lyrics alignment (2.0 compatible and verses)
 -- voice transpose/octave/+8-8
 
--- stream modifiers: swing
+-- styling for playback
 -- decorators with extended effect (e.g. crescendo, accelerando)
 
--- styling for playback
--- extend test suite
 
 

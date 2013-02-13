@@ -244,7 +244,34 @@ local inverse_key_note_table = invert_table(key_note_table)
 local mode_offsets = {maj=0, min=3, mix=5, dor=10, phr=8, lyd=7, loc=1}
 
 
+function get_major_key(key)
+    -- return the semitones in a given major key
+    -- (e.g. C = {0,2,4,5,7,9,11})
+    local c_major = {0,2,4,5,7,9,11}
+    for i,v in ipairs(key_table[key]) do
+        
+        local semi = c_major[i] + v
+        
+        -- wrap to 0-12
+        if semi<0 then
+            semi = semi + 12
+        end
+        if semi>12 then
+            semi = semi - 12
+        end
+        c_major[i] = semi
+    end
+    return c_major
+end
 
+function get_major_keys()
+    -- return a table mapping key names to semitone values
+    local keys = {}
+    for i,v in pairs(key_table) do
+        keys[i] = get_major_key(i)
+    end   
+    return keys
+end
 
 
 function compute_mode(offset)
@@ -1159,9 +1186,11 @@ function zero_time_stream(stream)
     local t = stream[1].t
     for i,v in ipairs(stream) do
         stream.t = stream.t - t
-    end
-    
+    end    
 end
+
+
+
 
 
 function render_grace_notes(stream)
@@ -1859,12 +1888,12 @@ function parse_field(f, song, inline)
         if song.parse.last_field then
             -- append plain text if necessary
             if not is_in(song.parse.last_field, parsable) then            
-                table.insert(song.token_stream, {event='append_field_text', name=song.parse.last_field, content=content, inline=inline, field={name=song.parse.last_field, content=content}})
+                table.insert(song.token_stream, {event='append_field_text', name=song.parse.last_field, content=content, inline=inline})
                 
             end
             
              if song.parse.last_field=='words' then
-                 table.insert(song.token_stream, {event='words', lyrics=parse_lyrics(content), field=field})            
+                 table.insert(song.token_stream, {event='words', lyrics=parse_lyrics(content)})            
              end
          end
          
@@ -1873,7 +1902,7 @@ function parse_field(f, song, inline)
     
         song.parse.last_field = field_name
         if not is_in(field_name, parsable) then
-            table.insert(song.token_stream, {event='field_text', name=field_name, content=content, inline=inline, field=field}) 
+            table.insert(song.token_stream, {event='field_text', name=field_name, content=content, inline=inline}) 
         end
 
     end
@@ -1881,17 +1910,17 @@ function parse_field(f, song, inline)
     
     -- update specific tune settings
     if field_name=='length' then
-        table.insert(song.token_stream, {event='note_length', note_length=parse_length(content), inline=inline,  field=field}) 
+        table.insert(song.token_stream, {event='note_length', note_length=parse_length(content), inline=inline}) 
     end
             
     -- update tempo
     if field_name=='tempo' then            
-        table.insert(song.token_stream, {event='tempo', tempo=parse_tempo(content), inline=inline, field=field})
+        table.insert(song.token_stream, {event='tempo', tempo=parse_tempo(content), inline=inline})
     end
     
     -- parse lyric definitions
     if field_name=='words' then                        
-         table.insert(song.token_stream, {event='words', lyrics=parse_lyrics(content), field=field, inline=inline})            
+         table.insert(song.token_stream, {event='words', lyrics=parse_lyrics(content), inline=inline})            
     end
     
      -- parse lyric definitions
@@ -1903,7 +1932,7 @@ function parse_field(f, song, inline)
             apply_directive(song, directive.directive, directive.arguments)
          else
             -- otherwise defer
-            table.insert(song.token_stream, {event='instruction', directive=directive, field=field, inline=inline})            
+            table.insert(song.token_stream, {event='instruction', directive=directive, inline=inline})            
          end
     end
             
@@ -1911,9 +1940,9 @@ function parse_field(f, song, inline)
     if field_name=='voice' then  
         -- in the header this just sets up the voice properties
         if song.parse.in_header then
-            table.insert(song.token_stream, {event='voice_def', voice=parse_voice(content), inline=inline, field=field})
+            table.insert(song.token_stream, {event='voice_def', voice=parse_voice(content), inline=inline})
         else
-            table.insert(song.token_stream, {event='voice_change', voice=parse_voice(content), inline=inline, field=field})
+            table.insert(song.token_stream, {event='voice_change', voice=parse_voice(content), inline=inline})
         end
     end
       
@@ -1924,7 +1953,7 @@ function parse_field(f, song, inline)
         if song.parse.in_header then
             local parts = content:gsub('\\.', '') -- remove dots
             parts = parse_parts(content)
-            table.insert(song.token_stream, {event='parts', parts=parts, inline=inline, field=field})            
+            table.insert(song.token_stream, {event='parts', parts=parts, inline=inline})            
         else
             
             -- otherwise we are starting a new part   
@@ -1933,7 +1962,7 @@ function parse_field(f, song, inline)
             part = part:gsub('\\.', '')
             part = string.sub(part,1,1)
                         
-            table.insert(song.token_stream, {event='new_part', part=part, inline=inline, field=field})            
+            table.insert(song.token_stream, {event='new_part', part=part, inline=inline})            
         end
     end
     
@@ -1946,7 +1975,7 @@ function parse_field(f, song, inline)
     
     if field_name=='macro' then
         if song.parse.no_expand then
-            table.insert(song.token_stream, {event='field_text', name='macro', content=content, inline=inline, field=field})                    
+            table.insert(song.token_stream, {event='field_text', name='macro', content=content, inline=inline})                    
         else
             -- we DON'T insert macros into the token_stream. Instead
             -- we expand them as we find them
@@ -1970,12 +1999,12 @@ function parse_field(f, song, inline)
     
     -- update meter
     if field_name=='meter' then            
-        table.insert(song.token_stream, {event='meter', meter=parse_meter(content), inline=inline, field=field})            
+        table.insert(song.token_stream, {event='meter', meter=parse_meter(content), inline=inline})            
     end       
     
     -- update key
     if field_name=='key' then            
-        table.insert(song.token_stream, {event='key', key=parse_key(content), inline=inline, field=field}) 
+        table.insert(song.token_stream, {event='key', key=parse_key(content), inline=inline}) 
         song.parse.found_key = true -- key marks the end of the header
     end
  
@@ -2766,62 +2795,72 @@ function abc_directive(directive, inline)
     return str
 end
 
-function abc_field(v)
+function abc_field(v, inline)
     -- abc out a field entry (either inline [x:stuff] or 
     -- as its own line 
     -- X:stuff
     
+    local str
     -- plain text events
     if v.event=='append_field_text' then 
-        return  '+' .. ':' .. v.content
+        str =  '+' .. ':' .. v.content
     end
     
     if v.event=='field_text' then 
-        return field_tags[v.name] .. ':' .. v.content
+        str = field_tags[v.name] .. ':' .. v.content
     end
     
     -- key, tempo, meter
     if v.event=='meter' then
-        return abc_meter(v.meter)
+        str = abc_meter(v.meter)
     end
  
     -- voice definitions
     if v.event=='voice_def' or v.event=='voice_change' then
-        return abc_voice(v.voice)
+        str = abc_voice(v.voice)
     end
   
  
     if v.event=='key' then
-        return abc_key(v.key) 
+        str = abc_key(v.key) 
     end
 
     if v.event=='tempo' then
-        return abc_tempo(v.tempo)
+        str = abc_tempo(v.tempo)
     end
     
     if v.event=='instruction' then
-        return abc_directive(v.directive, v.inline)
+        str = abc_directive(v.directive, v.inline)
     end
 
     
     if v.event=='parts' then
-        return abc_parts(v.parts)
+        str = abc_parts(v.parts)
     end
     
     if v.event=='new_part' then
-        return abc_new_part(v.part)
+        str = abc_new_part(v.part)
     end
     
     
     if v.event=='words' then
-        return abc_lyrics(v.lyrics)
+        str = abc_lyrics(v.lyrics)
     end
     
     if v.event=='note_length' then
-        return abc_note_length(v.note_length)
+        str = abc_note_length(v.note_length)
     end
     
+    -- if this was a field
+    if str then
+        if inline then
+            return '[' .. str .. ']'
+        else
+            return str .. '\n'
+        end
+    end
     
+    return nil
 end
 
 
@@ -3123,24 +3162,14 @@ function abc_note_element(element)
     end
  
     
-    return ''
+    return nil
     
 end
  
 function abc_element(element)    
     -- return the abc representation of token_stream element
-    if element.field then
-
-        local field = abc_field(element)
-        if element.inline then
-            return '['..field..']'
-        else
-            return field..'\n'
-        end
-    else
-        return abc_note_element(element)
     
-    end
+    return abc_note_element(element) or abc_field(element, element.inline)
     
 end
 
@@ -3339,10 +3368,12 @@ function expand_token_stream(song)
             
        
         if v.event=='append_field_text' then       
-            song.metadata[v.field.name] = song.metadata[v.field.name] .. ' ' .. v.content
+            song.metadata[v.name] = song.metadata[v.name] .. ' ' .. v.content
         else
-            if v.field then               
-                song.metadata[v.field.name] = v.field.content
+            -- write in metadata table
+            local metadata_fields = {'field_text', 'tempo', 'note_length', 'parts', 'meter', 'key'}
+            if is_in(v.event, metadata_fields) then               
+                song.metadata[v.name] = v.content
             end
         end
         
@@ -3792,7 +3823,7 @@ function parse_abc_fragment(str, parse, options)
     song.token_stream = {}
     -- use default parse structure if not one specified
     song.parse = parse or {in_header=false, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand}    
-    
+    parse_abc_line(str, song)
     if not pcall(parse_abc_line, str, song) then
         song.token_stream = nil -- return nil if the fragment is unparsable
     end
@@ -3857,21 +3888,19 @@ abc_element = abc_element
 
 
 -- TODO:
--- convert midi to abc (quantize, find key, map notes, specify chord channel (and match chords))
+-- convert midi to abc (quantize, find key)
 -- render decorations
 -- match against instrument notes (penalties for notes)
 
--- consider macros when octave modifiers and ties are applied
+-- transposing macros don't work when octave modifiers and ties are applied
 -- tidy up stream rendering
 
 -- fix lyrics alignment (2.0 compatible and verses)
 -- voice transpose/octave/+8-8
 
--- stream modifiers: swing
+-- styling for playback
 -- decorators with extended effect (e.g. crescendo, accelerando)
 
--- styling for playback
--- extend test suite
 
 
 

@@ -59,6 +59,8 @@ function parse_note_def(note)
         end
         note.broken = nil
         note.duration.broken = shift
+    else
+        note.duration.broken = 0
     end
   
   if note.pitch then

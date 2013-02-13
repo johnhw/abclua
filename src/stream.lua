@@ -173,9 +173,11 @@ function zero_time_stream(stream)
     local t = stream[1].t
     for i,v in ipairs(stream) do
         stream.t = stream.t - t
-    end
-    
+    end    
 end
+
+
+
 
 
 function render_grace_notes(stream)

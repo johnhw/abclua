@@ -34,6 +34,10 @@ bb=10,
 bs=12
 }
 
+function get_note_number(note)
+    return note_table[note]
+end
+
 local key_note_table = {
 c=0,
 cb=11,
@@ -85,6 +89,15 @@ bs = {-1,-1,-1,-1,-1,-1,-1},
 }
 
 
+local diatonic_scale = {[0]='b', 'c', 'd', 'e', 'f', 'g', 'a', 'b'}
+local inverse_diatonic_scale = invert_table(diatonic_scale)
+
+function nth_note_of_key(key, n)
+    -- return the nth note of a key (e.g. 2nd note of C is D,
+    -- 2nd note of G is A etc.)
+    local base = inverse_diatonic_scale[key]
+    return diatonic_scale[(base+n) % 7]
+end
 
 local inverse_note_table = invert_table(note_table)
 local inverse_key_note_table = invert_table(key_note_table)
@@ -93,7 +106,34 @@ local inverse_key_note_table = invert_table(key_note_table)
 local mode_offsets = {maj=0, min=3, mix=5, dor=10, phr=8, lyd=7, loc=1}
 
 
+function get_major_key(key)
+    -- return the semitones in a given major key
+    -- (e.g. C = {0,2,4,5,7,9,11})
+    local c_major = {0,2,4,5,7,9,11}
+    for i,v in ipairs(key_table[key]) do
+        
+        local semi = c_major[i] + v
+        
+        -- wrap to 0-12
+        if semi<0 then
+            semi = semi + 12
+        end
+        if semi>12 then
+            semi = semi - 12
+        end
+        c_major[i] = semi
+    end
+    return c_major
+end
 
+function get_major_keys()
+    -- return a table mapping key names to semitone values
+    local keys = {}
+    for i,v in pairs(key_table) do
+        keys[i] = get_major_key(i)
+    end   
+    return keys
+end
 
 
 function compute_mode(offset)

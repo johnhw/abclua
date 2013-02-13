@@ -24,7 +24,7 @@ function table_print (tt, indent, done)
   end
 end
 
-require "abclua_all"
+require "abclua"
 
 skye=[[
 % this is a comment

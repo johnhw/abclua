@@ -8,6 +8,15 @@ function repeat_string(str, times)
     return table.concat(reps)
 end
 
+-- return the greatest common divisor of a and b
+function gcd(a, b)
+  while a ~= 0 do
+    a,b = (b%a),a
+  end
+  return b
+end
+
+
 -- set a field of the whole table
 function set_property(t, key, value)
     for i,v in pairs(t) do

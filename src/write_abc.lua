@@ -252,62 +252,72 @@ function abc_directive(directive, inline)
     return str
 end
 
-function abc_field(v)
+function abc_field(v, inline)
     -- abc out a field entry (either inline [x:stuff] or 
     -- as its own line 
     -- X:stuff
     
+    local str
     -- plain text events
     if v.event=='append_field_text' then 
-        return  '+' .. ':' .. v.content
+        str =  '+' .. ':' .. v.content
     end
     
     if v.event=='field_text' then 
-        return field_tags[v.name] .. ':' .. v.content
+        str = field_tags[v.name] .. ':' .. v.content
     end
     
     -- key, tempo, meter
     if v.event=='meter' then
-        return abc_meter(v.meter)
+        str = abc_meter(v.meter)
     end
  
     -- voice definitions
     if v.event=='voice_def' or v.event=='voice_change' then
-        return abc_voice(v.voice)
+        str = abc_voice(v.voice)
     end
   
  
     if v.event=='key' then
-        return abc_key(v.key) 
+        str = abc_key(v.key) 
     end
 
     if v.event=='tempo' then
-        return abc_tempo(v.tempo)
+        str = abc_tempo(v.tempo)
     end
     
     if v.event=='instruction' then
-        return abc_directive(v.directive, v.inline)
+        str = abc_directive(v.directive, v.inline)
     end
 
     
     if v.event=='parts' then
-        return abc_parts(v.parts)
+        str = abc_parts(v.parts)
     end
     
     if v.event=='new_part' then
-        return abc_new_part(v.part)
+        str = abc_new_part(v.part)
     end
     
     
     if v.event=='words' then
-        return abc_lyrics(v.lyrics)
+        str = abc_lyrics(v.lyrics)
     end
     
     if v.event=='note_length' then
-        return abc_note_length(v.note_length)
+        str = abc_note_length(v.note_length)
     end
     
+    -- if this was a field
+    if str then
+        if inline then
+            return '[' .. str .. ']'
+        else
+            return str .. '\n'
+        end
+    end
     
+    return nil
 end
 
 
@@ -609,24 +619,14 @@ function abc_note_element(element)
     end
  
     
-    return ''
+    return nil
     
 end
  
 function abc_element(element)    
     -- return the abc representation of token_stream element
-    if element.field then
-
-        local field = abc_field(element)
-        if element.inline then
-            return '['..field..']'
-        else
-            return field..'\n'
-        end
-    else
-        return abc_note_element(element)
     
-    end
+    return abc_note_element(element) or abc_field(element, element.inline)
     
 end
 

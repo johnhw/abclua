@@ -161,10 +161,12 @@ function expand_token_stream(song)
             
        
         if v.event=='append_field_text' then       
-            song.metadata[v.field.name] = song.metadata[v.field.name] .. ' ' .. v.content
+            song.metadata[v.name] = song.metadata[v.name] .. ' ' .. v.content
         else
-            if v.field then               
-                song.metadata[v.field.name] = v.field.content
+            -- write in metadata table
+            local metadata_fields = {'field_text'}
+            if is_in(v.event, metadata_fields) then               
+                song.metadata[v.name] = v.content
             end
         end
         
