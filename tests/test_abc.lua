@@ -128,6 +128,7 @@ function test_fragments()
     -- token streams, and that token -> event conversion works
     tokens = abclua.parse_abc_fragment('A>bA')
     table_print(tokens)
+    
     events = abclua.compile_tokens(tokens)
     table_print(events)
     
@@ -135,6 +136,14 @@ function test_fragments()
     table_print(tokens)    
     events = abclua.compile_tokens(tokens)
     table_print(events)
+    
+    tokens = abclua.parse_abc_fragment([[K:C
+    abc]])
+    table_print(tokens)    
+    events = abclua.compile_tokens(tokens)
+    table_print(events)
+
+
 end
 
 
@@ -259,6 +268,12 @@ function test_lyrics()
     K:G
     A B C D | E F G A | B4
     w:doh re me fah so la~a ti-do
+    C D E F 
+    w:oh-yes that's right
+    G G G
+    w:
+    D E F
+    w:lyric spacing works
     ]]
 
     songs = abclua.parse_abc_multisong(lyrics)    
@@ -453,26 +468,26 @@ function test_file()
     end 
 end
 
-test_octaves()  
-test_include()
-test_overlay()
-test_macros()
-test_directives()
-test_clefs()
-test_decorations()
-test_inline()
-test_keys()
-test_trimming()
-test_grace_notes()
-test_chord_names()
-test_voices()
-test_rhythms()
-test_accidentals()
-test_repeats()
+-- test_octaves()  
+-- test_include()
+-- test_overlay()
+-- test_macros()
+-- test_directives()
+-- test_clefs()
+-- test_decorations()
+-- test_inline()
+-- test_keys()
+-- test_trimming()
+-- test_grace_notes()
+-- test_chord_names()
+-- test_voices()
+-- test_rhythms()
+-- test_accidentals()
+-- test_repeats()
 test_lyrics()
-test_parts()
-test_fragments()
-test_triplets()
-test_skye()
-test_file()
+-- test_parts()
+-- test_fragments()
+-- test_triplets()
+-- test_skye()
+-- test_file()
 

@@ -14,7 +14,7 @@ stream into an ABC string, transform a token stream into an event stream
     require "abclua_all"
     -- Assuming you have Peter J. Billam's MIDI.lua
     tunes = abclua.parse_abc_file('skye.abc')
-    opus = abclua.make_midi(tunes[1], 'skye.mid')   
+    abclua.make_midi(tunes[1], 'skye.mid')   
 
 
 ### Requires: 
@@ -61,27 +61,33 @@ The basic datastructure is the *song* table.
                 ...along with custom fields for each event
                                     
 * `parse_abc(str, [options])`  
+
 Parse a single ABC notation string, and return a song structure. The parsed tokens are
 stored in the table `song.token_stream`.
         
 * `compile_abc(song)`
+
 Compile a song. Converts the sequence of tokens in a song into an event stream
 which is stored in song.stream.
 
 
 * `parse_abc_fragment(str, [context])`
+
 Parse a fragment of ABC (e.g. 'abc | def') in a given context (uses the default context if
 one is not provided). Returns the token sequence for that fragment.
 
-    songs = parse_abc_file('example.abc')
-    -- parse the fragment in the context of the first song loaded
-    parse_abc_fragment('de>d', songs[1].context)
+
+        songs = parse_abc_file('example.abc')
+        -- parse the fragment in the context of the first song loaded
+        parse_abc_fragment('de>d', songs[1].context)
 
     
 * `parse_abc_multisong(str, [options])`
+
 Parse and compile the given string, which can be blocks of ABC and plain text interspersed, separated by blank lines (e.g. an entire songbook). Returns a table of song structures.
     
 * `parse_abc_file(filename, [options])`
+
 Parse and compile the given ABC file, and return a table of songs, one for each tune in the songbook. This is 
 just a convenience for reading a file and calling parse_abc_multisong() on it.
         
@@ -91,6 +97,7 @@ just a convenience for reading a file and calling parse_abc_multisong() on it.
             
         
 * `compile_tokens(tokens)`
+
 Convert a token stream into an event stream, with timing information.
         
         -- parse the fragment in the context of the first song loaded
@@ -98,18 +105,21 @@ Convert a token stream into an event stream, with timing information.
         stream = compile_tokens(tokens)
         
 * `emit_abc(tokens)`
-    Return an ABC string represenation of a given token stream
+
+Return an ABC string represenation of a given token stream
             songs = parse_abc_file('example.abc')
             -- should print out something close to the first tune in the original example.abc
             print(token_stream_to_abc(songs[1].token_stream))
                     
 * `abc_from_songs(songs)`
+
 Return a ABC string from a table of songs.
         songs = parse_abc_file('example.abc')
         -- should print out something close to the original example.abc
         print(abc_from_songs(songs))
         
 * `make_midi(song, filename)`
+
 Simple MIDI conversion; writes the MIDI file to filename.
         songs = parse_abc_file('example.abc')            
         make_midi(songs[1], 'example.mid')
@@ -195,7 +205,7 @@ might have confounding effects.
         
         
 Macro expansion and abc-include can be disabled by setting `no_expand=true` in the options passed to 
-parse_abc_multisong(), parse_abc_file() or parse_abc_fragment(). Example:
+`parse_abc_multisong()`, `parse_abc_file()` or `parse_abc_fragment()`. Example:
 
     parse_abc_file('macros.abc', {no_expand=false}) -- parses the file with macros enabled
     parse_abc_file('macros.abc', {no_expand=true}) -- parses the file with macros disabled, macro fields are passed through

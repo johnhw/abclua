@@ -6,7 +6,7 @@
 <pre><code>require &quot;abclua_all&quot;
 -- Assuming you have Peter J. Billam&#39;s MIDI.lua
 tunes = abclua.parse_abc_file(&#39;skye.abc&#39;)
-opus = abclua.make_midi(tunes[1], &#39;skye.mid&#39;)   </code></pre>
+abclua.make_midi(tunes[1], &#39;skye.mid&#39;)   </code></pre>
 <h3 id="requires">Requires:</h3>
 <ul>
 <li><a href="http://www.lua.org">Lua 5.2</a></li>
@@ -45,21 +45,53 @@ opus = abclua.make_midi(tunes[1], &#39;skye.mid&#39;)   </code></pre>
             ...along with custom fields for each event
                                 </code></pre>
 <ul>
-<li><p><code>parse_abc(str, [options])</code><br />Parse a single ABC notation string, and return a song structure. The parsed tokens are stored in the table <code>song.token_stream</code>.</p></li>
-<li><p><code>compile_abc(song)</code> Compile a song. Converts the sequence of tokens in a song into an event stream which is stored in song.stream.</p></li>
-<li><p><code>parse_abc_fragment(str, [context])</code> Parse a fragment of ABC (e.g. 'abc | def') in a given context (uses the default context if one is not provided). Returns the token sequence for that fragment.</p>
-<p>songs = parse_abc_file('example.abc') -- parse the fragment in the context of the first song loaded parse_abc_fragment('de&gt;d', songs[1].context)</p></li>
-<li><p><code>parse_abc_multisong(str, [options])</code> Parse and compile the given string, which can be blocks of ABC and plain text interspersed, separated by blank lines (e.g. an entire songbook). Returns a table of song structures.</p></li>
-<li><p><code>parse_abc_file(filename, [options])</code> Parse and compile the given ABC file, and return a table of songs, one for each tune in the songbook. This is just a convenience for reading a file and calling parse_abc_multisong() on it.</p>
-<p>songs = parse_abc_file('example.abc') -- songs[1] is the first tune -- songs[2] is the second tune etc.</p></li>
-<li><p><code>compile_tokens(tokens)</code> Convert a token stream into an event stream, with timing information.</p>
-<pre><code>-- parse the fragment in the context of the first song loaded
-tokens = parse_abc_fragment(&#39;de&gt;d&#39;)
-stream = compile_tokens(tokens)</code></pre></li>
-<li><p><code>emit_abc(tokens)</code> Return an ABC string represenation of a given token stream songs = parse_abc_file('example.abc') -- should print out something close to the first tune in the original example.abc print(token_stream_to_abc(songs[1].token_stream))</p></li>
-<li><p><code>abc_from_songs(songs)</code> Return a ABC string from a table of songs. songs = parse_abc_file('example.abc') -- should print out something close to the original example.abc print(abc_from_songs(songs))</p></li>
-<li><p><code>make_midi(song, filename)</code> Simple MIDI conversion; writes the MIDI file to filename. songs = parse_abc_file('example.abc')<br /> make_midi(songs[1], 'example.mid')</p></li>
+<li><code>parse_abc(str, [options])</code></li>
 </ul>
+<p>Parse a single ABC notation string, and return a song structure. The parsed tokens are stored in the table <code>song.token_stream</code>.</p>
+<ul>
+<li><code>compile_abc(song)</code></li>
+</ul>
+<p>Compile a song. Converts the sequence of tokens in a song into an event stream which is stored in song.stream.</p>
+<ul>
+<li><code>parse_abc_fragment(str, [context])</code></li>
+</ul>
+<p>Parse a fragment of ABC (e.g. 'abc | def') in a given context (uses the default context if one is not provided). Returns the token sequence for that fragment.</p>
+<pre><code>    songs = parse_abc_file(&#39;example.abc&#39;)
+    -- parse the fragment in the context of the first song loaded
+    parse_abc_fragment(&#39;de&gt;d&#39;, songs[1].context)</code></pre>
+<ul>
+<li><code>parse_abc_multisong(str, [options])</code></li>
+</ul>
+<p>Parse and compile the given string, which can be blocks of ABC and plain text interspersed, separated by blank lines (e.g. an entire songbook). Returns a table of song structures.</p>
+<ul>
+<li><code>parse_abc_file(filename, [options])</code></li>
+</ul>
+<p>Parse and compile the given ABC file, and return a table of songs, one for each tune in the songbook. This is just a convenience for reading a file and calling parse_abc_multisong() on it.</p>
+<pre><code>songs = parse_abc_file(&#39;example.abc&#39;)
+-- songs[1] is the first tune
+-- songs[2] is the second tune etc.
+        
+    </code></pre>
+<ul>
+<li><code>compile_tokens(tokens)</code></li>
+</ul>
+<p>Convert a token stream into an event stream, with timing information.</p>
+<pre><code>    -- parse the fragment in the context of the first song loaded
+    tokens = parse_abc_fragment(&#39;de&gt;d&#39;)
+    stream = compile_tokens(tokens)
+    </code></pre>
+<ul>
+<li><code>emit_abc(tokens)</code></li>
+</ul>
+<p>Return an ABC string represenation of a given token stream songs = parse_abc_file('example.abc') -- should print out something close to the first tune in the original example.abc print(token_stream_to_abc(songs[1].token_stream))</p>
+<ul>
+<li><code>abc_from_songs(songs)</code></li>
+</ul>
+<p>Return a ABC string from a table of songs. songs = parse_abc_file('example.abc') -- should print out something close to the original example.abc print(abc_from_songs(songs))</p>
+<ul>
+<li><code>make_midi(song, filename)</code></li>
+</ul>
+<p>Simple MIDI conversion; writes the MIDI file to filename. songs = parse_abc_file('example.abc')<br /> make_midi(songs[1], 'example.mid')</p>
 <h2 id="test-scripts">Test scripts</h2>
 <p><code>tests/reproduce_abc.lua</code> takes a filename as an argument, and creates a file called <filename>_reproduced.abc which is the result of parsing the given file and emitting the ABC representation of the token stream. It should leave files basically unchanged</p>
 <p><code>tests/abc_to_midi.lua</code> converts an ABC file to a simple MIDI file. It should render most files correctly.</p>
@@ -104,7 +136,7 @@ abc        </code></pre>
 <pre><code>    I:abc-include file.abc
     </code></pre>
 <p>will include the <code>file.abc</code>. But note that the instruction field will not appear in the token stream -- instead the contents of &quot;file.abc&quot; will appear in place. If a file is included more than once inside a song, all includes except the first are ignored. This eliminates recursive includes but might have confounding effects.</p>
-<p>Macro expansion and abc-include can be disabled by setting <code>no_expand=true</code> in the options passed to parse_abc_multisong(), parse_abc_file() or parse_abc_fragment(). Example:</p>
+<p>Macro expansion and abc-include can be disabled by setting <code>no_expand=true</code> in the options passed to <code>parse_abc_multisong()</code>, <code>parse_abc_file()</code> or <code>parse_abc_fragment()</code>. Example:</p>
 <pre><code>parse_abc_file(&#39;macros.abc&#39;, {no_expand=false}) -- parses the file with macros enabled
 parse_abc_file(&#39;macros.abc&#39;, {no_expand=true}) -- parses the file with macros disabled, macro fields are passed through</code></pre>
 <h2 id="license">License</h2>
