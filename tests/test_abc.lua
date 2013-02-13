@@ -86,7 +86,7 @@ DED | ABA | DED |
 {ed}DED | {fgA}ABA | {ed}DE{fA}D |
 ]]
     songs = abclua.parse_abc_multisong(grace)
-    grace_stream = abclua.render_grace_notes(songs[1].voices['default'].stream)
+    grace_stream = abclua.render_grace_notes(songs[1].voices['default'].stream)    
     abclua.make_midi_from_stream(grace_stream, 'out/grace.mid')        
     
 end
@@ -241,6 +241,9 @@ function test_accidentals()
     K:C
     A A z z | ^A _A =A z | ^^A __A =A z | z z z 
     ^A A A z | _A A A z | _A A =A z |  zzz
+    K:none
+    A A z z | ^A _A =A z | ^^A __A =A z | z z z 
+    ^A A A z | _A A A z | _A A =A z |  zzz
     ]]
     
     songs = abclua.parse_abc_multisong(accs)          
@@ -269,12 +272,13 @@ function test_octaves()
     octaves =[[
     X:1
     K:G
-    CDEFGabcdefgab
-    a'b'c'd'e'f'g'a''b''
-    a''b''c''d''e''f''g''a'''b'''
-    C,D,E,F,G,AB
-    C,,D,,E,,F,,G,,A,B,
-    C,,,D,,,E,,,F,,,G,,,A,,B,,]]
+    CDEFGABcdefgab
+    c'd'e'f'g'a'b'
+    c''d''e''f''g''a''b''
+    C,D,E,F,G,A,B,
+    C,,D,,,E,,,F,,,G,,,A,,B,,
+    C,,,D,,,E,,,F,,,G,,,A,,,B,,,
+    ]]
     songs = abclua.parse_abc_multisong(octaves)
     abclua.make_midi(songs[1], 'out/octaves.mid')    
 end

@@ -57,6 +57,7 @@ function parse_parts(m)
     
 end
 
+
 local voice_matcher = re.compile([[
     voice <- (({:id: [%S]+ :}) %s * {:specifiers: (<specifier> *) -> {} :}) -> {}
     specifier <- (%s * {:lhs: ([^=] +) :} + '=' {:rhs: [^%s]* :}) -> {} 
@@ -65,10 +66,11 @@ local voice_matcher = re.compile([[
 function parse_voice(voice)
     -- Parse a voice definition string
     -- Voices of the form V:ID [specifier] [specifier] ...
-    -- Returns a table with an ID and a specifiers table
-    -- e.g. V:tenor becomes {id="tenor", specifiers={}}
-    -- V:tenor clef=treble becomes {id="tenor", specifiers={lhs='clef', rhs='treble'}}
-    return voice_matcher:match(voice)
+    -- Returns a table with an ID and a table as used for keys
+    -- e.g. V:tenor becomes {id="tenor"}
+    
+    local parsed_voice = voice_matcher:match(voice)
+    return parsed_voice
 end
 
 

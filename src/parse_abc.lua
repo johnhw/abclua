@@ -253,8 +253,13 @@ function parse_abc(str, options)
     return song 
 end
     
-
-
+function compile_abc(str, options)
+    -- parse an ABC string and compile it
+    song = parse_abc(str, options) 
+    compile_token_stream(song,  get_default_context(), {})    
+    return song
+end
+    
 function get_default_context()
     return   deepcopy({
     tempo = {tempo_rate=120, [1]={num=1, den=8}}, 
@@ -316,7 +321,7 @@ function parse_abc_multisong(str, options)
     
     -- first tune might be a file header
     local first_tune = parse_abc(tunes[1], options) 
-    token_stream_to_stream(first_tune,  deepcopy(default_context), deepcopy(default_metadata))
+    compile_token_stream(first_tune,  deepcopy(default_context), deepcopy(default_metadata))
     table.insert(songs, first_tune)
     
     
@@ -332,7 +337,7 @@ function parse_abc_multisong(str, options)
         -- don't add first tune twice
         if i~=1 then
             local tune = parse_abc(v, options) 
-            token_stream_to_stream(tune, deepcopy(default_context), deepcopy(default_metadata))    
+            compile_token_stream(tune, deepcopy(default_context), deepcopy(default_metadata))    
             table.insert(songs, tune)
         end
     end

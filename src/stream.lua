@@ -121,7 +121,7 @@ function filter_event_stream(stream, includes)
     if type(includes)=='string' then        
         for i,v in ipairs(stream) do
             if v.event==includes then
-                table.insert(filtered, v.event)            
+                table.insert(filtered, v)            
             end
         end       
     end
@@ -130,7 +130,7 @@ function filter_event_stream(stream, includes)
         for i,v in ipairs(stream) do
             for j,n in ipairs(includes) do 
                 if v.event==n then
-                table.insert(filtered, v.event)            
+                table.insert(filtered, v)            
                 end
             end
         end       

@@ -1,6 +1,4 @@
--- Functions from transforming a parsed token_stream stream into a song structure and then an event stream
-
-
+-- Functions from transforming a parsed token stream into a song structure and then an event stream
 
 
 function update_timing(song)
@@ -59,7 +57,6 @@ function apply_repeats(song, bar)
             start_variant_part(song, bar)
         end        
 end
-
 
 function apply_key(song, key) 
     -- apply transpose / octave to the song state
@@ -226,7 +223,7 @@ function expand_token_stream(song)
 end
 
 
-function token_stream_to_stream(song, context, metadata)
+function compile_token_stream(song, context, metadata)
     -- Convert a token_stream into a full
     -- a song datastructure. 
     -- 

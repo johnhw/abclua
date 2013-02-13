@@ -268,6 +268,8 @@ function compute_pitch(note, song)
         if note.pitch.accidental then
             song.context.accidental = note.pitch.accidental
             accidental = note.pitch.accidental
+        else
+            accidental = song.context.accidental
         end            
     end    
     

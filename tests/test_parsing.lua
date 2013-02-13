@@ -90,11 +90,11 @@ check_reproduce(
 [[X:1
 M:3/4
 K:G
-V:A
+V:A nm=alto
 G G G | G G G | G G G
-V:B
+V:B clef=treble-8
 e3 | e3 | e3
-V:C
+V:C octave=-2
 b3 | d3 | b/2 d/2 b/2 f/2 a/2 b/2]], 'Multi-voice')
 
 
