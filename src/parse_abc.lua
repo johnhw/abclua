@@ -423,7 +423,6 @@ abc_element = abc_element
 
 -- render decorations
 -- match against instrument notes (penalties for notes)
--- diatonic transpose
 
 -- transposing macros don't work when octave modifiers and ties are applied
 -- tidy up stream rendering

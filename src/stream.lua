@@ -56,7 +56,7 @@ function time_stream(stream)
     end
     
     -- make sure events are in order
-    table.sort(stream, function(a,b) return a.t<b.t end)
+    --table.sort(stream, function(a,b) return a.t<b.t end)
     
 end
 
@@ -185,13 +185,10 @@ function render_grace_notes(stream)
     -- as ordinary notes. These notes will cut into the following note 
     local out = {}
     for i,v in ipairs(stream) do
-        if v.event=='note' and v.note.grace then
-        
-            local sequence = v.note.grace.sequence
-             
+        if v.event=='note' and v.note.grace then        
+            local sequence = v.note.grace.sequence            
             local duration = 0 -- total duration of the grace notes
-            for j,n in ipairs(sequence) do
-                
+            for j,n in ipairs(sequence) do                    
                 table.insert(out, {event='note', t=duration+v.t, duration=n.duration, pitch=n.pitch, note=n.grace})
                 duration = duration + n.duration
             end            
@@ -199,6 +196,12 @@ function render_grace_notes(stream)
             -- cut into the time of the next note, and push it along
             local cut_note = deepcopy(v)
             cut_note.duration = cut_note.duration - duration
+            
+            -- if we manage to cut the note completely then make sure
+            -- it doesn't have negative duration
+            if cut_note.duration <= 0 then                
+                cut_note.duration = 1                
+            end
             cut_note.t = cut_note.t + duration
             table.insert(out, cut_note) 
         else

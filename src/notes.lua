@@ -152,6 +152,96 @@ function parse_note(note)
     
 end
 
+
+function midi_note_from_note(mapping, note, accidental)
+    -- Given a key, get the midi note of a given note    
+    local base_pitch = pitch_table[note.pitch.note]    
+       
+    accidental = note.pitch.accidental or accidental
+    
+    -- accidentals / keys
+    if accidental then        
+        base_pitch = base_pitch + accidental        
+    else        
+        -- apply key signature sharpening / flattening
+        if mapping then
+            accidental = mapping[string.lower(note.pitch.note)]
+            base_pitch = base_pitch + accidental
+        end
+    end    
+    
+    return base_pitch + 60 + (note.pitch.octave or 0) * 12
+end
+
+local pitch_table = {c=0, d=2, e=4, f=5, g=7, a=9, b=11}
+local pitches = {'c', 'd', 'e', 'f', 'g', 'a', 'b'}
+
+function diatonic_transpose(tokens, shift)
+    -- Transpose a whole token stream by a given number of semitones    
+    local current_key, original_key        
+    local mapping, key_struct
+    local inverse_mapping = {}
+    
+    shift = shift % 12
+        
+    for i,token in ipairs(tokens) do
+        if token.token=='key' then                               
+                        
+            -- get new root key
+            original_key = create_key_structure(token.key)
+            token.key.root = shift_root_key(token.key.root, shift)
+            current_key = token.key            
+            -- work out the semitones in this key
+            mapping = create_key_structure(current_key)                                               
+            for i,v in pairs(pitch_table) do                                           
+                local k = v+mapping[i]
+                k = k % 12
+                inverse_mapping[k] = i
+            end                       
+        end        
+        
+        if token.token=='note' and mapping then
+            -- if we have a pitched note
+            if token.note.pitch then                
+                local semi = (midi_note_from_note(original_key, token.note) % 12) + shift
+                
+                -- wrap semitone to 0-11
+                semi = semi % 12
+                                
+                -- if we don't need an accidental
+                if inverse_mapping[semi] then
+                    token.note.pitch.note = inverse_mapping[semi]       
+                    token.note.pitch.accidental = nil
+                else
+                    -- check the next note
+                    token.note.pitch.note = inverse_mapping[(semi+1)%12]                     
+                    t = mapping[token.note.pitch.note]
+                    
+                    if not t or t==-1 then 
+                        -- check the note lower and sharpen it
+                        token.note.pitch.note = inverse_mapping[(semi-1)%12] 
+                        t = mapping[token.note.pitch.note]
+                        if t==0 then token.note.pitch.accidental=1 end
+                        if t==-1 then token.note.pitch.accidental=0 end
+                        if t==1 then token.note.pitch.accidental=2 end
+                    else
+                        -- if we can just flatten that one, use that
+                        if t==0 then token.note.pitch.accidental=-1 end
+                        if t==1 then token.note.pitch.accidental=0 end
+                    
+                    end
+                
+                    
+                end                                
+            end
+        end
+        
+    end
+    
+end
+
+
+
 function compute_pitch(note, song)
     -- compute the real pitch (in MIDI notes) of a note event
     -- taking into account: 
@@ -166,36 +256,24 @@ function compute_pitch(note, song)
     if note.rest or note.measure_rest then
         return -1
     end
-   
-   local base_pitch = pitch_table[note.pitch.note]
     
-    if note.pitch.octave then
-        base_pitch = base_pitch + note.pitch.octave * 12
-    end
+    local accidental
     
-    -- accidental in K:none applies only to following notes
-    -- otherwise applies to whole measure
-    -- accidental is cleared when a bar is encountered
+    -- in K:none mode, accidentals don't persist until the end of
+    -- the bar. 
     if song.context.key.none then
-        accidental = note.pitch.accidental 
+        -- must specify accidental as there is no key mapping
+        accidental = note.pitch.accidental or 0
     else
         if note.pitch.accidental then
-            song.context.accidental = note.pitch.accidental 
-        end
-        accidental = song.context.accidental
-    end
+            song.context.accidental = note.pitch.accidental
+            accidental = note.pitch.accidental
+        end            
+    end    
     
-    -- accidentals / keys
-    if accidental then
-        base_pitch = base_pitch + accidental
-    else        
-        -- apply key signature sharpening / flattening
-        local acc = song.context.key_mapping[string.lower(note.pitch.note)]
-        base_pitch = base_pitch + acc
-    end
-        
+    base_pitch = midi_note_from_note(song.context.key_mapping, note, accidental)                
     base_pitch = base_pitch + song.context.global_transpose
-    return base_pitch + 60  -- MIDI middle C
+    return base_pitch 
 end
 
 function compute_duration(note, song)
@@ -351,6 +429,7 @@ function expand_grace(song, grace_note)
     song.context.timing.prev_broken_note = 1
     song.context.timing.triplet_compress = 1
     song.context.timing.base_note_length = song.context.timing.grace_note_length -- switch to grace note timing
+    
     
     local grace = {}
     

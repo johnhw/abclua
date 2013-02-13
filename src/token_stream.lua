@@ -16,7 +16,7 @@ function update_timing(song)
     rate = 60.0 / (total_note * song.context.tempo.tempo_rate)
     song.context.timing.base_note_length = rate / note_length
     
-    song.context.timing.grace_note_length = rate / (song.context.grace_length.num / song.context.grace_length.den)
+    song.context.timing.grace_note_length = rate / (song.context.grace_length.den/song.context.grace_length.num)
 end    
 
 
