@@ -1,4 +1,4 @@
-local pitch_table = {C=0, D=2, E=4, F=5, G=7, A=9, B=11}
+local pitch_table = {c=0, d=2, e=4, f=5, g=7, a=9, b=11}
 
 
 function default_note_length(song)
@@ -81,9 +81,10 @@ function canonicalise_note(note)
         -- +1 octave for lower case notes
         if note.pitch.note == string.lower(note.pitch.note) then
             octave = octave + 1
-            note.pitch.note = string.upper(note.pitch.note)
+            
         end
         
+        note.pitch.note = string.lower(note.pitch.note)
         note.pitch.octave = octave 
        
         -- accidentals

@@ -106,7 +106,8 @@ function abc_key(key)
     end
     
     -- root and modal modifier
-    local root = string.upper(key.root) 
+    local root = string.upper(string.sub(key.root,1,1)) .. string.sub(key.root,2,-1)    
+    
     if key.mode then     
         root = root .. key.mode
     end
@@ -372,21 +373,22 @@ function abc_pitch(note_pitch)
     -- octave shifts
     if note_pitch.octave then
         local octave = note_pitch.octave
-        if octave>0 then
-            pitch = string.lower(note_pitch.note)
-            octave = octave-1
+        
+        if octave<1 then
+            pitch = string.upper(note_pitch.note)
+            octave = octave+1
         end
         
         
         -- increase octave with '
-        if octave>0 then
-            for i=1,octave do
+        if octave>1 then
+            for i=1,octave-1 do
                 pitch = pitch .. "'"
             end
         end 
         -- decrease octave with ,
-        if octave<0 then
-            for i=1,-octave do
+        if octave<1 then
+            for i=1,(1-octave) do
                 pitch = pitch .. ","
             end
         end

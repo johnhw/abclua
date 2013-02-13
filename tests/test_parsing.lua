@@ -193,6 +193,10 @@ K:E
 EFGABcde z4
 K:G
 GABcdefg z4
+K:Gb
+GABcdefg z4
+K:C#
+GABcdefg z4
 K:Gdor
 GABcdefg z4
 K:Gloc
@@ -291,5 +295,6 @@ w:oh the-se are so-me words to~a song
 W:Th-ese app-ear at the end
 Z:no one in particular
 K:G]], 'All fields')
+
 
 

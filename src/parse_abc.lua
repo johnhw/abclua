@@ -356,7 +356,6 @@ function parse_abc_fragment(str, parse, options)
     
     -- use default parse structure if not one specified
     song.parse = parse or {in_header=false, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand}    
-    parse_abc_line(str, song)
     if not pcall(parse_abc_line, str, song) then
         song.token_stream = nil -- return nil if the fragment is unparsable
     end
@@ -428,10 +427,10 @@ abc_element = abc_element
 
 -- transposing macros don't work when octave modifiers and ties are applied
 -- tidy up stream rendering
--- Fix voice defs
+-- voice transpose/octave/+8-8
 
 -- fix lyrics alignment (2.0 compatible and verses)
--- voice transpose/octave/+8-8
+
 
 -- styling for playback
 -- decorators with extended effect (e.g. crescendo, accelerando)

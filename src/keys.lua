@@ -35,7 +35,7 @@ bs=12
 }
 
 function get_note_number(note)
-    return note_table[note]
+    return note_table[string.lower(note:gsub('#','s'))]
 end
 
 local key_note_table = {
@@ -57,7 +57,20 @@ bb=10
 }
 
 
-
+function shift_root_key(key, semis)
+    -- given a root note and a shift (in semitones)
+    -- work out the new root key. Examples
+    -- C,+2  = D
+    -- C,-1 = B
+    -- E,-1 = Eb
+    local k = string.lower(key:gsub('#','s'))
+    local inv_note_table = invert_table(key_note_table)
+    local semi = (key_note_table[k]+semis)
+    if semi<0 then
+        semi = semi + 12
+    end
+    return inv_note_table[semi % 12]
+end
 
 
 -- semitones in the major scale
@@ -73,7 +86,7 @@ b = {1,1,0,1,1,1,0},
 fs = {1,1,1,1,1,1,0},
 cs = {1,1,1,1,1,1,1},
 f =  {0,0,0,0,0,0,-1},
-bb = {0,0,-1,0,0,0,0},
+bb = {0,0,-1,0,0,0,-1},
 eb = {0,0,-1,0,0,-1,-1},
 ab = {0,-1,-1,0,0,-1,-1},
 db = {0,-1,-1,0,-1,-1,-1},
@@ -152,7 +165,7 @@ end
 
 local key_matcher = re.compile([[
     key <- ( {:none: ('none') :} / {:pipe: ('Hp' / 'HP') :} / (
-        {:root: ([a-gA-G]):}  ({:flat: ('b'):}) ? ({:sharp: ('#'):}) ?  
+        {:root: ([a-gA-G]) 'b'? '#'? :}  
         (%s * {:mode: (mode %S*):}) ? 
         (%s * {:accidentals: (accidentals):}) ?         
          ({:clef:  ((%s + <clef>) +) -> {}   :})  ?           
@@ -206,6 +219,8 @@ function parse_key(k)
 end
 
 
+
+
 function create_key_structure(k)
     -- Create a key structure, which lists each note as written (e.g. A or B)
     -- and maps it to the correct semitone in the interval
@@ -235,13 +250,7 @@ function create_key_structure(k)
     else
         -- find the matching key        
         local root = k.root
-        if k.flat then
-            root = root..'b'
-        end
-        
-        if k.sharp then
-            root = root..'s'
-        end                      
+        root = root:gsub('#', 's')
         
         -- offset according to mode
         if k.mode then
