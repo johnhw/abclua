@@ -16,6 +16,19 @@ function gcd(a, b)
   return b
 end
 
+function first_difference_string(a,b)
+    -- Determines where the mismatch in two strings is
+    -- Returns the mismatch point or nil is there isn't one
+    local mismatch 
+    for i=1,string.len(a) do
+        if i>string.len(b) or string.sub(a,1,i)~=string.sub(b,1,i) then
+            mismatch = i
+            break
+        end    
+    end
+    return mismatch
+end
+
 
 -- set a field of the whole table
 function set_property(t, key, value)
@@ -38,6 +51,13 @@ function deepcopy(orig)
         copy = orig
     end
     return copy
+end
+
+-- Right trim a string
+function rtrim(s)
+  local n = #s
+  while n > 0 and s:find("^%s", n) do n = n - 1 end
+  return s:sub(1, n)
 end
 
 -- Print anything - including nested tables

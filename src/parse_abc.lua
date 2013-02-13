@@ -15,7 +15,7 @@ slurred_note <- ( ((<complete_note>) -> {}) / ( ({:chord: chord :} ) ? '(' ((<co
 
 
 chord_group <- ( ({:chord: chord :} ) ? ('[' ((<complete_note> %s*) +) ']' ) ) -> {} 
-complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: {(decoration +)}->{} :}) ? {:note_def: full_note  :} (%s * {:tie: (tie)  :}) ? ) -> {}
+complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: {(decoration +)}->{} :}) ?  {:note_def: full_note :}  (%s * {:tie: (tie)  :}) ? ) -> {} 
 triplet <- ('(' {[1-9]} (':' {[1-9] ?}  (':' {[1-9]} ? ) ?) ?) -> {}
 grace <- ('{' full_note + '}') -> {}
 tie <- ('-')
@@ -124,6 +124,7 @@ function read_tune_segment(tune_data, song)
             
             -- insert the individual notes
             for i,note in ipairs(v.slur) do                
+                
                 local cnote = parse_note(note)                
                 table.insert(song.token_stream, {event='note', note=cnote})
             end
@@ -253,10 +254,10 @@ end
 
 function get_default_context()
     return   deepcopy({
-    tempo = {div_rate=120, [1]={num=1, den=8}}, 
+    tempo = {tempo_rate=120, [1]={num=1, den=8}}, 
     use_parts = false,
     meter_data = {num=4, den=4},
-    key_data = { naming={root='C', mode='maj'}, clef={}},
+    key = { root='C', mode='maj', clef={}},
     key_mapping = {c=0,d=0,e=0,f=0,g=0,a=0,b=0},
     global_transpose = 0,
     grace_length = {num=1, den=32}
@@ -420,7 +421,6 @@ abc_element = abc_element
 --  guess bar locations; break every 4 bars
 --  guess broken rhythm
 
--- simplify note events (note_def etc.)
 -- render decorations
 -- match against instrument notes (penalties for notes)
 -- diatonic transpose
@@ -428,6 +428,8 @@ abc_element = abc_element
 -- transposing macros don't work when octave modifiers and ties are applied
 -- tidy up stream rendering
 -- check fragment parsing (e.g. "K:g")
+-- Fix voice defs
+-- fix trailing newlines
 
 -- fix lyrics alignment (2.0 compatible and verses)
 -- voice transpose/octave/+8-8

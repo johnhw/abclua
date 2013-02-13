@@ -74,38 +74,37 @@ end
 
 local tempo_matcher = re.compile([[
 tempo <- (
-({:name: qstring :} %s +) ?
+
+    (["] {:name: [^"]* :} ["] %s +) ?
     ( 
-    (  (  (div (%s + div) *)  )  %s * '=' %s * {:div_rate: number:} )  /
-    (  'C=' {:div_rate: number:} ) /
-    (  {:div_rate: number :} ) 
+    (  (  (div (%s + div) *)  )  %s * '=' %s * {:tempo_rate: number:} )  /
+    (  'C=' {:tempo_rate: number:} ) /
+    (  {:tempo_rate: number :} ) 
     ) 
-(%s + {:name: qstring :}) ?
+    (%s + ["] {:name: [^"]* :} ["] %s *) ?
 ) -> {}
 
 div <- ({:num: number:} %s * '/' %s * {:den: number:}) -> {}
 number <- ( [0-9] + )
-qstring <- ( ["] [^"]* ["] )
 ]])
 
 function parse_tempo(l)
     -- Parse a tempo string
-    -- Returns a tempo table, with an (optional) name and div_rate field
-    -- div_rate is in units per second
+    -- Returns a tempo table, with an (optional) name and tempo_rate field
+    -- tempo_rate is in units per second
     -- the numbered elements specify the unit lengths to be played up to that point
     -- each element has a "num" and "den" field to specify the numerator and denominator
-    local captures = tempo_matcher:match(l)    
-  
+    local captures = tempo_matcher:match(l)        
     return captures
 end
 
-local length_matcher = re.compile("('1' ('/' {[0-9] +}) ?)")
+local length_matcher = re.compile("('1' ('/' {[0-9] +}) ?) -> {}")
 function parse_length(l)
     -- Parse a string giving note length, as a fraction "1/n" (or plain "1")
     -- Returns integer representing denominator.
-    local captures = length_matcher:match(l) 
-    if captures then
-        return captures+0
+    local captures = length_matcher:match(l)             
+    if captures[1] then
+        return captures[1]+0
     else
         return 1    
     end
@@ -120,6 +119,16 @@ function get_simplified_meter(meter)
     -- (e.g. (2+3+2)/8 becomes 7/8)
     -- the beat emphasis is stored as
     -- emphasis = {1,3,5}
+
+    if meter.common then
+        return {num=4, den=4, emphasis={0}}
+    end
+    
+    if meter.cut then
+        return {num=2, den=2, emphasis={0}}
+    end
+    
+    
     local total_num = 0
     local emphasis = {}
     for i,v in ipairs(meter.num) do
@@ -131,8 +140,8 @@ end
 
 local meter_matcher = re.compile([[
     meter <- (fraction / cut / common / none) 
-    common <- ({:num: '' -> '4':} {:den: '' -> '4':} 'C') -> {}
-    cut <- ({:num: '' -> '2':} {:den: '' -> '2' :} 'C|' ) -> {}
+    common <- ({:common: 'C' :}) -> {}
+    cut <- ({:cut: 'C|' :}) -> {}
     none <- ('none' / '')  -> {}    
     fraction <- ({:num: complex :} %s * '/' %s * {:den: [0-9]+ :}) -> {}    
     complex <- ( '(' ? ((number + '+') * number) ->{} ')' ? )
@@ -142,8 +151,7 @@ local meter_matcher = re.compile([[
 function parse_meter(m)
     -- Parse a string giving the meter definition
     -- Returns fraction as a two element table
-    local captures = meter_matcher:match(m)
-   
+    local captures = meter_matcher:match(m)    
     return get_simplified_meter(captures)
     
 end
@@ -312,8 +320,11 @@ function parse_field(f, song, inline)
     
     if field_name=='user' then
         -- user macro (not transposable)
-        local macro = parse_macro(content)
-        table.insert(song.parse.user_macros, macro)
+        if song.parse.no_expand then
+            table.insert(song.token_stream, {event='field_text', name='user', content=content, inline=inline})                    
+        else        
+            table.insert(song.parse.user_macros, parse_macro(content))
+        end
     end
     
     if field_name=='macro' then

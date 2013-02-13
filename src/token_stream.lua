@@ -13,9 +13,8 @@ function update_timing(song)
         total_note = total_note + (v.num / v.den)
     
     end                    
-    rate = 60.0 / (total_note * song.context.tempo.div_rate)
+    rate = 60.0 / (total_note * song.context.tempo.tempo_rate)
     song.context.timing.base_note_length = rate / note_length
-    -- grace notes assumed to be 32nds
     
     song.context.timing.grace_note_length = rate / (song.context.grace_length.num / song.context.grace_length.den)
 end    
@@ -62,22 +61,22 @@ function apply_repeats(song, bar)
 end
 
 
-function apply_key(song, key_data) 
+function apply_key(song, key) 
     -- apply transpose / octave to the song state
-    if key_data.clef then                 
-        if key_data.clef.octave then
-            song.context.global_transpose = 12 * key_data.clef.octave -- octave shift
+    if key.clef then                 
+        if key.clef.octave then
+            song.context.global_transpose = 12 * key.clef.octave -- octave shift
         else
             song.context.global_transpose = 0
         end
         
-        if key_data.clef.transpose then 
-            song.context.global_transpose = song.context.global_transpose + key_data.clef.transpose                
+        if key.clef.transpose then 
+            song.context.global_transpose = song.context.global_transpose + key.clef.transpose                
         end
     end 
     
     -- update key map
-    song.context.key_mapping = create_key_structure(key_data.naming)
+    song.context.key_mapping = create_key_structure(key)
 end
 
 function finalise_song(song)
@@ -214,17 +213,14 @@ function expand_token_stream(song)
         
         -- update key
         if v.event=='key' then            
-            song.context.key_data = v.key
-            apply_key(song, song.context.key_data)
+            song.context.key = v.key
+            apply_key(song, song.context.key)
         end
  
     
     end
     
 end
-
-
-
 
 
 function token_stream_to_stream(song, context, metadata)

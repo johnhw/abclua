@@ -260,6 +260,21 @@ function test_lyrics()
     
 end
 
+function test_octaves()
+    -- Test octave specifiers
+    octaves =[[
+    X:1
+    K:G
+    CDEFGabcdefgab
+    a'b'c'd'e'f'g'a''b''
+    a''b''c''d''e''f''g''a'''b'''
+    C,D,E,F,G,AB
+    C,,D,,E,,F,,G,,A,B,
+    C,,,D,,,E,,,F,,,G,,,A,,B,,]]
+    songs = abclua.parse_abc_multisong(octaves)
+    abclua.make_midi(songs[1], 'out/octaves.mid')    
+end
+
 function test_parts()
     -- Test multi-part sequences and variant endings
     parts = [[
@@ -430,6 +445,7 @@ function test_file()
     end 
 end
 
+test_octaves()  
 test_include()
 test_overlay()
 test_macros()

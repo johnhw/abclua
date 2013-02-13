@@ -66,18 +66,23 @@ function abc_tempo(tempo)
     -- e.g. Q:1/4=120 or Q=1/2 1/4 1/2=80 "allegro"
     local q = ''
     
+    if not tempo[1] then
+        -- tempo without length indicator
+        q = ''..tempo.tempo_rate
+    else
     
-    -- abc out the tempo units
-    for i,v in ipairs(tempo) do
-        q = q .. string.format('%s/%s ', v.num..'', v.den..'')
+        -- abc out the tempo units
+        for i,v in ipairs(tempo) do
+            q = q .. string.format('%s/%s ', v.num..'', v.den..'')
+        end
+        
+        -- strip trailing space
+        q = string.sub(q, 1, -2)
+        
+        -- the rate as =140
+        q = q .. '=' .. tempo.tempo_rate
     end
-    
-    -- strip trailing space
-    q = string.sub(q, 1, -2)
-    
-    -- the rate as =140
-    q = q .. '=' .. tempo.div_rate
-    
+        
     -- tempo names (e.g. "allegro")
     if tempo.name then
         q = q .. ' "' .. tempo.name .. '"'
@@ -90,28 +95,27 @@ function abc_key(key)
     -- return the string representation of a key 
     local clef = ''
     local acc = ''
-    local name = key.naming
     
     -- no key
-    if key.naming.none then
+    if key.none then
         return 'K:none' 
     end
     
-    if key.naming.pipe then
+    if key.pipe then
         return 'K:HP'
     end
     
     -- root and modal modifier
-    local root = string.upper(key.naming.root) 
-    if key.naming.mode then     
-        root = root .. key.naming.mode
+    local root = string.upper(key.root) 
+    if key.mode then     
+        root = root .. key.mode
     end
 
     -- accidentals
-    if key.naming.accidentals then
-        acc = ' '
-        for i,v in ipairs(key.naming.accidentals) do
-            acc = acc .. v
+    if key.accidentals then
+        acc = ''
+        for i,v in ipairs(key.accidentals) do
+            acc = acc .. ' '.. v
         end
     end
     
@@ -367,18 +371,22 @@ function abc_pitch(note_pitch)
     
     -- octave shifts
     if note_pitch.octave then
-        if note_pitch.octave==1 then
+        local octave = note_pitch.octave
+        if octave>0 then
             pitch = string.lower(note_pitch.note)
+            octave = octave-1
         end
+        
+        
         -- increase octave with '
-        if note_pitch.octave>1 then
-            for i=2,note_pitch.octave do
+        if octave>0 then
+            for i=1,octave do
                 pitch = pitch .. "'"
             end
         end 
         -- decrease octave with ,
-        if note_pitch.octave<0 then
-            for i=1,-note_pitch.octave do
+        if octave<0 then
+            for i=1,-octave do
                 pitch = pitch .. ","
             end
         end
@@ -495,7 +503,7 @@ function abc_note(note)
     end
     
     -- pitch and duration
-    note_str = note_str .. abc_note_def(note.note_def)
+    note_str = note_str .. abc_note_def(note)
     
     -- ties
     if note.tie then
@@ -521,7 +529,7 @@ function abc_bar(bar)
     
     local bar_str = ''
     
-    local type_symbols = {plain='|', double='||', thickthin=']|', thinthick='[|',
+    local type_symbols = {plain='|', double='||', thickthin='[|', thinthick='|]',
     variant='['}
     
     for i,v in pairs(type_symbols) do
@@ -548,13 +556,14 @@ function abc_bar(bar)
     
     -- variant indicators (e.g. for parts [4 or for repeats :|1 x x x :|2 x x x ||)
     if bar.variant_range then
+      
         -- for part variants, can have multiple indicators
-        if bar.variant then
+        if bar.type=='variant' then
             for i,v in ipairs(bar.variant_range) do
                 bar_str = bar_str .. v .. ','
             end
             -- remove last comma
-            bar_str = string.sub(bar_str, 1, -1)
+            bar_str = string.sub(bar_str, 1, -2)
         else
             -- can only have one variant indicator
             bar_str = bar_str .. bar.variant_range[1]
@@ -638,7 +647,7 @@ function token_stream_to_abc(token_stream)
          table.insert(output, abc_element(v))
     end
     -- concatenate into a single string
-    return table.concat(output)
+    return rtrim(table.concat(output))
 end
 
 function abc_from_songs(songs, creator)

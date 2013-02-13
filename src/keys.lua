@@ -200,7 +200,8 @@ function parse_key(k)
         captures.clef.t = nil
     end
     
-    return {naming = captures,  clef=captures.clef}
+    return captures
+    
     
 end
 

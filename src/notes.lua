@@ -16,7 +16,7 @@ function default_note_length(song)
     return 8
 end
 
-function parse_note_def(note)
+function canonicalise_note(note)
     -- Canonicalise a note, filling in the full duration field. 
     -- Remove slashes from the duration
     -- Fills in full duration field
@@ -121,21 +121,17 @@ function parse_note_def(note)
     
 end
 
-function parse_note(note)
-    -- Parse a note structure. 
+function make_note(note)
+    -- Clean up a note structure. 
     -- Clean up the duration and pitch of notes and any grace notes
     -- Replace the decoration string with a sequence of decorators
-    
-    
     -- fix the note itself
-    if note.note_def then
-        parse_note_def(note.note_def)
-    end
+    canonicalise_note(note)
     
     -- and the grace notes
     if note.grace then
         for i,v in ipairs(note.grace) do
-            parse_note_def(v)
+            canonicalise_note(v)
         end
     end
     
@@ -144,6 +140,16 @@ function parse_note(note)
     
 end
 
+function parse_note(note)
+    -- move note def into the note itself
+    
+    for i,v in pairs(note.note_def) do
+        note[i] = v
+    end
+    note.note_def = nil
+    return make_note(note)
+    
+end
 
 function compute_pitch(note, song)
     -- compute the real pitch (in MIDI notes) of a note event
@@ -169,7 +175,7 @@ function compute_pitch(note, song)
     -- accidental in K:none applies only to following notes
     -- otherwise applies to whole measure
     -- accidental is cleared when a bar is encountered
-    if song.context.key_data.naming.none then
+    if song.context.key.none then
         accidental = note.pitch.accidental 
     else
         if note.pitch.accidental then
@@ -367,7 +373,7 @@ end
     
 function insert_note(note, song)
         -- insert a new note into the song
-        local note_def = note.note_def
+        local note_def = note
         local pitch = compute_pitch(note_def, song)
         local duration = compute_duration(note_def, song)
        

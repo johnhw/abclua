@@ -92,7 +92,7 @@ function print_notes(stream)
     
     for i,event in ipairs(stream) do        
         if event.event == 'note' then                      
-           table.insert(notes, event.note.note_def.pitch.note)
+           table.insert(notes, event.note.pitch.note)
         end
         if event.event == 'rest' then
             table.insert(notes, '~')
@@ -305,7 +305,7 @@ function print_lyrics_notes(stream)
         end
     
         if event.event == 'note' then                      
-           table.insert(notes, event.note.note_def.pitch.note)
+           table.insert(notes, event.note.pitch.note)
         end
         if event.event == 'rest' then
             table.insert(notes, '~')
