@@ -22,7 +22,7 @@ end
 
 
 function abc_include(song, directive, arguments)
-    -- Include a file. We can just directly invoke parse_abc_song() on 
+    -- Include a file. We can just directly invoke parse_abc_string() on 
     -- the file contents. The include file must have only one tune -- no multi-tune files
     
     local filename = arguments[1]
@@ -43,8 +43,8 @@ function abc_include(song, directive, arguments)
             -- and we can read it...
             local contents = f:read('*a')
             if contents then
-                -- then recursively invoke parse_abc_song
-                parse_abc_song(song, contents)
+                -- then recursively invoke parse_abc_string
+                parse_abc_string(song, contents)
             end
         end
     end

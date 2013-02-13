@@ -110,6 +110,38 @@ function print_notes(stream)
 end
 
 
+
+
+function print_lyrics_notes(stream)
+    -- print out the notes and lyrics, as a sequence of pitches interleaved with 
+    -- syllables
+    local notes = {}
+    
+    for i,event in ipairs(stream) do        
+    
+        if event.event == 'lyric' then                      
+           table.insert(notes, ' "'..event.syllable..'" ')
+        end
+    
+        if event.event == 'note' then                      
+           table.insert(notes, event.note.pitch.note)
+        end
+        if event.event == 'rest' then
+            table.insert(notes, '~')
+        end
+        if event.event == 'bar' then
+            table.insert(notes, '|')
+        end
+        if event.event == 'split_line' then
+            table.insert(notes, '\n')
+        end
+    end
+    
+    print(table.concat(notes))
+    
+end
+
+
 function filter_event_stream(stream, includes)
     -- return a copy of the stream, keeping only those specified events in the stream
     local filtered = {}
@@ -294,36 +326,6 @@ end
     
     
     
-
-
-function print_lyrics_notes(stream)
-    -- print out the notes and lyrics, as a sequence of pitches interleaved with 
-    -- syllables
-    local notes = {}
-    
-    for i,event in ipairs(stream) do        
-    
-        if event.event == 'lyric' then                      
-           table.insert(notes, event.syllable)
-        end
-    
-        if event.event == 'note' then                      
-           table.insert(notes, event.note.pitch.note)
-        end
-        if event.event == 'rest' then
-            table.insert(notes, '~')
-        end
-        if event.event == 'bar' then
-            table.insert(notes, '|')
-        end
-        if event.event == 'split_line' then
-            table.insert(notes, '\n')
-        end
-    end
-    
-    print(table.concat(notes))
-    
-end
 
 function note_stream_to_opus(note_stream)
     -- make sure events are in time order

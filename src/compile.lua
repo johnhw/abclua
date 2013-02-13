@@ -192,8 +192,8 @@ function expand_token_stream(song)
         end
         
         if v.token=='words' then         
-            
-            append_table(song.context.lyrics, v.lyrics)
+            table.insert(song.opus, {event='lyric_align'}) 
+            table.insert(song.context.lyrics, v.lyrics)
         end
             
         if v.token=='parts' then

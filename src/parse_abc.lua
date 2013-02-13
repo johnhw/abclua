@@ -224,7 +224,7 @@ function parse_abc_line(line, song)
 end    
 
 
-function parse_abc_song(song, str)    
+function parse_abc_string(song, str)    
     -- parse an ABC file and fill in the song structure
     -- this is a separate method so that recursive calls can be made to it 
     -- to include subfiles
@@ -248,7 +248,7 @@ function parse_abc(str, options)
     song.token_stream = {}
     options = options or {}    
     song.parse = {in_header=true, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand or false}    
-    parse_abc_song(song, str)
+    parse_abc_string(song, str)
      
     return song 
 end
@@ -361,9 +361,8 @@ function parse_abc_fragment(str, parse, options)
     
     -- use default parse structure if not one specified
     song.parse = parse or {in_header=false, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand}    
-    if not pcall(parse_abc_line, str, song) then
-        song.token_stream = nil -- return nil if the fragment is unparsable
-    end
+    parse_abc_string(song, str)
+    
     return song.token_stream
 end
 
@@ -427,14 +426,10 @@ abc_element = abc_element
 -- TODO:
 
 -- render decorations
--- match against instrument notes (penalties for notes)
 
 -- transposing macros don't work when octave modifiers and ties are applied
 -- tidy up stream rendering
 -- voice transpose/octave/+8-8
-
--- fix lyrics alignment (2.0 compatible and verses)
-
 
 -- styling for playback
 -- decorators with extended effect (e.g. crescendo, accelerando)
