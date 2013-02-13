@@ -426,25 +426,30 @@ function song_to_opus(song, patches)
     local merged_stream = {}
     local score = {1000,
         {    
-            {'set_tempo', 0, 1000000},        
+            {'set_tempo', 0, 1000000},     
+           {'patch_change', 0,1,41},     
+             
         },          
     }    
     -- set the patch for each channel
     for i=1,#song.voices do
         if patches[i] then
-            table.insert(score[2], 'patch_change', 0, i, patches[i])
+            table.insert(score[2], {'patch_change', 0, i, patches[i]})
         else
-            table.insert(score[2], 'patch_change', 0, i, 41)
+            table.insert(score[2], {'patch_change', 0, i, 41})
         end
     end
     
     -- merge in each voice
     for i,v in pairs(song.voices) do
+        print(channel)
         channel = channel + 1        
         append_table(merged_stream, get_note_stream(v.stream, channel))         
     end
         
    append_table(score[2], note_stream_to_opus(merged_stream))
+   
+ 
    return score
 end
 
