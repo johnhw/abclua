@@ -421,9 +421,6 @@ abc_element = abc_element
 
 
 -- TODO:
--- from midi: rename to abc_from_midi
---  guess bar locations; break every 4 bars
---  guess broken rhythm
 
 -- render decorations
 -- match against instrument notes (penalties for notes)
@@ -431,9 +428,7 @@ abc_element = abc_element
 
 -- transposing macros don't work when octave modifiers and ties are applied
 -- tidy up stream rendering
--- check fragment parsing (e.g. "K:g")
 -- Fix voice defs
--- fix trailing newlines
 
 -- fix lyrics alignment (2.0 compatible and verses)
 -- voice transpose/octave/+8-8
