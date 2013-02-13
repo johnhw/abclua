@@ -128,7 +128,11 @@ function test_fragments()
     -- token streams, and that token -> event conversion works
     tokens = abclua.parse_abc_fragment('A>bA')
     table_print(tokens)
-
+    events = abclua.fragment_to_stream(tokens)
+    table_print(events)
+    
+    tokens = abclua.parse_abc_fragment('X:title')
+    table_print(tokens)    
     events = abclua.fragment_to_stream(tokens)
     table_print(events)
 end

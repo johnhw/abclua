@@ -43,16 +43,16 @@ function read_tune_segment(tune_data, song)
         
         if v.measure_rest then
             local bars = v.measure_rest.bars or 1
-            table.insert(song.token_stream, {event='measure_rest', bars=bars})
+            table.insert(song.token_stream, {token='measure_rest', bars=bars})
         end
         
         -- store annotations
         if v.free_text then
             -- could be a standalone chord
             if is_chord(v.free_text.text) then
-                table.insert(song.token_stream, {event='chord', chord=v.free_text.text})
+                table.insert(song.token_stream, {token='chord', chord=v.free_text.text})
             else
-                table.insert(song.token_stream, {event='text', text=v.free_text.text})
+                table.insert(song.token_stream, {token='text', text=v.free_text.text})
             end
         end
         
@@ -64,29 +64,29 @@ function read_tune_segment(tune_data, song)
         
         -- deal with triplet definitions
         if v.triplet then                                        
-            table.insert(song.token_stream, {event='triplet', triplet=parse_triplet(v.triplet, song)})
+            table.insert(song.token_stream, {token='triplet', triplet=parse_triplet(v.triplet, song)})
             
         end
         
         -- voice overlay
         if v.overlay then
-            table.insert(song.token_stream, {event='overlay'})
+            table.insert(song.token_stream, {token='overlay'})
         end
         
         -- beam splits
         if v.s then
-            table.insert(song.token_stream, {event='split'})
+            table.insert(song.token_stream, {token='split'})
         end
         
         -- linebreaks
         if v.linebreak then
-            table.insert(song.token_stream, {event='split_line'})
+            table.insert(song.token_stream, {token='split_line'})
         end
             
         
         -- deal with bars and repeat symbols
         if v.bar then            
-            table.insert(song.token_stream, {event='bar', bar=parse_bar(v.bar)  })                      
+            table.insert(song.token_stream, {token='bar', bar=parse_bar(v.bar)  })                      
         end
         
         -- chord groups
@@ -94,17 +94,17 @@ function read_tune_segment(tune_data, song)
         
             -- textual chords
             if v.chord_group.chord then
-                table.insert(song.token_stream, {event='chord', chord=v.chord_group.chord})                                
+                table.insert(song.token_stream, {token='chord', chord=v.chord_group.chord})                                
             end
             
             if v.chord_group[1] then
-                table.insert(song.token_stream, {event='chord_begin'})                                
+                table.insert(song.token_stream, {token='chord_begin'})                                
                 -- insert the individual notes
                 for i,note in ipairs(v.chord_group) do                
                     local cnote = parse_note(note)
-                    table.insert(song.token_stream, {event='note', note=cnote})                        
+                    table.insert(song.token_stream, {token='note', note=cnote})                        
                 end
-                table.insert(song.token_stream, {event='chord_end'})                                
+                table.insert(song.token_stream, {token='chord_end'})                                
             end                               
             
         end
@@ -112,13 +112,13 @@ function read_tune_segment(tune_data, song)
         -- if we have slur groups then there are some notes to parse...
         if v.slur then            
             if v.slur.chord then
-                table.insert(song.token_stream, {event='chord', chord=v.slur.chord})                                
+                table.insert(song.token_stream, {token='chord', chord=v.slur.chord})                                
             end
             
             -- slur groups (only put the group in if there
             -- are more than elements, or there is an associated chord name)
             if #v.slur>1  then
-                table.insert(song.token_stream, {event='slur_begin'} )
+                table.insert(song.token_stream, {token='slur_begin'} )
                
             end
             
@@ -126,11 +126,11 @@ function read_tune_segment(tune_data, song)
             for i,note in ipairs(v.slur) do                
                 
                 local cnote = parse_note(note)                
-                table.insert(song.token_stream, {event='note', note=cnote})
+                table.insert(song.token_stream, {token='note', note=cnote})
             end
                 
             if #v.slur>1 then
-                table.insert(song.token_stream, {event='slur_end'} )
+                table.insert(song.token_stream, {token='slur_end'} )
             end
 
         end
@@ -175,11 +175,24 @@ function parse_abc_line(line, song)
     
     -- strip comments
     line = line:gsub("%%.*", "")
+    
+    --
+    -- read header or metadata
+    --       
+    -- read metadata fields
+    local field_parsed = parse_field(line, song)
+      
+   
+    -- check if we've read the complete header; terminated on a key
+    if song.parse.found_key and song.parse.in_header then
+        song.parse.in_header = false
+        table.insert(song.token_stream, {token='header_end'})
+    end
         
     --
     -- read tune
     --
-    if not song.parse.in_header then
+    if not field_parsed and not song.parse.in_header then
         
         -- try and match notes
         local match = tune_matcher:match(line)
@@ -207,17 +220,7 @@ function parse_abc_line(line, song)
         end
     end
     
-    --
-    -- read header or metadata
-    --       
-    -- read metadata fields
-    parse_field(line, song)
-      
-    -- check if we've read the complete header; terminated on a key
-    if song.parse.found_key and song.parse.in_header then
-        song.parse.in_header = false
-        table.insert(song.token_stream, {event='header_end'})
-    end
+    
 end    
 
 
@@ -350,6 +353,7 @@ function parse_abc_fragment(str, parse, options)
     local song = {}
     options = options or {}
     song.token_stream = {}
+    
     -- use default parse structure if not one specified
     song.parse = parse or {in_header=false, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand}    
     parse_abc_line(str, song)
@@ -371,7 +375,7 @@ function fragment_to_stream(tokens, context)
     local song = {context=deepcopy(context), token_stream=tokens}
             
     song.voices = {}
-    song.metadata = metadata        
+    song.metadata = {}
     start_new_voice(song, 'default')
     expand_token_stream(song)    
     

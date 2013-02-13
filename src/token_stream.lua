@@ -134,85 +134,88 @@ function expand_token_stream(song)
         table.insert(song.opus, {event='abc', abc=abc_element(v)}) 
         
         -- copy in standard events that don't change the context state
-        if v.event ~= 'note' then
-           table.insert(song.opus, deepcopy(v))
+        if v.token ~= 'note' then
+           local event = deepcopy(v)
+           event.event = event.token
+           event.token = nil
+           table.insert(song.opus, event)
         else
            insert_note(v.note, song)                                         
         end
        
         -- end of header; store metadata so far
-        if v.event=='header_end' then
+        if v.token=='header_end' then
             song.header_metadata = deepcopy(song.metadata)
             song.header_context = deepcopy(song.context) 
         end
        
         -- deal with triplet definitions
-        if v.event=='triplet' then                
+        if v.token=='triplet' then                
             -- update the context tuplet state so that timing is correct for the next notes
             apply_triplet(song, v.triplet)
             end
         
         -- deal with bars and repeat symbols
-        if v.event=='bar' then
+        if v.token=='bar' then
             apply_repeats(song, v.bar)                               
             song.context.accidental = nil -- clear any lingering accidentals             
         end
             
        
-        if v.event=='append_field_text' then       
+        if v.token=='append_field_text' then       
             song.metadata[v.name] = song.metadata[v.name] .. ' ' .. v.content
         else
             -- write in metadata table
-            local metadata_fields = {'field_text'}
-            if is_in(v.event, metadata_fields) then               
+            local metadata_fields = {'field_text'}            
+            if is_in(v.token, metadata_fields) then               
                 song.metadata[v.name] = v.content
             end
         end
         
         -- new voice
-        if v.event=='voice_change' then
+        if v.token=='voice_change' then
             start_new_voice(song, v.voice.id)
         end
         
-        if v.event=='instruction' then
+        if v.token=='instruction' then
             if v.directive then
                 apply_directive(song, v.directive.directive, v.directive.arguments)
             end
         end
          
         
-        if v.event=='note_length' then
+        if v.token=='note_length' then
              song.context.note_length = v.note_length
             update_timing(song)
         end
         
-        if v.event=='tempo' then
+        if v.token=='tempo' then
             song.context.tempo = v.tempo
             update_timing(song)
         end
         
-        if v.event=='words' then         
+        if v.token=='words' then         
             
             append_table(song.context.lyrics, v.lyrics)
         end
             
-        if v.event=='parts' then
+        if v.token=='parts' then
             song.context.part_structure = v.parts
             song.context.part_sequence = expand_parts(song.context.part_structure)      
         end
         
-        if v.event=='new_part' then
+        if v.token=='new_part' then
             song.in_variant_part = nil -- clear the variant flag
             start_new_part(song, v.part)    
         end
         
-        if v.event=='meter' then  
+        if v.token=='meter' then  
             song.context.meter_data = v.meter
             update_timing(song)   
         end
         
         -- update key
-        if v.event=='key' then            
+        if v.token=='key' then            
             song.context.key = v.key
             apply_key(song, song.context.key)
         end

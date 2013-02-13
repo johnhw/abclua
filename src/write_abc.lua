@@ -262,53 +262,53 @@ function abc_field(v, inline)
     -- X:stuff
     
     local str
-    -- plain text events
-    if v.event=='append_field_text' then 
+    -- plain text tokens
+    if v.token=='append_field_text' then 
         str =  '+' .. ':' .. v.content
     end
     
-    if v.event=='field_text' then 
+    if v.token=='field_text' then 
         str = field_tags[v.name] .. ':' .. v.content
     end
     
     -- key, tempo, meter
-    if v.event=='meter' then
+    if v.token=='meter' then
         str = abc_meter(v.meter)
     end
  
     -- voice definitions
-    if v.event=='voice_def' or v.event=='voice_change' then
+    if v.token=='voice_def' or v.token=='voice_change' then
         str = abc_voice(v.voice)
     end
   
  
-    if v.event=='key' then
+    if v.token=='key' then
         str = abc_key(v.key) 
     end
 
-    if v.event=='tempo' then
+    if v.token=='tempo' then
         str = abc_tempo(v.tempo)
     end
     
-    if v.event=='instruction' then
+    if v.token=='instruction' then
         str = abc_directive(v.directive, v.inline)
     end
 
     
-    if v.event=='parts' then
+    if v.token=='parts' then
         str = abc_parts(v.parts)
     end
     
-    if v.event=='new_part' then
+    if v.token=='new_part' then
         str = abc_new_part(v.part)
     end
     
     
-    if v.event=='words' then
+    if v.token=='words' then
         str = abc_lyrics(v.lyrics)
     end
     
-    if v.event=='note_length' then
+    if v.token=='note_length' then
         str = abc_note_length(v.note_length)
     end
     
@@ -579,51 +579,51 @@ function abc_note_element(element)
     -- can be a note, rest, bar symbol
     -- chord group, slur group, triplet/tuplet
     -- line break, beam break or some inline text
-    if element.event=='split' then
+    if element.token=='split' then
         return ' '
     end
     
-    if element.event=='split_line' then
+    if element.token=='split_line' then
         return '\n'
     end
     
-    if element.event=='chord' then
+    if element.token=='chord' then
             return '"' .. element.chord .. '"'
     end
     
-    if element.event=='overlay' then
+    if element.token=='overlay' then
         return '&'
     end
     
-    if element.event=='chord_begin' then
+    if element.token=='chord_begin' then
             return '['        
     end
     
-    if element.event=='chord_end' then
+    if element.token=='chord_end' then
         return ']'
     end
     
-    if element.event=='slur_begin' then
+    if element.token=='slur_begin' then
         return '('        
     end
     
-    if element.event=='slur_end' then
+    if element.token=='slur_end' then
         return ')'
     end
     
-    if element.event=='text' then     
+    if element.token=='text' then     
         return '"' .. element.text .. '"'
     end
     
-    if element.event=='triplet' then
+    if element.token=='triplet' then
         return abc_triplet(element.triplet)
     end
     
-    if element.event=='note' then
+    if element.token=='note' then
         return abc_note(element.note)
     end
     
-    if element.event=='bar' then
+    if element.token=='bar' then
         return abc_bar(element.bar)
     end
  
