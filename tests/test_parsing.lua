@@ -6,7 +6,9 @@ require "abclua"
 
 function reproduce(str)
     -- parse, then regenerate
-    return emit_abc(abclua.parse_abc(str, {no_expand=true}).token_stream)
+    local parsed = abclua.parse_abc(str, {no_expand=true}).token_stream
+    stream, context = compile_tokens(parsed)
+    return emit_abc(parsed)
 end
 
 
@@ -36,7 +38,9 @@ end
 function check_result(str, result, name)    
     -- Verify that passing a string through the parser gives a particular result
     -- This includes macro expansion
-    str = emit_abc(abclua.parse_abc(str).token_stream)
+    local parsed = abclua.parse_abc(str).token_stream
+    stream, context = compile_tokens(parsed)
+    str = emit_abc(parsed)
     local mis = first_difference_string(str, result)
     if mis then
         print("Mismatch")

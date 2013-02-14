@@ -1,4 +1,4 @@
-
+require "abclua_all"
 -- Print anything - including nested tables
 function table_print (tt, indent, done)
   done = done or {}
@@ -24,7 +24,7 @@ function table_print (tt, indent, done)
   end
 end
 
-require "abclua"
+
 
 skye=[[
 % this is a comment
@@ -90,6 +90,18 @@ DED | ABA | DED |
     abclua.make_midi_from_stream(grace_stream, 'out/grace.mid')        
     
 end
+
+function test_cross_ref()
+    xref = [[
+X:1
+K:G
+DED | ABA | DED |
+]]
+    songs = abclua.parse_abc_multisong(xref, {cross_ref=true})
+    table_print(songs[1].token_stream)    
+    
+end
+
 
 function test_trimming()
     -- test event trimming into time windows
@@ -469,26 +481,27 @@ function test_file()
     end 
 end
 
--- test_octaves()  
--- test_include()
--- test_overlay()
--- test_macros()
--- test_directives()
--- test_clefs()
--- test_decorations()
--- test_inline()
--- test_keys()
--- test_trimming()
--- test_grace_notes()
--- test_chord_names()
+test_cross_ref()  
+test_octaves()  
+test_include()
+test_overlay()
+test_macros()
+test_directives()
+test_clefs()
+test_decorations()
+test_inline()
+test_keys()
+test_trimming()
+test_grace_notes()
+test_chord_names()
 test_voices()
--- test_rhythms()
--- test_accidentals()
--- test_repeats()
--- test_lyrics()
--- test_parts()
--- test_fragments()
--- test_triplets()
--- test_skye()
--- test_file()
+test_rhythms()
+test_accidentals()
+test_repeats()
+test_lyrics()
+test_parts()
+test_fragments()
+test_triplets()
+test_skye()
+test_file()
 

@@ -80,7 +80,16 @@ function set_property(t, key, value)
     end
 end
 
--- copy a table completely
+function copy_table(orig)
+    -- shallow copy a table (does not copy the contents)
+    local copy = {}
+    for i,v in pairs(orig) do
+        copy[i] = v
+    end
+    return copy   
+end
+
+-- copy a table completely (excluding metatables)
 function deepcopy(orig)
     local orig_type = type(orig)
     local copy
@@ -103,7 +112,7 @@ function rtrim(s)
 end
 
 -- Print anything - including nested tables
-function table_print (tt, indent, done)
+function verbose_table_print (tt, indent, done)
   done = done or {}
   indent = indent or 0
   if type(tt) == "table" then
@@ -127,6 +136,30 @@ function table_print (tt, indent, done)
   end
 end
 
+-- Print anything - including nested tables
+function table_print (tt, indent, done)
+  done = done or {}
+  indent = indent or 0
+  if type(tt) == "table" then
+    for key, value in pairs (tt) do
+      io.write(string.rep (" ", indent)) -- indent it
+      if type (value) == "table" and not done [value] then
+        done [value] = true
+        io.write(string.format("%s = \n", tostring (key)));
+        io.write(string.rep (" ", indent+4)) -- indent it
+        io.write("{\n");
+        table_print (value, indent + 7, done)
+        io.write(string.rep (" ", indent+4)) -- indent it
+        io.write("}\n");
+      else
+        io.write(string.format("%s=%s\n",
+            tostring (key), tostring(value)))
+      end
+    end
+  else
+    io.write(tt .. "\n")
+  end
+end
 
 function invert_table(t)
     -- invert a table so that values map to keys
@@ -564,7 +597,6 @@ end
 function expand_patterns(patterns)
     -- expand a pattern list table into a single event stream
     local result = {}
-    
     for i,v in ipairs(patterns) do
         
         for i=1,v.repeats do
@@ -596,33 +628,34 @@ function compose_parts(song)
     local variant_counts = {}
     
     if song.context.part_sequence then                         
-        song.stream = {}
+        song.stream = {}        
         for c in song.context.part_sequence:gmatch"." do            
-            local pattern = deepcopy(expand_patterns(song.context.part_map[c]))
-            append_table(song.stream, pattern)
-            
-            -- count repetitions of this part
-            if not variant_counts[c] then
-                variant_counts[c] = 1
-            else
-                variant_counts[c] = variant_counts[c] + 1
-            end
-            
-            -- expand the variants
-            local vc = variant_counts[c]
-            if song.context.part_map[c].variants and song.context.part_map[c].variants[vc] then
-                -- find the name of this variant ending
-                variant_part_name = song.context.part_map[c].variants[vc]
-                pattern = deepcopy(expand_patterns(song.context.part_map[variant_part_name]))
+            if song.context.part_map[c] then 
+                local pattern = copy_table(expand_patterns(song.context.part_map[c]))
                 append_table(song.stream, pattern)
-            
-            end            
-            
+                
+                -- count repetitions of this part
+                if not variant_counts[c] then
+                    variant_counts[c] = 1
+                else
+                    variant_counts[c] = variant_counts[c] + 1
+                end
+                
+                -- expand the variants
+                local vc = variant_counts[c]
+                if song.context.part_map[c].variants and song.context.part_map[c].variants[vc] then
+                    -- find the name of this variant ending
+                    variant_part_name = song.context.part_map[c].variants[vc]
+                    pattern = copy_table(expand_patterns(song.context.part_map[variant_part_name]))
+                    append_table(song.stream, pattern)
+                
+                end            
+            end
         end        
         
     else
         -- no parts indicator
-        song.stream = deepcopy(expand_patterns(song.context.part_map['default']))
+        song.stream = copy_table(expand_patterns(song.context.part_map['default']))
     end
     
 end
@@ -1302,7 +1335,7 @@ end
 
 
 function render_grace_notes(stream)
-    -- Return a copy of the stream with grace notes rendered in 
+    -- Return a the stream with grace notes rendered in 
     -- as ordinary notes. These notes will cut into the following note 
     local out = {}
     for i,v in ipairs(stream) do
@@ -1315,7 +1348,7 @@ function render_grace_notes(stream)
             end            
             
             -- cut into the time of the next note, and push it along
-            local cut_note = deepcopy(v)
+            local cut_note = v
             cut_note.duration = cut_note.duration - duration
             
             -- if we manage to cut the note completely then make sure
@@ -1515,25 +1548,32 @@ function song_to_opus(song, patches)
     local merged_stream = {}
     local score = {1000,
         {    
-            {'set_tempo', 0, 1000000},        
+            {'set_tempo', 0, 1000000},     
+           {'patch_change', 0,1,41},     
+             
         },          
     }    
     -- set the patch for each channel
-    for i=1,#song.voices do
+    local j = 0
+    for i,v in pairs(song.voices) do
         if patches[i] then
-            table.insert(score[2], 'patch_change', 0, i, patches[i])
+            table.insert(score[2], {'patch_change', 0, i, patches[i]})
         else
-            table.insert(score[2], 'patch_change', 0, i, 41)
+            table.insert(score[2], {'patch_change', 0, j, 41})
         end
+        j = j + 1
     end
     
+    
     -- merge in each voice
-    for i,v in pairs(song.voices) do
-        channel = channel + 1        
+    for i,v in pairs(song.voices) do        
         append_table(merged_stream, get_note_stream(v.stream, channel))         
+        channel = channel + 1        
     end
         
    append_table(score[2], note_stream_to_opus(merged_stream))
+   
+ 
    return score
 end
 
@@ -2512,7 +2552,7 @@ function compute_pitch(note, song)
     end    
     
     base_pitch = midi_note_from_note(song.context.key_mapping, note, accidental)                
-    base_pitch = base_pitch + song.context.global_transpose
+    base_pitch = base_pitch + song.context.global_transpose + song.context.voice_transpose
     return base_pitch 
 end
 
@@ -3499,14 +3539,41 @@ function finalise_song(song)
 end
 
 
-function start_new_voice(song, voice)
+function apply_voice_specifiers(song)
+    -- apply the voice specifiers. this sets the voice transpose if need be
+    song.context.voice_transpose = 0
+    -- compute transpose
+    transpose =  song.context.voice_specifiers.transpose or  song.context.voice_specifiers.t or 0
+    octaves =   (song.context.voice_specifiers.octave) or 0
+    
+    song.context.voice_transpose = 12*octaves + transpose   
+    
+end
+
+function start_new_voice(song, voice, specifiers)
     -- compose old voice into parts
     if song.context and song.context.voice then
-        finalise_song(song)
-                
+        finalise_song(song)                
         song.voices[song.context.voice] = {stream=song.stream, context=song.context}
     end
 
+    song.context.voice_specifiers = {}    
+    -- merge in voice specifiers from heder and from this definition line
+    if song.voice_specifiers[voice] then
+        for i,v in pairs(song.voice_specifiers[voice]) do
+            song.context.voice_specifiers[v.lhs] = v.rhs            
+        end    
+    end
+    
+    if specifiers then
+        for i,v in pairs(specifiers) do
+            song.context.voice_specifiers[v.lhs] = v.rhs
+        end    
+    end    
+        
+    
+    apply_voice_specifiers(song)
+    
     -- reset song state
     -- set up context state
     song.context.lyrics = {}
@@ -3536,7 +3603,7 @@ function expand_token_stream(song)
         
         -- copy in standard events that don't change the context state
         if v.token ~= 'note' then
-           local event = deepcopy(v)
+           local event = copy_table(v)
            event.event = event.token
            event.token = nil
            table.insert(song.opus, event)
@@ -3575,7 +3642,12 @@ function expand_token_stream(song)
         
         -- new voice
         if v.token=='voice_change' then
-            start_new_voice(song, v.voice.id)
+            start_new_voice(song, v.voice.id, v.voice.specifiers)
+        end
+        
+        if v.token=='voice_def' then
+            -- store any voice specific settings for later
+            song.voice_specifiers[v.voice.id] = v.voice.specifiers
         end
         
         if v.token=='instruction' then
@@ -3647,6 +3719,7 @@ function compile_token_stream(song, context, metadata)
     song.context = deepcopy(song.default_context)
    
     song.voices = {}
+    song.voice_specifiers = {}
     song.metadata = metadata    
     start_new_voice(song, 'default')
     expand_token_stream(song)
@@ -3664,8 +3737,10 @@ end
 -- From source file: parse_abc.lua
 --
 -- Grammar for parsing tune definitions
+
+-- The master grammar
 local tune_pattern = [[
-elements <- ( ( <element>)  +) -> {}
+elements <- ( ({}  <element>)  +) -> {}
 element <- (  {:field: field :}  / ({:slur: <slurred_note> :}) / ({:chord_group: <chord_group> :})  / {:overlay: <overlay> :} / {:bar: (<bar> / <variant>) :}   / {:free_text: free :} / {:triplet: triplet :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
 
 overlay <- ('&')
@@ -3702,102 +3777,109 @@ field_element <- ([A-Za-z])
 local tune_matcher = re.compile(tune_pattern)
 
 function read_tune_segment(tune_data, song)
-    -- read the next token in the note stream
-    
+    -- read the next token in the note stream    
+    local cross_ref = nil
     for i,v in ipairs(tune_data) do
         
-        if v.measure_rest then
-            local bars = v.measure_rest.bars or 1
-            table.insert(song.token_stream, {token='measure_rest', bars=bars})
-        end
-        
-        -- store annotations
-        if v.free_text then
-            -- could be a standalone chord
-            if is_chord(v.free_text.text) then
-                table.insert(song.token_stream, {token='chord', chord=v.free_text.text})
-            else
-                table.insert(song.token_stream, {token='text', text=v.free_text.text})
+        if type(v) == 'number' then
+            -- insert cross refs, if they are enabled
+            if song.parse.cross_ref then
+                 table.insert(song.token_stream, {token='cross_ref', at=v, line=song.parse.line})
             end
-        end
+        else
         
-        -- parse inline fields (e.g. [r:hello!])
-        if v.field then                
-            -- this automatically writes it to the token_stream            
-            parse_field(v.field.contents, song, true)
-        end
-        
-        -- deal with triplet definitions
-        if v.triplet then                                        
-            table.insert(song.token_stream, {token='triplet', triplet=parse_triplet(v.triplet, song)})
-            
-        end
-        
-        -- voice overlay
-        if v.overlay then
-            table.insert(song.token_stream, {token='overlay'})
-        end
-        
-        -- beam splits
-        if v.s then
-            table.insert(song.token_stream, {token='split'})
-        end
-        
-        -- linebreaks
-        if v.linebreak then
-            table.insert(song.token_stream, {token='split_line'})
-        end
-            
-        
-        -- deal with bars and repeat symbols
-        if v.bar then            
-            table.insert(song.token_stream, {token='bar', bar=parse_bar(v.bar)  })                      
-        end
-        
-        -- chord groups
-        if v.chord_group then
-        
-            -- textual chords
-            if v.chord_group.chord then
-                table.insert(song.token_stream, {token='chord', chord=v.chord_group.chord})                                
+            if v.measure_rest then
+                local bars = v.measure_rest.bars or 1
+                table.insert(song.token_stream, {token='measure_rest', bars=bars})
             end
             
-            if v.chord_group[1] then
-                table.insert(song.token_stream, {token='chord_begin'})                                
-                -- insert the individual notes
-                for i,note in ipairs(v.chord_group) do                
-                    local cnote = parse_note(note)
-                    table.insert(song.token_stream, {token='note', note=cnote})                        
+            -- store annotations
+            if v.free_text then
+                -- could be a standalone chord
+                if is_chord(v.free_text.text) then
+                    table.insert(song.token_stream, {token='chord', chord=v.free_text.text})
+                else
+                    table.insert(song.token_stream, {token='text', text=v.free_text.text})
                 end
-                table.insert(song.token_stream, {token='chord_end'})                                
-            end                               
-            
-        end
-        
-        -- if we have slur groups then there are some notes to parse...
-        if v.slur then            
-            if v.slur.chord then
-                table.insert(song.token_stream, {token='chord', chord=v.slur.chord})                                
             end
             
-            -- slur groups (only put the group in if there
-            -- are more than elements, or there is an associated chord name)
-            if #v.slur>1  then
-                table.insert(song.token_stream, {token='slur_begin'} )
-               
+            -- parse inline fields (e.g. [r:hello!])
+            if v.field then                
+                -- this automatically writes it to the token_stream            
+                parse_field(v.field.contents, song, true)
             end
             
-            -- insert the individual notes
-            for i,note in ipairs(v.slur) do                
+            -- deal with triplet definitions
+            if v.triplet then                                        
+                table.insert(song.token_stream, {token='triplet', triplet=parse_triplet(v.triplet, song)})
                 
-                local cnote = parse_note(note)                
-                table.insert(song.token_stream, {token='note', note=cnote})
+            end
+            
+            -- voice overlay
+            if v.overlay then
+                table.insert(song.token_stream, {token='overlay'})
+            end
+            
+            -- beam splits
+            if v.s then
+                table.insert(song.token_stream, {token='split'})
+            end
+            
+            -- linebreaks
+            if v.linebreak then
+                table.insert(song.token_stream, {token='split_line'})
             end
                 
-            if #v.slur>1 then
-                table.insert(song.token_stream, {token='slur_end'} )
+            
+            -- deal with bars and repeat symbols
+            if v.bar then            
+                table.insert(song.token_stream, {token='bar', bar=parse_bar(v.bar)  })                      
             end
-
+            
+            -- chord groups
+            if v.chord_group then
+            
+                -- textual chords
+                if v.chord_group.chord then
+                    table.insert(song.token_stream, {token='chord', chord=v.chord_group.chord})                                
+                end
+                
+                if v.chord_group[1] then
+                    table.insert(song.token_stream, {token='chord_begin'})                                
+                    -- insert the individual notes
+                    for i,note in ipairs(v.chord_group) do                
+                        local cnote = parse_note(note)
+                        table.insert(song.token_stream, {token='note', note=cnote})                        
+                    end
+                    table.insert(song.token_stream, {token='chord_end'})                                
+                end                               
+                
+            end
+            
+            -- if we have slur groups then there are some notes to parse...
+            if v.slur then            
+                if v.slur.chord then
+                    table.insert(song.token_stream, {token='chord', chord=v.slur.chord})                                
+                end
+                
+                -- slur groups (only put the group in if there
+                -- are more than elements, or there is an associated chord name)
+                if #v.slur>1  then
+                    table.insert(song.token_stream, {token='slur_begin'} )
+                   
+                end
+                
+                -- insert the individual notes
+                for i,note in ipairs(v.slur) do                
+                    
+                    local cnote = parse_note(note)                
+                    table.insert(song.token_stream, {token='note', note=cnote})
+                end
+                    
+                if #v.slur>1 then
+                    table.insert(song.token_stream, {token='slur_end'} )
+                end
+            end
         end
     end
     
@@ -3896,7 +3978,7 @@ function parse_abc_string(song, str)
     local lines = split(str, "[\r\n]")
     for i,line in pairs(lines) do 
         --parse_abc_line(line, song)
-        
+        song.parse.line = i
         local success, err = pcall(parse_abc_line, line, song)
         if not success then
             warn('Parse error reading line '  .. line.. '\n'.. err)
@@ -3912,7 +3994,7 @@ function parse_abc(str, options)
     
     song.token_stream = {}
     options = options or {}    
-    song.parse = {in_header=true, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand or false}    
+    song.parse = {in_header=true, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand or false, cross_ref=options.cross_ref or false}    
     parse_abc_string(song, str)
      
     return song 
@@ -3933,6 +4015,7 @@ function get_default_context()
     key = { root='C', mode='maj', clef={}},
     key_mapping = {c=0,d=0,e=0,f=0,g=0,a=0,b=0},
     global_transpose = 0,
+    voice_transpose = 0,
     grace_length = {num=1, den=32}
     })
 end
@@ -4018,14 +4101,14 @@ function parse_abc_file(filename, options)
     return parse_abc_multisong(contents, options)
 end
 
-function parse_abc_fragment(str, parse, options)
+function parse_abc_fragment(str, options)
     -- Parse a short abc fragment, and return the token stream table
     local song = {}
     options = options or {}
     song.token_stream = {}
     
     -- use default parse structure if not one specified
-    song.parse = parse or {in_header=false, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand}    
+    song.parse = parse or {in_header=options.in_header, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand, cross_ref=option.cross_ref}    
     parse_abc_string(song, str)
     
     return song.token_stream
@@ -4035,31 +4118,22 @@ function compile_tokens(tokens, context)
     --Converts a token stream from a fragment into a timed event stream
     -- Returns the event stream if this is a single voice fragment, or
     -- a table of voices, if it is a multi-voice fragment
-    --
-    -- Note that this is a relatively slow function to execute, as it
-    -- must copy the context, expand the stream and then finalise the song
+    --    
     context = context or get_default_context()
     
-    local song = {context=deepcopy(context), token_stream=tokens}
-            
-    song.voices = {}
-    song.metadata = {}
-    start_new_voice(song, 'default')
-    expand_token_stream(song)    
-    
-    -- finalise the voice
-    start_new_voice(song, nil)
-    
+    local song = {token_stream=tokens}
+    compile_token_stream(song, context, {})
+                
     if #song.voices>1 then
         local voice_stream = {}
         -- return a table of voices
         for i,v in pairs(song.voices) do
-            voice_streams[i] = v.stream
+            voice_streams[i] = {stream=v.stream, context=v.context}
         end
         return voice_streams
     else    
         -- return the default voice stream
-        return song.voices['default'].stream    
+        return song.voices['default'].stream, song.voices['default'].context    
     end
 end
 
@@ -4091,6 +4165,9 @@ abc_element = abc_element
 -- TODO:
 
 -- render decorations
+
+
+-- fix parse_abc_fragment so it takes options instead of context
 
 -- transposing macros don't work when octave modifiers and ties are applied
 -- tidy up stream rendering

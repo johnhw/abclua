@@ -1,27 +1,88 @@
-<h1 id="abclua-0.1">ABCLua 0.1</h1>
-<h2 id="description">Description</h2>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="buttondown.css" type="text/css" />
+</head>
+<body>
+<div id="TOC">
+<ul>
+<li><a href="#abclua-0.1">ABCLua 0.1</a><ul>
+<li><a href="#description">Description</a></li>
+<li><a href="#supported-features">Supported features</a></li>
+<li><a href="#example">Example</a><ul>
+<li><a href="#requires">Requires:</a></li>
+<li><a href="#optional">Optional:</a></li>
+</ul></li>
+<li><a href="#using">Using</a></li>
+<li><a href="#test-scripts">Test scripts</a></li>
+<li><a href="#api">API</a></li>
+<li><a href="#token-streams">Token streams</a></li>
+<li><a href="#event-streams">Event streams</a></li>
+<li><a href="#token-types">Token types</a></li>
+<li><a href="#event-types">Event types</a></li>
+<li><a href="#development">Development</a></li>
+<li><a href="#macros-and-includes">Macros and includes</a><ul>
+<li><a href="#transposing-macros">Transposing macros</a></li>
+<li><a href="#macro-expansion">Macro expansion</a></li>
+<li><a href="#includes">Includes</a></li>
+<li><a href="#disabling-expansion">Disabling expansion</a></li>
+</ul></li>
+<li><a href="#license">License</a></li>
+</ul></li>
+</ul>
+</div>
+<h1 id="abclua-0.1"><a href="#abclua-0.1">ABCLua 0.1</a></h1>
+<h2 id="description"><a href="#description">Description</a></h2>
 <p>Simple ABC parsing for Lua. This library can read a reasonable subset of ABC 2.1 and generate Lua tables representing the song structure.</p>
 <p>It can transform ABC source into a token stream, transform a token stream into an ABC string, transform a token stream into an event stream (with timing, repeats expanded etc.), and transform these event streams into MIDI.</p>
-<h2 id="example">Example</h2>
+<h2 id="supported-features"><a href="#supported-features">Supported features</a></h2>
+<p>ABCLua supports most of the 2.1 standard; tested features include:</p>
+<ul>
+<li>All standard note descriptions and tune metadata fields</li>
+<li>Complex meters <code>M:(1+4+2)/8</code></li>
+<li>Full key definitions <code>K:C locrian ^c _g alto t=-2</code></li>
+<li>Multi-tune songbooks</li>
+<li>Tuplets <code>(3 abc (5:2:7 abcdefg</code></li>
+<li>Aligned lyrics <code>+w: th-ese wor-ds are al-igned in the event stre-a-m</code><br /></li>
+<li>Grace notes, decorations <code>{cf}!fermata!~G</code></li>
+<li>Slurs and chords <code>(ABC)</code> and <code>[Ceg]</code></li>
+<li>Named chords <code>&quot;Cm7&quot;C G F | &quot;Dmaj&quot; D e' f |</code></li>
+<li>Repeats (with variable counts, such as <code>|::: :::|</code>) and variant endings <code>|: abc :|1 def |2 fed ||</code></li>
+<li>Parts with variant endings</li>
+<li>Multi-voice songs <code>V:v1</code></li>
+<li>Voice overlay with <code>&amp;</code></li>
+<li>Macros, user macros and transposing macros</li>
+<li><code>abc-include</code> to include files</li>
+</ul>
+<p>See <code>tests/test_abc.lua</code> for examples of these in use.</p>
+<h2 id="example"><a href="#example">Example</a></h2>
 <pre><code>require &quot;abclua_all&quot;
 -- Assuming you have Peter J. Billam&#39;s MIDI.lua
 tunes = abclua.parse_abc_file(&#39;skye.abc&#39;)
 abclua.make_midi(tunes[1], &#39;skye.mid&#39;)   </code></pre>
-<h3 id="requires">Requires:</h3>
+<h3 id="requires"><a href="#requires">Requires:</a></h3>
 <ul>
 <li><a href="http://www.lua.org">Lua 5.2</a></li>
 <li><a href="http://www.inf.puc-rio.br/~roberto/lpeg">LPeg</a></li>
 </ul>
-<h3 id="optional">Optional:</h3>
+<h3 id="optional"><a href="#optional">Optional:</a></h3>
 <ul>
 <li><a href="http://www.pjb.com.au/comp/lua/MIDI.html">MIDI.lua</a></li>
 </ul>
-<h2 id="using">Using</h2>
+<h2 id="using"><a href="#using">Using</a></h2>
 <p>You can use this file just by requiring abclua_all.lua, which has all the functions in one single file as a convenience.</p>
 <pre><code>require &quot;abclua_all.lua&quot;</code></pre>
 <p>ABCLua has three main functions: <em>parsing</em> ABC text into a sequence of tokens; <em>emitting</em> ABC text from a sequence of tokens; and <em>compiling</em> token sequeneces into event sequences.</p>
 <p>The compilation procedure expands repetitions, parts, voices, etc. and applies timing and pitching information to notes. The output format can easily be translated to MIDI or to another playback or display format.</p>
-<h2 id="api">API</h2>
+<h2 id="test-scripts"><a href="#test-scripts">Test scripts</a></h2>
+<p><code>tests/reproduce_abc.lua</code> takes a filename as an argument, and creates a file called <filename>_reproduced.abc which is the result of parsing the given file and emitting the ABC representation of the token stream. It should leave files basically unchanged</p>
+<p><code>tests/abc_to_midi.lua</code> converts an ABC file to a simple MIDI file. It should render most files correctly.</p>
+<h2 id="api"><a href="#api">API</a></h2>
 <p>The basic datastructure is the <em>song</em> table.</p>
 <pre><code>song -&gt;
     
@@ -43,103 +104,724 @@ abclua.make_midi(tunes[1], &#39;skye.mid&#39;)   </code></pre>
             event.event         String giving event type
             event.t             Time of event, in microseconds
             ...along with custom fields for each event
-                                </code></pre>
+                                    </code></pre>
 <ul>
-<li><code>parse_abc(str, [options])</code></li>
-</ul>
-<p>Parse a single ABC notation string, and return a song structure. The parsed tokens are stored in the table <code>song.token_stream</code>.</p>
+<li><code>parse_abc(str, [options])</code> Parse a single ABC notation string, and return a song structure. The parsed tokens are stored in the table <code>song.token_stream</code>. Options can be
 <ul>
-<li><code>compile_abc(song)</code></li>
-</ul>
-<p>Compile a song. Converts the sequence of tokens in a song into an event stream which is stored in song.stream.</p>
-<ul>
-<li><code>parse_abc_fragment(str, [context])</code></li>
-</ul>
-<p>Parse a fragment of ABC (e.g. 'abc | def') in a given context (uses the default context if one is not provided). Returns the token sequence for that fragment.</p>
+<li><code>no_expand</code> if <strong>true</strong>, then don't expand macros or include files; instead pass through references unchanged.</li>
+<li><code>cross_ref</code> if <strong>true</strong>, then insert cross reference tokens into the stream which indicate the line and character at which each parsed event happened.</li>
+</ul></li>
+<li><p><code>compile_abc(song)</code> Compile a song. Converts the sequence of tokens in a song into an event stream which is stored in song.stream.</p></li>
+<li><p><code>parse_abc_fragment(str, [options])</code> Parse a fragment of ABC (e.g. 'abc | def'). Returns the token sequence for that fragment.</p>
 <pre><code>    songs = parse_abc_file(&#39;example.abc&#39;)
     -- parse the fragment in the context of the first song loaded
-    parse_abc_fragment(&#39;de&gt;d&#39;, songs[1].context)</code></pre>
-<ul>
-<li><code>parse_abc_multisong(str, [options])</code></li>
-</ul>
-<p>Parse and compile the given string, which can be blocks of ABC and plain text interspersed, separated by blank lines (e.g. an entire songbook). Returns a table of song structures.</p>
-<ul>
-<li><code>parse_abc_file(filename, [options])</code></li>
-</ul>
-<p>Parse and compile the given ABC file, and return a table of songs, one for each tune in the songbook. This is just a convenience for reading a file and calling parse_abc_multisong() on it.</p>
-<pre><code>songs = parse_abc_file(&#39;example.abc&#39;)
--- songs[1] is the first tune
--- songs[2] is the second tune etc.
-        
-    </code></pre>
-<ul>
-<li><code>compile_tokens(tokens)</code></li>
-</ul>
-<p>Convert a token stream into an event stream, with timing information.</p>
+    parse_abc_fragment(&#39;de&gt;d&#39;, songs[1].context)</code></pre></li>
+<li><p><code>parse_abc_multisong(str, [options])</code> Parse and compile the given string, which can be blocks of ABC and plain text interspersed, separated by blank lines (e.g. an entire songbook). Returns a table of song structures.</p></li>
+<li><p><code>parse_abc_file(filename, [options])</code> Parse and compile the given ABC file, and return a table of songs, one for each tune in the songbook. This is just a convenience for reading a file and calling parse_abc_multisong() on it.</p>
+<pre><code>    songs = parse_abc_file(&#39;example.abc&#39;)
+    -- songs[1] is the first tune
+    -- songs[2] is the second tune etc.</code></pre></li>
+<li><p><code>compile_tokens(tokens, [context])</code> Convert a token stream into an event stream, with timing information. Optionally takes a context to compile in. Returns the event stream and the modified context.</p>
 <pre><code>    -- parse the fragment in the context of the first song loaded
     tokens = parse_abc_fragment(&#39;de&gt;d&#39;)
-    stream = compile_tokens(tokens)
+    stream, context = compile_tokens(tokens)</code></pre></li>
+<li><p><code>emit_abc(tokens)</code> Return an ABC string represenation of a given token stream</p>
+<pre><code>    songs = parse_abc_file(&#39;example.abc&#39;)
+    -- should print out something close to the first tune in the original example.abc
+    print(token_stream_to_abc(songs[1].token_stream))</code></pre></li>
+<li><p><code>abc_from_songs(songs)</code> Return a ABC string from a table of songs.</p>
+<pre><code>    songs = parse_abc_file(&#39;example.abc&#39;)
+    -- should print out something close to the original example.abc
+    print(abc_from_songs(songs))</code></pre></li>
+<li><p><code>make_midi(song, filename)</code> Simple MIDI conversion; writes the MIDI file to filename.</p>
+<pre><code>    songs = parse_abc_file(&#39;example.abc&#39;)            
+    make_midi(songs[1], &#39;example.mid&#39;)</code></pre></li>
+</ul>
+<h2 id="token-streams"><a href="#token-streams">Token streams</a></h2>
+<p>Let's look at an example of ABC parsing. <code>parse_abc_fragment()</code> takes an ABC notation string and returns a token stream.</p>
+<pre><code>parse_abc_fragment([[X:1
+T:Title
+K:G
+|ab&gt;{c}c|:d1/4a&#39;_g:|]])</code></pre>
+<p>will produce the token stream table. Going through the resulting stream element by element:</p>
+<pre><code>1 = 
+{
+   content=1
+   name=ref
+   token=field_text
+}
+
+2 = 
+{
+   content=Title
+   name=title
+   token=field_text
+}    </code></pre>
+<p>These two fields are setting information fields. Fields that have no effect on the playback or rendering of the song have the token type <em>field_text</em>, and have a <em>name</em> and <em>content</em> field.</p>
+<pre><code>3 = 
+    {
+       key = 
+           {
+              root=g
+           }
+       token=key
+    }
     </code></pre>
-<ul>
-<li><code>emit_abc(tokens)</code></li>
-</ul>
-<p>Return an ABC string represenation of a given token stream songs = parse_abc_file('example.abc') -- should print out something close to the first tune in the original example.abc print(token_stream_to_abc(songs[1].token_stream))</p>
-<ul>
-<li><code>abc_from_songs(songs)</code></li>
-</ul>
-<p>Return a ABC string from a table of songs. songs = parse_abc_file('example.abc') -- should print out something close to the original example.abc print(abc_from_songs(songs))</p>
-<ul>
-<li><code>make_midi(song, filename)</code></li>
-</ul>
-<p>Simple MIDI conversion; writes the MIDI file to filename. songs = parse_abc_file('example.abc')<br /> make_midi(songs[1], 'example.mid')</p>
-<h2 id="test-scripts">Test scripts</h2>
-<p><code>tests/reproduce_abc.lua</code> takes a filename as an argument, and creates a file called <filename>_reproduced.abc which is the result of parsing the given file and emitting the ABC representation of the token stream. It should leave files basically unchanged</p>
-<p><code>tests/abc_to_midi.lua</code> converts an ABC file to a simple MIDI file. It should render most files correctly.</p>
-<h2 id="development">Development</h2>
+<p>This is the representation of the key. Note that the <em>token</em> field indicates the type of this token. The <em>key</em> field has one element -- the <em>root</em> of the key, as a lowercase letter.</p>
+<pre><code>4 = 
+    {
+       token=bar
+       bar = 
+           {
+              type=plain
+           }
+    }
+    </code></pre>
+<p>This is the represenation of the bar symbol (|). The <em>type</em> field indicates that this is a plain bar; it could be <em>double</em>, <em>thinthick</em>, <em>thickthin</em>, <em>start_repeat</em>, <em>end_repeat</em> or <em>variant</em>.</p>
+<pre><code>5 = 
+    {
+       note = 
+           {
+              pitch = 
+                  {
+                     octave=1
+                     note=a
+                  }
+              duration = 
+                  {
+                     num=1
+                     broken=0
+                     den=1
+                  }
+           }
+       token=note
+    }
+    </code></pre>
+<p>This is a (simple) note element. The <em>pitch</em> table holds the pitch of the note, as an <em>octave</em> specifier and a lower case <em>note</em> name. Note that this is the represenation of the note <strong>as it is written</strong> in ABC. It is not converted to a semitone until the song is <strong>compiled</strong>.</p>
+<p>The <em>duration</em> field holds the duration of the note. <em>num</em> and <em>den</em> give the ratio of the unit note length; if <em>broken</em> is non-zero, then this note is to be expanded/contracted, and the following note is contracted/expanded to match. Conversion of <em>duration</em> into real-world time happens when the song is compiled.</p>
+<pre><code>6 = 
+    {
+       note = 
+           {
+              pitch = 
+                  {
+                     note=b
+                     octave=1
+                  }
+              duration = 
+                  {
+                     den=1
+                     num=1
+                     broken=1
+                  }
+           }
+       token=note
+    }
+    </code></pre>
+<p>This note has a <em>broken</em> field of 1, because of the trailing <em>&lt;</em> symbol in the source.</p>
+<pre><code>7 = 
+    {
+       note = 
+           {
+              grace = 
+                  {
+                     1 = 
+                         {
+                            duration = 
+                                {
+                                   den=1
+                                   num=1
+                                   broken=0
+                                }
+                            pitch = 
+                                {
+                                   note=c
+                                   octave=1
+                                }
+                         }
+                  }
+              duration = 
+                  {
+                     den=1
+                     num=1
+                     broken=0
+                  }
+              pitch = 
+                  {
+                     note=c
+                     octave=1
+                  }
+           }
+       token=note
+    }</code></pre>
+<p>This token has a grace note (notated {c}). This creates a <em>grace</em> field inside the <em>note</em> field. Each grace note is identical in structure to a the <em>note</em> field itself, except that it cannot have sub-grace notes.</p>
+<pre><code>8 = 
+    {
+       bar = 
+           {
+              type=start_repeat
+              start_reps=1
+           }
+       token=bar
+    }</code></pre>
+<p>This is another <em>bar</em> symbol, this time indicating that there is a repeat starting, and that the repeat count (<em>start_reps</em>) should be 1.</p>
+<pre><code>9 = 
+    {
+       note = 
+           {
+              pitch = 
+                  {
+                     note=d
+                     octave=1
+                  }
+              duration = 
+                  {
+                     broken=0
+                     num=1
+                     den=4
+                  }
+           }
+       token=note
+    }</code></pre>
+<p>The effect of the duration modifier ('d1/4') can be seen in the <em>duration</em> field.</p>
+<pre><code>10 = 
+    {
+       note = 
+           {
+              pitch = 
+                  {
+                     note=a
+                     octave=1
+                  }
+              duration = 
+                  {
+                     den=1
+                     num=1
+                     broken=0
+                  }
+           }
+       token=note
+    }</code></pre>
+<p>This note has an <em>octave</em> of 2, because it was notated as a lower case letter with a following prime (').</p>
+<pre><code>11 = 
+    {
+       note = 
+           {
+              pitch = 
+                  {
+                     note=g
+                     accidental=-1
+                     octave=1
+                  }
+              duration = 
+                  {
+                     den=1
+                     num=1
+                     broken=0
+                  }
+           }
+       token=note
+    }
+    </code></pre>
+<p>This note has a notated accidental ('_g'). The accidental field of the pitch is set accordingly.</p>
+<pre><code>12 = 
+    {
+       bar = 
+           {
+              end_reps=1
+              type=end_repeat
+           }
+       token=bar
+    }
+    </code></pre>
+<p>This is the matching <em>end_repeat</em> bar symbol for the <em>start_repeat</em> symbol before</p>
+<pre><code>13 = 
+    {
+       token=split_line
+    }
+    </code></pre>
+<p>Finally, we have a <em>split_line</em> token. Line breaks in the source are recorded in the token stream. They can be supressed by following the line with a continuation character .</p>
+<h2 id="event-streams"><a href="#event-streams">Event streams</a></h2>
+<p>If we compile the above fragment with</p>
+<pre><code>compile_tokens(parse_abc_fragment([[X:1
+T:Title
+K:G
+|ab&gt;{c}c|:d1/4a&#39;_g:|]]))</code></pre>
+<p>then we get the <em>event stream</em> representation of the song. This is a table including each event in the stream in time order. This expands any repeats in the stream; expands multiple parts; separates out individual voices; computes the pitch of notes according to the key signature and transpose settings and computes the duration of notes in real time units. Again, going through each resulting element, we have:</p>
+<pre><code>1 = 
+    {
+       event=abc
+       abc=X:1
+
+       t=0
+    }
+    </code></pre>
+<p>Every token stream event always results in the ABC notation for the event being inserted into the event stream. This allows display of the ABC events during playback, for example. We'll skip future <em>abc</em> events. Note the <em>t</em> field indicating that this event occurs at t=0 microseconds.</p>
+<pre><code>2 = 
+    {
+       content=1
+       event=field_text
+       name=ref
+       t=0
+    }
+    
+4 = 
+{
+   content=Title
+   event=field_text
+   name=title
+   t=0
+}
+
+6 = 
+{
+   t=0
+   event=key
+   key = 
+       {
+          root=g
+       }
+}
+8 = 
+{
+   bar = 
+       {
+          type=plain
+       }
+   event=bar
+   t=0
+}</code></pre>
+<p>These events are almost identical to the original token events; the only change is the change of the identifier to <em>event</em> and the addition of the <em>t</em> field.</p>
+<pre><code>10 = 
+    {
+       duration=500000
+       note = 
+           {
+              duration = 
+                  {
+                     den=1
+                     broken=0
+                     num=1
+                  }
+              pitch = 
+                  {
+                     octave=1
+                     note=a
+                  }
+           }
+       pitch=81
+       event=note
+       t=0
+    }
+    </code></pre>
+<p>This note event now has new fields: <em>duration</em> which is the duration of the note in microseconds, and <em>pitch</em> which is the MIDI note number for this event.</p>
+<pre><code>12 = 
+    {
+       duration=750000
+       note = 
+           {
+              duration = 
+                  {
+                     den=1
+                     broken=1
+                     num=1
+                  }
+              pitch = 
+                  {
+                     octave=1
+                     note=b
+                  }
+           }
+       pitch=83
+       event=note
+       t=500000
+    }
+14 = 
+    {
+       duration=250000
+       note = 
+           {
+              duration = 
+                  {
+                     den=1
+                     broken=0
+                     num=1
+                  }
+              grace = 
+                  { ... }
+              pitch = 
+                  {
+                     octave=1
+                     note=c
+                  }
+           }
+       pitch=72
+       event=note
+       t=1250000
+    }
+    </code></pre>
+<p>The effect of the broken rhythm can be seen in the <em>duration</em> and <em>t</em> fields of these events.</p>
+<pre><code>16 = 
+    {
+       bar = 
+           {
+              type=start_repeat
+              start_reps=1
+           }
+       event=bar
+       t=1500000
+    }
+18 = 
+    {
+       duration=125000
+       note = 
+           {
+              duration = 
+                  {
+                     broken=0
+                     den=4
+                     num=1
+                  }
+              pitch = 
+                  {
+                     octave=1
+                     note=d
+                  }
+           }
+       pitch=74
+       event=note
+       t=2625000
+    }
+20 = 
+    {
+       duration=500000
+       note = 
+           {
+              duration = 
+                  {
+                     den=1
+                     broken=0
+                     num=1
+                  }
+              pitch = 
+                  {
+                     octave=1
+                     note=a
+                  }
+           }
+       pitch=81
+       event=note
+       t=2750000
+    }
+22 = 
+    {
+       duration=500000
+       note = 
+           {
+              duration = 
+                  {
+                     den=1
+                     broken=0
+                     num=1
+                  }
+              pitch = 
+                  {
+                     accidental=-1
+                     octave=1
+                     note=g
+                  }
+           }
+       pitch=78
+       event=note
+       t=3250000
+    }
+24 = 
+    {
+       bar = 
+           {
+              end_reps=1
+              type=end_repeat
+           }
+       event=bar
+       t=3750000
+    }
+25=table: 007693A0
+26=table: 00769710
+27=table: 00769760
+28=table: 00769918
+29=table: 007692D8
+30=table: 00769788
+31=table: 00769350
+32=table: 00769530</code></pre>
+<p>Note the effect of the repeat indicator has inserted references to the previous notes in elements 25-&gt;32.</p>
+<h2 id="token-types"><a href="#token-types">Token types</a></h2>
+<p>The table below lists all of the token types along with the table subfields they use. All field tokens (i.e. those generated by lines like <code>T:title</code> or <code>[T:title]</code> have an <strong>inline</strong> field which is true if the token was written/should be written in the inline form.</p>
+<table>
+<caption>Token types in ABCLua</caption>
+<col width="13%" />
+<col width="37%" />
+<col width="11%" />
+<col width="37%" />
+<thead>
+<tr class="header">
+<th align="left">token</th>
+<th align="left">description</th>
+<th align="left">ABC Notation</th>
+<th align="left">fields</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">measure_rest</td>
+<td align="left">Measure rest.</td>
+<td align="left"><code>Z4</code></td>
+<td align="left"><strong>bars</strong> number of bars to rest</td>
+</tr>
+<tr class="even">
+<td align="left">chord</td>
+<td align="left">Written chord (e.g. &quot;Cm7&quot;)</td>
+<td align="left"><code>&quot;Cm7&quot;</code></td>
+<td align="left"><strong>chord</strong> text inside the quotes</td>
+</tr>
+<tr class="odd">
+<td align="left">text</td>
+<td align="left">Free quoted text (e.g. &quot;This is free&quot;)</td>
+<td align="left"><code>&quot;hello&quot;</code></td>
+<td align="left"><strong>text</strong> text inside the quotes</td>
+</tr>
+<tr class="even">
+<td align="left">overlay</td>
+<td align="left">Voice overlay begins. Time should jump back to the start of the last bar.</td>
+<td align="left"><code>\</code></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">chord_begin</td>
+<td align="left">Start of a chord group</td>
+<td align="left"><code>[</code></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">chord_end</td>
+<td align="left">End of a chord group</td>
+<td align="left"><code>]</code></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">slur_begin</td>
+<td align="left">Start of a slur group</td>
+<td align="left"><code>(</code></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">slur_end</td>
+<td align="left">End of a slur group</td>
+<td align="left"><code>)</code></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">field_text</td>
+<td align="left">Metadata field</td>
+<td align="left">T:title</td>
+<td align="left"><strong>name</strong> name of the field<br /><strong>content</strong> content of the field</td>
+</tr>
+<tr class="even">
+<td align="left">split</td>
+<td align="left">Beam split in the score</td>
+<td align="left"><whitespace></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">line_split</td>
+<td align="left">Line break in the notation</td>
+<td align="left"><newline></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">note</td>
+<td align="left">A note definition</td>
+<td align="left"><code>g'2-</code></td>
+<td align="left">See <a href="#note_table">note</a> table.</td>
+</tr>
+<tr class="odd">
+<td align="left">bar</td>
+<td align="left">Some form of bar line</td>
+<td align="left"><code>| |: [n,n</code></td>
+<td align="left"><strong>type</strong> type of the bar as a text field<br /><strong>type</strong> can be:<br />=&gt; <strong>plain</strong> regular bar <code>|</code><br />=&gt; <strong>double</strong> double bar <code>||</code><br />=&gt; <strong>thickthin</strong> <code>[|</code><br />=&gt; <strong>thinthick</strong> <code>|]</code><br />=&gt; <strong>start_repeat</strong> <code>|:</code><br />=&gt; <strong>end_repeat</strong> <code>:|</code><br />=&gt; <strong>mid_repeat</strong> <code>:|:</code><br />=&gt; <strong>variant</strong> <code>[n</code><br /><br /><strong>start_repeats</strong> number of repeats<br /><strong>end_repeats</strong> number of repeats<br /><strong>variant_range</strong> list of variants<br />(e.g. [1-3,6 be {1,2,3,6})</td>
+</tr>
+<tr class="even">
+<td align="left">words</td>
+<td align="left">Aligned lyrics</td>
+<td align="left"><code>w:oh th-is</code></td>
+<td align="left"><strong>lyrics</strong> syllable table. Each element<br />of the table has the following fields:<br />=&gt; <strong>syllable</strong> text of the syllable<br />=&gt; <strong>advance</strong> notes to hold for or 'bar'<br />=&gt; <strong>br</strong> original separator: ' ' or '-'<br /></td>
+</tr>
+<tr class="odd">
+<td align="left">note_length</td>
+<td align="left">Length of unadorned notes.</td>
+<td align="left"><code>L:1/8</code></td>
+<td align="left"><strong>note_length</strong> integer representing denominator</td>
+</tr>
+<tr class="even">
+<td align="left">instruction</td>
+<td align="left">Directive.</td>
+<td align="left"><code>%%MIDI arg</code></td>
+<td align="left"><strong>directive</strong> which has subfields<br />=&gt; <strong>directive</strong> the ID of the directive<br />=&gt; <strong>arguments</strong> list of space separated arguments</td>
+</tr>
+<tr class="odd">
+<td align="left">voice_def</td>
+<td align="left">Header voice definition</td>
+<td align="left"><code>V:ID nm=id</code></td>
+<td align="left"><strong>id</strong> ID of the voice<br /><strong>specifiers</strong> list of specifiers. Each specifier has fields:<br />=&gt; <strong>lhs</strong> Left hand side of the assignment<br />=&gt; <strong>rhs</strong> Right hand side of the assignment</td>
+</tr>
+<tr class="even">
+<td align="left">voice_change</td>
+<td align="left">Change of voice (in tune body)</td>
+<td align="left"><code>V:ID nm=id</code></td>
+<td align="left"><strong>id</strong> ID of the voice<br /><strong>specifiers</strong> list of specifiers. Each specifier has fields:<br />=&gt; <strong>lhs</strong> Left hand side of the assignment<br />=&gt; <strong>rhs</strong> Right hand side of the assignment</td>
+</tr>
+<tr class="odd">
+<td align="left">parts</td>
+<td align="left">Parts indicator in the header.</td>
+<td align="left"><code>P:A2(BC)3</code></td>
+<td align="left"><strong>parts</strong> which is a table. Each element has:<br />=&gt; <strong>repeat</strong> repeat count of this part<br />=&gt; <strong>[1]</strong> the part itself<br /><strong>part</strong> new part to start.<br /></td>
+</tr>
+<tr class="even">
+<td align="left">meter</td>
+<td align="left">Meter definition.</td>
+<td align="left"><code>M:3/4</code></td>
+<td align="left"><strong>meter</strong> which has subfields:<br /><strong>num</strong> total numerator of the meter<br /><strong>den</strong> total denominator of the meter<br /><strong>emphasis</strong> beats to emphasise ({0} if simple meter)<br /></td>
+</tr>
+<tr class="odd">
+<td align="left">key</td>
+<td align="left">Key definition</td>
+<td align="left"><code>K:C dor</code></td>
+<td align="left"><strong>key</strong> which has subfields:<br /><strong>root</strong> root of the key (as lowercase letter)<br />[<strong>mode</strong>] mode of the key<br />[<strong>accidentals</strong>] accidentals of the key as a table of strings (e.g. '^c')<br />[<strong>clef</strong>] a subfield describing the clef, which can have subfields:<br /><strong>transpose</strong>, <strong>octave</strong>, <strong>middle</strong>, <strong>clef</strong>, <strong>stafflines</strong></td>
+</tr>
+<tr class="even">
+<td align="left">tempo</td>
+<td align="left">Tempo of the song.</td>
+<td align="left"><code>Q:1/4=120</code></td>
+<td align="left"><strong>tempo</strong> which has subfields:<br />=&gt; <strong>tempo_rate</strong> number of units per minute<br />=&gt; [n]<br />=&gt; <strong>num</strong> numerator of units<br />=&gt; <strong>den</strong> denominator of units<br />e.g. <code>Q:1/4 1/4=140</code> becomes<br /><code>{tempo_rate=140, [1]={num=1,den=4}, [2]={num=1,den=4}}</code></td>
+</tr>
+<tr class="odd">
+<td align="left">triplet</td>
+<td align="left">Tuplet: following notes to be compressed.</td>
+<td align="left"><code>(3 (3:2:3</code></td>
+<td align="left"><strong>triplet</strong> triplet definition <strong>triplet.p</strong><br /><strong>triplet.q</strong> compresses notes by <code>p/q</code><br /><strong>triplet.r</strong> for the next <code>r</code> notes</td>
+</tr>
+<tr class="even">
+<td align="left">append_text _field</td>
+<td align="left">Appending to the previous text field.</td>
+<td align="left"><code>+:more</code></td>
+<td align="left"><strong>name</strong> name of the field we are appending to (i.e. previous field in the source) <strong>content</strong> content to be appended</td>
+</tr>
+<tr class="odd">
+<td align="left">cross_ref</td>
+<td align="left">Cross reference to the ABC source. Only generated if the cross_ref option is used.</td>
+<td align="left"></td>
+<td align="left"><strong>line</strong> current line of the ABC source <strong>at</strong> character of the line</td>
+</tr>
+</tbody>
+</table>
+<h4 id="note-elements"><a href="#note-elements">Note elements</a></h4>
+<table>
+<col width="14%" />
+<col width="39%" />
+<col width="46%" />
+<thead>
+<tr class="header">
+<th align="left">field</th>
+<th align="left">description</th>
+<th align="left">subfields</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">pitch</td>
+<td align="left">Pitch of note as written.</td>
+<td align="left"><strong>note</strong> the note, as a lowercase letter (e.g. 'c')<br /><strong>octave</strong> octave of the note; 0 = uppercase letter<br />[<strong>accidental</strong>] the accidental for this note. If present<br />can be 0 (natural), 1 (sharp), -1 (flat), 2 (double sharp) or -2 (double flat)</td>
+</tr>
+<tr class="even">
+<td align="left">duration</td>
+<td align="left">Duration of the note.</td>
+<td align="left"><strong>num</strong> numerator of the duration (fraction of the unit length)<br /><strong>den</strong> denominator of the duration of this note<br /><strong>broken</strong> 0 if this note does not have broken rhythm<br />-n if this note is shortened/next lengthened<br />n if this lengthened/next shortened<br /></td>
+</tr>
+<tr class="odd">
+<td align="left">chord</td>
+<td align="left">Chord written before note (&quot;Dmaj&quot;)</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">grace</td>
+<td align="left">Grace notes before this note</td>
+<td align="left">List of grace notes; each has a pitch and duration, just as a regular note.</td>
+</tr>
+<tr class="odd">
+<td align="left">tie</td>
+<td align="left">If this note is tied.</td>
+<td align="left">Present if note is to be tied.</td>
+</tr>
+</tbody>
+</table>
+<p><a id="note_table"></a> Table: Structure of the note token.</p>
+<h2 id="event-types"><a href="#event-types">Event types</a></h2>
+<p>After compiling, the event stream tokens are almost the same as the input tokens (with the <code>token</code> changed to <code>event</code>). Each event also receives a <code>t</code> field indicating the time of that event. The following additional/modified fields are also added:</p>
+<table>
+<caption>Event types</caption>
+<col width="13%" />
+<col width="37%" />
+<col width="48%" />
+<thead>
+<tr class="header">
+<th align="left">event</th>
+<th align="left">description</th>
+<th align="left">fields</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">header_end</td>
+<td align="left">End of the header in the original notation</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">abc</td>
+<td align="left">A string of abc notation, representing the next event in the stream</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">note</td>
+<td align="left">Note receives a duration field</td>
+<td align="left"><strong>duration</strong> Duration of the event in microseconds<br /><strong>pitch</strong> Pitch of the note in MIDI notes<br /></td>
+</tr>
+</tbody>
+</table>
+<h2 id="development"><a href="#development">Development</a></h2>
 <p><code>abclua_all.lua</code> contains the entire parser/emitter/compiler as a single convenient file. For developers who want to modify the ABCLua source, the individual sub-components are in separate .lua files in src. Require &quot;abclua&quot; instead of &quot;abclua_all&quot; to load the module which loads files with these subcomponents.</p>
 <p>If you want to modify the source and still use <code>abclua_all.lua</code>, modify the files in src and rebuild <code>abclua_all.lua</code> by running <code>lua make_abclua.lua</code>. Do <strong>not</strong> edit <code>abclua_all.lua</code> directly!</p>
-<h2 id="supported-features">Supported features</h2>
-<p>ABCLua supports most of the 2.1 standard; tested features include:</p>
-<ul>
-<li>All standard note descriptions and tune metadata fields</li>
-<li>Complex meters <code>M:(1+4+2)/8</code></li>
-<li>Full key definitions <code>K:C locrian ^c _g alto t=-2</code></li>
-<li>Multi-tune songbooks</li>
-<li>Tuplets <code>(3 abc (5:2:7 abcdefg</code></li>
-<li>Aligned lyrics <code>+w: th-ese wor-ds are al-igned in the event stre-a-m</code><br /></li>
-<li>Grace notes, decorations <code>{cf}!fermata!~G</code></li>
-<li>Slurs and chords <code>(ABC)</code> and <code>[Ceg]</code></li>
-<li>Named chords <code>&quot;Cm7&quot;C G F | &quot;Dmaj&quot; D e' f |</code></li>
-<li>Repeats (with variable counts, such as <code>|::: :::|</code>) and variant endings <code>|: abc :|1 def |2 fed ||</code></li>
-<li>Parts with variant endings</li>
-<li>Multi-voice songs <code>V:v1</code></li>
-<li>Voice overlay with <code>&amp;</code></li>
-<li>Macros, user macros and transposing macros</li>
-<li><code>abc-include</code> to include files</li>
-</ul>
-<p>See <code>tests/test_abc.lua</code> for examples of these in use.</p>
-<h2 id="limitations">Limitations</h2>
-<h3 id="transposing-macros">Transposing macros</h3>
+<h2 id="macros-and-includes"><a href="#macros-and-includes">Macros and includes</a></h2>
+<h3 id="transposing-macros"><a href="#transposing-macros">Transposing macros</a></h3>
 <p>Transposing macros are supported, but only work with notes without explicit octave symbols. For example:</p>
 <pre><code>m:~n2={op}n2
 A2 b2 c&#39;2    </code></pre>
 <p>produces</p>
 <pre><code>{Bc}A2 {c&#39;d&#39;}b2 c&#39;2 </code></pre>
 <p>because the macro does not match n'2. It is not clear whether this is the behavour the standard intended.</p>
-<h3 id="expansion">Expansion</h3>
+<h3 id="macro-expansion"><a href="#macro-expansion">Macro expansion</a></h3>
 <p>Macros are expanded as they are read, so they will appear in the token stream expanded. The macro definitions are stripped from the song. So <code>reproduce_abc.lua</code> will turn</p>
 <pre><code>m:a=g
 abc        </code></pre>
 <p>into</p>
 <pre><code>gbc</code></pre>
-<p><code>abc-include</code></p>
+<h3 id="includes"><a href="#includes">Includes</a></h3>
 <pre><code>    I:abc-include file.abc
     </code></pre>
 <p>will include the <code>file.abc</code>. But note that the instruction field will not appear in the token stream -- instead the contents of &quot;file.abc&quot; will appear in place. If a file is included more than once inside a song, all includes except the first are ignored. This eliminates recursive includes but might have confounding effects.</p>
+<h3 id="disabling-expansion"><a href="#disabling-expansion">Disabling expansion</a></h3>
 <p>Macro expansion and abc-include can be disabled by setting <code>no_expand=true</code> in the options passed to <code>parse_abc_multisong()</code>, <code>parse_abc_file()</code> or <code>parse_abc_fragment()</code>. Example:</p>
 <pre><code>parse_abc_file(&#39;macros.abc&#39;, {no_expand=false}) -- parses the file with macros enabled
 parse_abc_file(&#39;macros.abc&#39;, {no_expand=true}) -- parses the file with macros disabled, macro fields are passed through</code></pre>
-<h2 id="license">License</h2>
+<h2 id="license"><a href="#license">License</a></h2>
 <pre><code>Licensened under the BSD 3 clause license.
     
 * Copyright (c) 2013, John Williamson
@@ -167,3 +849,5 @@ parse_abc_file(&#39;macros.abc&#39;, {no_expand=true}) -- parses the file with m
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.**
  </code></pre>
+</body>
+</html>

@@ -74,7 +74,6 @@ end
 function expand_patterns(patterns)
     -- expand a pattern list table into a single event stream
     local result = {}
-    
     for i,v in ipairs(patterns) do
         
         for i=1,v.repeats do
@@ -106,33 +105,34 @@ function compose_parts(song)
     local variant_counts = {}
     
     if song.context.part_sequence then                         
-        song.stream = {}
+        song.stream = {}        
         for c in song.context.part_sequence:gmatch"." do            
-            local pattern = copy_table(expand_patterns(song.context.part_map[c]))
-            append_table(song.stream, pattern)
-            
-            -- count repetitions of this part
-            if not variant_counts[c] then
-                variant_counts[c] = 1
-            else
-                variant_counts[c] = variant_counts[c] + 1
-            end
-            
-            -- expand the variants
-            local vc = variant_counts[c]
-            if song.context.part_map[c].variants and song.context.part_map[c].variants[vc] then
-                -- find the name of this variant ending
-                variant_part_name = song.context.part_map[c].variants[vc]
-                pattern = copy_table(expand_patterns(song.context.part_map[variant_part_name]))
+            if song.context.part_map[c] then 
+                local pattern = deepcopy(expand_patterns(song.context.part_map[c]))
                 append_table(song.stream, pattern)
-            
-            end            
-            
+                
+                -- count repetitions of this part
+                if not variant_counts[c] then
+                    variant_counts[c] = 1
+                else
+                    variant_counts[c] = variant_counts[c] + 1
+                end
+                
+                -- expand the variants
+                local vc = variant_counts[c]
+                if song.context.part_map[c].variants and song.context.part_map[c].variants[vc] then
+                    -- find the name of this variant ending
+                    variant_part_name = song.context.part_map[c].variants[vc]
+                    pattern = deepcopy(expand_patterns(song.context.part_map[variant_part_name]))
+                    append_table(song.stream, pattern)
+                
+                end            
+            end
         end        
         
     else
         -- no parts indicator
-        song.stream = copy_table(expand_patterns(song.context.part_map['default']))
+        song.stream = deepcopy(expand_patterns(song.context.part_map['default']))
     end
     
 end
