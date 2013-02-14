@@ -274,7 +274,7 @@ function compute_pitch(note, song)
     end    
     
     base_pitch = midi_note_from_note(song.context.key_mapping, note, accidental)                
-    base_pitch = base_pitch + song.context.global_transpose
+    base_pitch = base_pitch + song.context.global_transpose + song.context.voice_transpose
     return base_pitch 
 end
 

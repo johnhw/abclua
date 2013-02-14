@@ -95,14 +95,41 @@ function finalise_song(song)
 end
 
 
-function start_new_voice(song, voice)
+function apply_voice_specifiers(song)
+    -- apply the voice specifiers. this sets the voice transpose if need be
+    song.context.voice_transpose = 0
+    -- compute transpose
+    transpose =  song.context.voice_specifiers.transpose or  song.context.voice_specifiers.t or 0
+    octaves =   (song.context.voice_specifiers.octave) or 0
+    
+    song.context.voice_transpose = 12*octaves + transpose   
+    
+end
+
+function start_new_voice(song, voice, specifiers)
     -- compose old voice into parts
     if song.context and song.context.voice then
-        finalise_song(song)
-                
+        finalise_song(song)                
         song.voices[song.context.voice] = {stream=song.stream, context=song.context}
     end
 
+    song.context.voice_specifiers = {}    
+    -- merge in voice specifiers from heder and from this definition line
+    if song.voice_specifiers[voice] then
+        for i,v in pairs(song.voice_specifiers[voice]) do
+            song.context.voice_specifiers[v.lhs] = v.rhs            
+        end    
+    end
+    
+    if specifiers then
+        for i,v in pairs(specifiers) do
+            song.context.voice_specifiers[v.lhs] = v.rhs
+        end    
+    end    
+        
+    
+    apply_voice_specifiers(song)
+    
     -- reset song state
     -- set up context state
     song.context.lyrics = {}
@@ -132,7 +159,7 @@ function expand_token_stream(song)
         
         -- copy in standard events that don't change the context state
         if v.token ~= 'note' then
-           local event = deepcopy(v)
+           local event = copy_table(v)
            event.event = event.token
            event.token = nil
            table.insert(song.opus, event)
@@ -171,7 +198,12 @@ function expand_token_stream(song)
         
         -- new voice
         if v.token=='voice_change' then
-            start_new_voice(song, v.voice.id)
+            start_new_voice(song, v.voice.id, v.voice.specifiers)
+        end
+        
+        if v.token=='voice_def' then
+            -- store any voice specific settings for later
+            song.voice_specifiers[v.voice.id] = v.voice.specifiers
         end
         
         if v.token=='instruction' then
@@ -243,6 +275,7 @@ function compile_token_stream(song, context, metadata)
     song.context = deepcopy(song.default_context)
    
     song.voices = {}
+    song.voice_specifiers = {}
     song.metadata = metadata    
     start_new_voice(song, 'default')
     expand_token_stream(song)

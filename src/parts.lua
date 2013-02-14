@@ -108,7 +108,7 @@ function compose_parts(song)
     if song.context.part_sequence then                         
         song.stream = {}
         for c in song.context.part_sequence:gmatch"." do            
-            local pattern = deepcopy(expand_patterns(song.context.part_map[c]))
+            local pattern = copy_table(expand_patterns(song.context.part_map[c]))
             append_table(song.stream, pattern)
             
             -- count repetitions of this part
@@ -123,7 +123,7 @@ function compose_parts(song)
             if song.context.part_map[c].variants and song.context.part_map[c].variants[vc] then
                 -- find the name of this variant ending
                 variant_part_name = song.context.part_map[c].variants[vc]
-                pattern = deepcopy(expand_patterns(song.context.part_map[variant_part_name]))
+                pattern = copy_table(expand_patterns(song.context.part_map[variant_part_name]))
                 append_table(song.stream, pattern)
             
             end            
@@ -132,7 +132,7 @@ function compose_parts(song)
         
     else
         -- no parts indicator
-        song.stream = deepcopy(expand_patterns(song.context.part_map['default']))
+        song.stream = copy_table(expand_patterns(song.context.part_map['default']))
     end
     
 end

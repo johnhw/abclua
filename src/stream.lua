@@ -213,7 +213,7 @@ end
 
 
 function render_grace_notes(stream)
-    -- Return a copy of the stream with grace notes rendered in 
+    -- Return a the stream with grace notes rendered in 
     -- as ordinary notes. These notes will cut into the following note 
     local out = {}
     for i,v in ipairs(stream) do
@@ -226,7 +226,7 @@ function render_grace_notes(stream)
             end            
             
             -- cut into the time of the next note, and push it along
-            local cut_note = deepcopy(v)
+            local cut_note = v
             cut_note.duration = cut_note.duration - duration
             
             -- if we manage to cut the note completely then make sure
@@ -432,19 +432,21 @@ function song_to_opus(song, patches)
         },          
     }    
     -- set the patch for each channel
-    for i=1,#song.voices do
+    local j = 0
+    for i,v in pairs(song.voices) do
         if patches[i] then
             table.insert(score[2], {'patch_change', 0, i, patches[i]})
         else
-            table.insert(score[2], {'patch_change', 0, i, 41})
+            table.insert(score[2], {'patch_change', 0, j, 41})
         end
+        j = j + 1
     end
     
+    
     -- merge in each voice
-    for i,v in pairs(song.voices) do
-        print(channel)
-        channel = channel + 1        
+    for i,v in pairs(song.voices) do        
         append_table(merged_stream, get_note_stream(v.stream, channel))         
+        channel = channel + 1        
     end
         
    append_table(score[2], note_stream_to_opus(merged_stream))

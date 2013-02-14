@@ -268,6 +268,7 @@ function get_default_context()
     key = { root='C', mode='maj', clef={}},
     key_mapping = {c=0,d=0,e=0,f=0,g=0,a=0,b=0},
     global_transpose = 0,
+    voice_transpose = 0,
     grace_length = {num=1, den=32}
     })
 end
@@ -371,20 +372,12 @@ function compile_tokens(tokens, context)
     -- Returns the event stream if this is a single voice fragment, or
     -- a table of voices, if it is a multi-voice fragment
     --
-    -- Note that this is a relatively slow function to execute, as it
-    -- must copy the context, expand the stream and then finalise the song
+    
     context = context or get_default_context()
     
-    local song = {context=deepcopy(context), token_stream=tokens}
-            
-    song.voices = {}
-    song.metadata = {}
-    start_new_voice(song, 'default')
-    expand_token_stream(song)    
-    
-    -- finalise the voice
-    start_new_voice(song, nil)
-    
+    local song = {token_stream=tokens}
+    compile_token_stream(song, context, {})
+                
     if #song.voices>1 then
         local voice_stream = {}
         -- return a table of voices

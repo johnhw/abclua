@@ -37,7 +37,16 @@ function set_property(t, key, value)
     end
 end
 
--- copy a table completely
+function copy_table(orig)
+    -- shallow copy a table (does not copy the contents)
+    local copy = {}
+    for i,v in pairs(orig) do
+        copy[i] = v
+    end
+    return copy   
+end
+
+-- copy a table completely (excluding metatables)
 function deepcopy(orig)
     local orig_type = type(orig)
     local copy

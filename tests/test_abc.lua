@@ -342,12 +342,13 @@ function test_voices()
     voices = [[
     X:1    
     M:3/4
+    V:B octave=-2
     K:G
     V:A
     G G G | G G G | G G G
     V:B
     e3 | e3 | e3
-    V:C
+    V:C transpose=4 octave=0
     b3 | d3 | b/ d/ b/ f/ a/ b/
     ]]
     songs = abclua.parse_abc_multisong(voices)
@@ -468,26 +469,26 @@ function test_file()
     end 
 end
 
-test_octaves()  
-test_include()
-test_overlay()
-test_macros()
-test_directives()
-test_clefs()
-test_decorations()
-test_inline()
-test_keys()
-test_trimming()
-test_grace_notes()
-test_chord_names()
+-- test_octaves()  
+-- test_include()
+-- test_overlay()
+-- test_macros()
+-- test_directives()
+-- test_clefs()
+-- test_decorations()
+-- test_inline()
+-- test_keys()
+-- test_trimming()
+-- test_grace_notes()
+-- test_chord_names()
 test_voices()
-test_rhythms()
-test_accidentals()
-test_repeats()
-test_lyrics()
-test_parts()
-test_fragments()
-test_triplets()
-test_skye()
-test_file()
+-- test_rhythms()
+-- test_accidentals()
+-- test_repeats()
+-- test_lyrics()
+-- test_parts()
+-- test_fragments()
+-- test_triplets()
+-- test_skye()
+-- test_file()
 
