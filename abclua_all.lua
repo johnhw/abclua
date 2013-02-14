@@ -631,7 +631,7 @@ function compose_parts(song)
         song.stream = {}        
         for c in song.context.part_sequence:gmatch"." do            
             if song.context.part_map[c] then 
-                local pattern = copy_table(expand_patterns(song.context.part_map[c]))
+                local pattern = deepcopy(expand_patterns(song.context.part_map[c]))
                 append_table(song.stream, pattern)
                 
                 -- count repetitions of this part
@@ -646,7 +646,7 @@ function compose_parts(song)
                 if song.context.part_map[c].variants and song.context.part_map[c].variants[vc] then
                     -- find the name of this variant ending
                     variant_part_name = song.context.part_map[c].variants[vc]
-                    pattern = copy_table(expand_patterns(song.context.part_map[variant_part_name]))
+                    pattern = deepcopy(expand_patterns(song.context.part_map[variant_part_name]))
                     append_table(song.stream, pattern)
                 
                 end            
@@ -655,7 +655,7 @@ function compose_parts(song)
         
     else
         -- no parts indicator
-        song.stream = copy_table(expand_patterns(song.context.part_map['default']))
+        song.stream = deepcopy(expand_patterns(song.context.part_map['default']))
     end
     
 end
@@ -4167,7 +4167,7 @@ abc_element = abc_element
 -- render decorations
 
 
--- fix parse_abc_fragment so it takes options instead of context
+-- check measure rests
 
 -- transposing macros don't work when octave modifiers and ties are applied
 -- tidy up stream rendering

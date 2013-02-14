@@ -1,4 +1,4 @@
-# ABCLua 0.1
+# ABCLua
 
 
 ## Description
@@ -618,9 +618,8 @@ chord           Written chord (e.g. "Cm7")                 `"Cm7"`       **chord
 
 text            Free quoted text (e.g. "This is free")     `"hello"`     **text** text inside the quotes
 
-overlay         Voice overlay begins. Time should jump      `\`                 
-                back to the start of the last bar.
-
+overlay         Voice overlay begins. p                    `\`                 
+               
 chord_begin     Start of a chord group                      `[`
 
 chord_end       End of a chord group                        `]`
@@ -709,10 +708,11 @@ triplet         Tuplet: following notes to be compressed.   `(3 (3:2:3`  **tripl
                                                                          **triplet.q** compresses notes by `p/q`\
                                                                          **triplet.r** for the next `r` notes
                                                                          
-append_text     Appending to the previous text field.       `+:more`     **name** name of the field we are appending to (i.e. previous field in the source)                                                              **content** content to be appended
+append_text     Appending to the previous text field.       `+:more`     **name** name of the field we are appending to (i.e. previous field in the source)\
+                                                                         **content** content to be appended
 _field                                                                         
                                                                                          
-cross_ref       Cross reference to the ABC source. Only                  **line** current line of the ABC source 
+cross_ref       Cross reference to the ABC source. Only                  **line** current line of the ABC source \
                 generated if the cross_ref option is used.               **at** character of the line 
                                                                  
 -------------------------------------------------------------------------------------------------------------

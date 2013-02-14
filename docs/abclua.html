@@ -11,7 +11,7 @@
 <body>
 <div id="TOC">
 <ul>
-<li><a href="#abclua-0.1">ABCLua 0.1</a><ul>
+<li><a href="#abclua">ABCLua</a><ul>
 <li><a href="#description">Description</a></li>
 <li><a href="#supported-features">Supported features</a></li>
 <li><a href="#example">Example</a><ul>
@@ -36,7 +36,7 @@
 </ul></li>
 </ul>
 </div>
-<h1 id="abclua-0.1"><a href="#abclua-0.1">ABCLua 0.1</a></h1>
+<h1 id="abclua"><a href="#abclua">ABCLua</a></h1>
 <h2 id="description"><a href="#description">Description</a></h2>
 <p>Simple ABC parsing for Lua. This library can read a reasonable subset of ABC 2.1 and generate Lua tables representing the song structure.</p>
 <p>It can transform ABC source into a token stream, transform a token stream into an ABC string, transform a token stream into an event stream (with timing, repeats expanded etc.), and transform these event streams into MIDI.</p>
@@ -591,7 +591,7 @@ K:G
 </tr>
 <tr class="even">
 <td align="left">overlay</td>
-<td align="left">Voice overlay begins. Time should jump back to the start of the last bar.</td>
+<td align="left">Voice overlay begins. p</td>
 <td align="left"><code>\</code></td>
 <td align="left"></td>
 </tr>
@@ -710,16 +710,16 @@ K:G
 <td align="left"><strong>triplet</strong> triplet definition <strong>triplet.p</strong><br /><strong>triplet.q</strong> compresses notes by <code>p/q</code><br /><strong>triplet.r</strong> for the next <code>r</code> notes</td>
 </tr>
 <tr class="even">
-<td align="left">append_text _field</td>
+<td align="left">append_text</td>
 <td align="left">Appending to the previous text field.</td>
 <td align="left"><code>+:more</code></td>
-<td align="left"><strong>name</strong> name of the field we are appending to (i.e. previous field in the source) <strong>content</strong> content to be appended</td>
+<td align="left"><strong>name</strong> name of the field we are appending to (i.e. previous field in the source)<br /><strong>content</strong> content to be appended</td>
 </tr>
 <tr class="odd">
 <td align="left">cross_ref</td>
 <td align="left">Cross reference to the ABC source. Only generated if the cross_ref option is used.</td>
 <td align="left"></td>
-<td align="left"><strong>line</strong> current line of the ABC source <strong>at</strong> character of the line</td>
+<td align="left"><strong>line</strong> current line of the ABC source<br /><strong>at</strong> character of the line</td>
 </tr>
 </tbody>
 </table>
@@ -791,7 +791,7 @@ K:G
 </tr>
 <tr class="odd">
 <td align="left">note</td>
-<td align="left">Note receives a duration field</td>
+<td align="left">Note receives duration and real pitch</td>
 <td align="left"><strong>duration</strong> Duration of the event in microseconds<br /><strong>pitch</strong> Pitch of the note in MIDI notes<br /></td>
 </tr>
 </tbody>
