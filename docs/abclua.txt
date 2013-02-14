@@ -182,7 +182,7 @@ because the macro does not match n'2. It is not clear whether this is the behavo
 standard intended.
 
 
-###Expansion
+###Macro expansion
 Macros are expanded as they are read, so they will appear in the token stream expanded. The 
 macro definitions are stripped from the song. So `reproduce_abc.lua` will turn        
 
@@ -192,8 +192,8 @@ macro definitions are stripped from the song. So `reproduce_abc.lua` will turn
 into
 
     gbc
-
-`abc-include`
+    
+### Includes 
         
         I:abc-include file.abc
         
@@ -203,7 +203,7 @@ will appear in place. If a file is included more than once inside a song, all
 includes except the first are ignored. This eliminates recursive includes but
 might have confounding effects.
         
-        
+### Disabling expansion
 Macro expansion and abc-include can be disabled by setting `no_expand=true` in the options passed to 
 `parse_abc_multisong()`, `parse_abc_file()` or `parse_abc_fragment()`. Example:
 
