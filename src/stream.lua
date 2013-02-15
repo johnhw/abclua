@@ -324,8 +324,27 @@ function trim_event_stream(stream,  mode, start_time, end_time)
     return filtered
 end
     
+
+function transpose_stream(stream, semitones)
+    -- Transpose events in the stream (only changes the numerical pitch field
+    -- see diatonic_transpose() to transpose a token stream with note renaming etc.)
+    for i,v in ipairs(stream) do
+        if v.event=='note' then 
+            v.pitch = v.pitch + semitones
+        end
+    end    
+end
     
     
+
+function time_stretch_stream(stream, factor)
+    -- Change the playback rate of the stream (only changes the numerical duration field)
+    for i,v in ipairs(stream) do    
+        if v.event.duration  then 
+            v.duration = v.duration * factor
+        end
+    end    
+end
 
 function note_stream_to_opus(note_stream)
     -- make sure events are in time order

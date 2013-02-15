@@ -1,4 +1,4 @@
-require "abclua_all"
+abclua = require "abclua"
 -- Print anything - including nested tables
 function table_print (tt, indent, done)
   done = done or {}
@@ -433,6 +433,20 @@ function test_overlay()
     print(abclua.emit_abc(songs[1].token_stream))
 end
 
+
+function test_rests()
+    -- Test rests and measure rests
+    rests = [[
+    X:1    
+    K:G
+    c z c z2 | Z | Z2 | c z c z
+    ]]
+    songs = abclua.parse_abc_multisong(rests)
+    abclua.make_midi(songs[1], 'out/rests.mid')    
+    table_print(songs[1].token_stream)
+    print(abclua.emit_abc(songs[1].token_stream))
+end
+
 function test_include()
     -- test file inclusion
     includes = [[
@@ -481,27 +495,28 @@ function test_file()
     end 
 end
 
-test_cross_ref()  
-test_octaves()  
-test_include()
-test_overlay()
-test_macros()
-test_directives()
-test_clefs()
-test_decorations()
-test_inline()
-test_keys()
-test_trimming()
-test_grace_notes()
-test_chord_names()
-test_voices()
-test_rhythms()
-test_accidentals()
-test_repeats()
-test_lyrics()
-test_parts()
-test_fragments()
-test_triplets()
-test_skye()
-test_file()
+test_rests()
+-- test_cross_ref()  
+-- test_octaves()  
+-- test_include()
+-- test_overlay()
+-- test_macros()
+-- test_directives()
+-- test_clefs()
+-- test_decorations()
+-- test_inline()
+-- test_keys()
+-- test_trimming()
+-- test_grace_notes()
+-- test_chord_names()
+-- test_voices()
+-- test_rhythms()
+-- test_accidentals()
+-- test_repeats()
+-- test_lyrics()
+-- test_parts()
+-- test_fragments()
+-- test_triplets()
+-- test_skye()
+-- test_file()
 

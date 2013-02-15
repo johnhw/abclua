@@ -24,7 +24,7 @@ tie <- ('-')
 chord <- (["] {([^"] *)} ["])
 full_note <-  (({:pitch: (note) :} / {:rest: (rest) :} / {:measure_rest: <measure_rest> :} ) {:duration: (duration ?)  :}  {:broken: (broken ?)  :})  -> {}
 rest <- ( 'z' / 'x' )
-measure_rest <- (('Z' / 'X') ({:bars: ([0-9]+) :}) ? ) -> {}
+measure_rest <- (('Z' / 'X')  ) -> {}
 broken <- ( ('<' +) / ('>' +) )
 note <- (({:accidental: (accidental )  :})? ({:note:  ([a-g]/[A-G]) :}) ({:octave: (octave)  :}) ? ) -> {}
 decoration <- ('.' / [~] / 'H' / 'L' / 'M' / 'O' / 'P' / 'S' / 'T' / 'u' / 'v' / ('!' ([^!] *) '!') / ('+' ([^+] *) '+'))
@@ -50,10 +50,6 @@ function read_tune_segment(tune_data, song)
             end
         else
         
-            if v.measure_rest then
-                local bars = v.measure_rest.bars or 1
-                table.insert(song.token_stream, {token='measure_rest', bars=bars})
-            end
             
             -- store annotations
             if v.free_text then
@@ -401,7 +397,7 @@ end
 
 
 -- module exports
-abclua = {
+local abclua = {
 name="abclua",
 parse_abc_multisong = parse_abc_multisong,
 parse_abc = parse_abc,
@@ -419,16 +415,19 @@ trim_event_stream = trim_event_stream,
 render_grace_notes = render_grace_notes,
 register_user_directive = register_user_directive,
 abc_from_songs = abc_from_songs,
+diatonic_transpose = diatonic_transpose,
+get_note_stream = get_note_stream,
+get_chord_stream = get_chord_stream,
 abc_element = abc_element
 }
 
-
+return abclua
 
 -- TODO:
 
 -- render decorations
 
-
+-- add an option to force emitter to write fields in correct order (X: T: header K: notes)
 -- check measure rests
 
 -- transposing macros don't work when octave modifiers and ties are applied

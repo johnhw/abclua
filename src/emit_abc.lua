@@ -462,10 +462,16 @@ function abc_note_def(note)
     
     -- measure rests
     if note.measure_rest then
-        if note.measure_rest.bars==1 then
+        if note.duration.num==1 and note.duration.den==1 then
             return 'Z'
         else
-            return 'Z' .. note.measure_rest.bars
+            if note.duration.den==1 then            
+                return 'Z' .. note.duration.num
+            else
+                -- fractional bar rests aren't really in the standard, but
+                -- we can genreate them anyway
+                return 'Z' .. note.duration.den ..  '/' ..note.duration.num
+            end
         end
     end
     
@@ -667,4 +673,39 @@ function abc_from_songs(songs, creator)
         table.insert(out, emit_abc(v.token_stream))
         table.insert(out, '\n\n')
     end
+end
+
+function swap_or_insert(t, match, position, default)
+    -- Find match in t; if it exists, swap it into position
+    -- if not, insert a default at that position
+    local ref = find_first_match(tokens, match) 
+    
+    -- insert default if does not match
+    if not ref then 
+        table.insert(tokens, position, default)
+    else
+        -- swap it into place
+        swap(tokens, position, ref)
+    end
+    
+end
+
+function validate_token_stream(tokens)
+    -- Make sure the given token stream is valid
+    -- Forces the token stream to begin with X:, followed by T:, followed by the other
+    -- fields, followed by K:, followed by the notes
+    
+    swap_or_insert(tokens, {event='field_text', name='ref'}, 1, {event='field_text', name='ref', content='1'})
+    swap_or_insert(tokens, {event='field_text', name='title'}, 2, {event='field_text', name='title', content='untitled'})
+    
+    local first_note
+    -- find first non-field element
+    for i,v in ipairs(tokens) do
+        
+        if not v.inline then
+            first_note = i
+        end
+    end
+        
+    
 end

@@ -246,7 +246,7 @@ function parse_field(f, song, inline)
             end
             
              if song.parse.last_field=='words' then
-                 table.insert(song.token_stream, {token='words', lyrics=parse_lyrics(content)})            
+                 table.insert(song.token_stream, {token='words', lyrics=parse_lyrics(content), inline=inline})            
              end
          end
          

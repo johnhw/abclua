@@ -1,4 +1,4 @@
-require "abclua"
+local abclua = require "abclua"
 
 -- Tests check wheter ABCLua can parse a given ABC string
 -- and reproduce it exactly. This only tests the parser and emitter,
@@ -244,6 +244,11 @@ L:1/1
 L:1/16
 K:G
 A B C]], 'Note lengths')
+
+check_reproduce([[
+X:1
+K:G
+abzabZ2| Z2 | Z4 | z z Z a]], 'Rests')
 
 
 check_reproduce([[

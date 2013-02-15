@@ -12,5 +12,5 @@ require "src/bar"
 require "src/stream"
 require "src/compile"
 require "src/emit_abc"
-require "src/parse_abc"
+return require "src/parse_abc"
 

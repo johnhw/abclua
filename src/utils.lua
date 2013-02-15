@@ -162,3 +162,28 @@ function warn(message)
 -- print a warning message
     print(message)
 end
+
+function find_first_match(t, match)
+    -- Find the first element of t, where all of the given field=value pairs match
+    -- or nil, if no match
+    local is_match
+   for i,v in ipairs(t) do
+     is_match = true
+     -- check all fields of match
+     for j,n in pairs(match) do
+        if not v[j] or v[j]~=n then
+            is_match = false
+        end
+     end
+     -- if we matched, we found it!
+     return i
+   end
+   return nil
+end
+
+function swap(t, a, b)
+    -- swap the indices of t so that t[a] = t[b] and t[b] = t[a]
+    local ta, tb = t[a], t[b]
+    t[b] = ta
+    t[a] = tb
+end

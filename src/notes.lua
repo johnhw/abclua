@@ -23,10 +23,6 @@ function canonicalise_note(note)
     -- Replaces broken with an integer representing the dotted value (e.g. 0 = plain, 1 = once dotted,
     --  2 = twice, etc.)
     
-    -- fill in measure rests
-    if note.measure_rest and not note.measure_rest.bars then
-        note.measure_rest.bars = 1
-    end
     
     if note.duration.slashes and not note.duration.den then
          local den = 1
@@ -296,7 +292,8 @@ function compute_duration(note, song)
     if note.measure_rest then   
         -- one bar =  meter ratio * note length (e.g. 1/16 = 16)
         local note_length = song.context.note_length or default_note_length(song)
-        return (song.context.meter_data.num / song.context.meter_data.den) * note_length * song.context.timing.base_note_length * 1e6
+        local bars = note.duration.num / note.duration.den
+        return (song.context.meter_data.num / song.context.meter_data.den) * bars * note_length * song.context.timing.base_note_length * 1e6
     end
     
     -- we are guaranteed to have filled out the num and den fields
