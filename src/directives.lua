@@ -5,80 +5,29 @@ local grace_matcher = re.compile([[
     number <- ([0-9]+)
     ]])
 
-function directive_set_grace_note_length(song, directive, arguments)
-    -- set the length of grace notes
-    -- Directive should be of the form I:gracenotes 1/64
-    if arguments[1] then
-        -- extract ratio
-        local ratio = grace_matcher:match(arguments[1])
-        if ratio then
-            song.context.grace_note_length = {num=ratio.num, den=ratio.den}
-        end
-    end
-    update_timing(song) -- must recompute note lengths
-end
 
 
-
-
-function abc_include(song, directive, arguments)
-    -- Include a file. We can just directly invoke parse_abc_string() on 
-    -- the file contents. The include file must have only one tune -- no multi-tune files
-    
-    local filename = arguments[1]
-    if filename then
-        local f = io.open(filename, 'r')            
-        song.includes = song.includes or {}
-        
-        -- disallow include loops!
-        if song.includes[filename] then
-            return 
-        end
-        
-        -- remember we included this file
-        song.includes[filename] = filename
-        
-        -- check if the file exists
-        if f then
-            -- and we can read it...
-            local contents = f:read('*a')
-            if contents then
-                -- then recursively invoke parse_abc_string
-                parse_abc_string(song, contents)
-            end
-        end
-    end
-end
 
 -- table maps directive names to functions
 -- each function takes two arguments: the song structure, and an argument list from
 -- the directive (as a table)
-local directive_table = {
-gracenote  = directive_set_grace_note_length,
-['abc-include'] = abc_include
-}
+local directive_table = {}
 
--- directives listed here must be executed at parse time,
--- not at compile time (because they change the parsing of future
--- text, e.g. by inserting new tokens)
-local parse_directives = {
-    'abc-include'
-}
 
 function apply_directive(song, directive, arguments)
     -- Apply a directive; look it up in the directive table,
-    -- and if there is a match, execute it
-    
+    -- and if there is a match, execute it    
     if directive_table[directive] then        
-        directive_table[directive](song, directive, arguments)
+        directive_table[directive].fn(song, directive, arguments)
     end
 
 end
 
-function register_user_directive(directive, fn)
+function register_directive(directive, fn, parse)
     -- Register a user directive. Will call fn(song, directive, arguments) when
-    -- the given directive is found
-    directive_table[directive] = fn
+    -- the given directive is found. If parse is true, this directive is executed at parse time
+    -- (e.g. to insert new tokens into the stream)    
+        directive_table[directive] = {fn=fn, parse=parse}    
     
 end
 
@@ -92,7 +41,7 @@ function parse_directive(directive)
     
     local match = re.match(directive, directive_pattern)
     
-    if match and is_in(match.directive, parse_directives) then
+    if match and directive_table[match] and directive_table[match].parse then       
         return true, match
     else
         return false, match

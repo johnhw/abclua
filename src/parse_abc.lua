@@ -366,7 +366,7 @@ function parse_abc_fragment(str, options)
     song.token_stream = {}
     
     -- use default parse structure if not one specified
-    song.parse = parse or {in_header=options.in_header, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand, cross_ref=option.cross_ref}    
+    song.parse = parse or {in_header=options.in_header, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand, cross_ref=options.cross_ref}    
     parse_abc_string(song, str)
     
     return song.token_stream
@@ -413,7 +413,7 @@ make_midi = make_midi,
 make_midi_from_stream = make_midi_from_stream,
 trim_event_stream = trim_event_stream,
 render_grace_notes = render_grace_notes,
-register_user_directive = register_user_directive,
+register_directive = register_directive,
 abc_from_songs = abc_from_songs,
 diatonic_transpose = diatonic_transpose,
 get_note_stream = get_note_stream,
@@ -421,7 +421,53 @@ get_chord_stream = get_chord_stream,
 abc_element = abc_element
 }
 
-return abclua
+function directive_set_grace_note_length(song, directive, arguments)
+    -- set the length of grace notes
+    -- Directive should be of the form I:gracenotes 1/64
+    if arguments[1] then
+        -- extract ratio
+        local ratio = grace_matcher:match(arguments[1])
+        if ratio then
+            song.context.grace_note_length = {num=ratio.num, den=ratio.den}
+        end
+    end
+    update_timing(song) -- must recompute note lengths
+end
+
+
+
+
+function directive_abc_include(song, directive, arguments)
+    -- Include a file. We can just directly invoke parse_abc_string() on 
+    -- the file contents. The include file must have only one tune -- no multi-tune files
+    
+    local filename = arguments[1]
+    if filename then
+        local f = io.open(filename, 'r')            
+        song.includes = song.includes or {}
+        
+        -- disallow include loops!
+        if song.includes[filename] then
+            return 
+        end
+        
+        -- remember we included this file
+        song.includes[filename] = filename
+        
+        -- check if the file exists
+        if f then
+            -- and we can read it...
+            local contents = f:read('*a')
+            if contents then
+                -- then recursively invoke parse_abc_string
+                parse_abc_string(song, contents)
+            end
+        end
+    end
+end
+
+
+
 
 -- TODO:
 

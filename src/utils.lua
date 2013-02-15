@@ -157,6 +157,16 @@ function split(str, pat)
    return t
 end
 
+function is_in(str, tab)
+-- return true if str is in the given table of strings
+    for i,v in ipairs(tab) do
+        if str==v then
+            return true
+        end
+    end
+    return false
+end
+
 
 function warn(message)
 -- print a warning message

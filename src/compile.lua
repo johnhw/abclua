@@ -32,6 +32,7 @@ function is_compound_time(song)
 end
 
 
+
 function apply_repeats(song, bar)
         -- clear any existing material
         if bar.type=='start_repeat' then

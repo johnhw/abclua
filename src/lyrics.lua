@@ -69,25 +69,6 @@ function parse_lyrics(lyrics)
 end
 
 
-function insert_lyrics(lyrics, stream)
-    -- insert a sequence of lyrics into the stream
-    -- each lyric line (except the first, which starts at the first note) is aligned with
-    -- the corresponding "lyric_align" event in the event stream
-    
-    local index = 1 -- index into the original stream
-    local new_stream = {}
-    
-    -- insert each lyric line in turn
-    for i,v in ipairs(lyrics) do
-        index = insert_lyrics_stream(v, stream, new_stream, index)+1
-    end
-    -- copy in any left over events 
-    for i=index, #stream do
-        table.insert(new_stream, stream[i])
-    end
-    return new_stream
-end
-
 function insert_lyrics_stream(lyrics, stream, new_stream, stream_index)
     -- Takes a lyrics structure and an event stream, and inserts the lyric
     -- events into the stream accordingly. Returns a new event stream
@@ -153,6 +134,27 @@ function insert_lyrics_stream(lyrics, stream, new_stream, stream_index)
     
     return stream_index
 end
+
+
+function insert_lyrics(lyrics, stream)
+    -- insert a sequence of lyrics into the stream
+    -- each lyric line (except the first, which starts at the first note) is aligned with
+    -- the corresponding "lyric_align" event in the event stream
+    
+    local index = 1 -- index into the original stream
+    local new_stream = {}
+    
+    -- insert each lyric line in turn
+    for i,v in ipairs(lyrics) do
+        index = insert_lyrics_stream(v, stream, new_stream, index)+1
+    end
+    -- copy in any left over events 
+    for i=index, #stream do
+        table.insert(new_stream, stream[i])
+    end
+    return new_stream
+end
+
 
 
 function test_lyric_parsing()
