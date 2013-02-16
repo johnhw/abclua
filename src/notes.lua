@@ -366,7 +366,7 @@ function compute_duration(note, song)
     -- vice versa for >
     -- multiple > (e.g. >> or >>>) lengthens by 1.75 (0.25) or 1.875 (0.125) etc.
     if note.duration.broken then
-        shift = math.pow(2, math.abs(note.duration.broken))
+        shift = math.pow(song.context.broken_ratio, math.abs(note.duration.broken))
         
         if shift<0 then
             this_note = 1.0 / -shift

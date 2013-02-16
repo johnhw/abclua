@@ -284,7 +284,9 @@ function get_default_context()
     grace_length = {num=1, den=32},
     propagate_accidentals = 'pitch',
     accidental = {},
-    directives = {}
+    directives = {},
+    broken_ratio=2,
+    write_abc_events = false
     })
 end
     
@@ -432,10 +434,8 @@ return abclua
 
 -- Multi-measure overlay with && &&& etc.
 
--- fix in-bar position for first bar
-
 -- Extended tuplet values with nested tuplets
--- Unify fractional accidentals with standard accidental (?)
+-- Extend fractional accidentals to keys
 
 -- ABCLint -> check abc files for problems
 

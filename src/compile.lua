@@ -121,7 +121,6 @@ end
 
 
 function reset_bar_time(song)
-  
     -- if warnings are enabled, mark underfull and overfull bars
     if song.context.bar_warnings then    
         if song.context.timing.bar_time>1 then
@@ -179,8 +178,11 @@ function expand_token_stream(song)
     
     for i,v in ipairs(song.token_stream) do
    
-        -- write in the ABC notation event as a string
-        table.insert(song.opus, {event='abc', abc=abc_element(v)}) 
+        if song.context.write_abc_events then
+            -- write in the ABC notation event as a string
+            table.insert(song.opus, {event='abc', abc=abc_element(v)})
+        end
+        
         local event
         -- copy in standard events that don't change the context state
         if v.token ~= 'note' then

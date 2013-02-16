@@ -47,6 +47,18 @@ function directive_abc_include(song, directive, arguments)
     end
 end
 
+function directive_midi(song, directive, arguments)
+    if arguments then
+        if arguments[1]=='ratio' then
+            local p = arguments[2]
+            local q = arguments[3] or 1
+            song.context.broken_ratio = p/q
+        end
+    
+    end
+
+end
+
 function directive_propagate_accidentals(song, directive, arguments)
     -- Set the accidental propagation mode. Can be
     -- 'not': do not propagate accidentals
