@@ -150,10 +150,10 @@ A A z z | ^A _A =A z | ^^A __A =A z | z z z
 
 check_result([[X:1
 K:C
-A A z z | ^/2A _/A =A z | ^^2/3A __/9A =A z | z z z
+A A z z | ^/2A _/A =A z | ^2/3A __/9A =A z | z z z
 ^A A A z | _A A A z | _A A =A z | zzz]], [[X:1
 K:C
-A A z z | ^/2A _/2A =A z | ^^2/3A __/9A =A z | z z z
+A A z z | ^/2A _/2A =A z | ^2/3A _2/9A =A z | z z z
 ^A A A z | _A A A z | _A A =A z | zzz]],'Fractional Accidentals')
 
 check_reproduce([[X:1

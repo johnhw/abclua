@@ -363,6 +363,57 @@ function abc_triplet(triplet)
 end
 
 
+function abc_accidental(accidental)
+    local acc = ''
+    if accidental then
+        local ad = accidental
+        -- microtonal accidenals
+        if ad then
+            -- 0 is = 
+            if ad.den == 0 or ad.num==0 then
+                acc = '='
+                
+            -- plain accidentals
+            elseif ad.den == 1 then
+                if ad.num==1 then
+                    acc = '^'
+                elseif ad.num==-1 then
+                    acc = '_'
+                elseif ad.num==2 then
+                    acc = '^^'
+                elseif ad.num==-2 then
+                    acc = '__'
+                else
+                    -- triple etc. sharps notated ^3f
+                    if ad.num>0 then
+                        acc = '^'..ad.num
+                    else
+                        acc = '_'..-ad.num
+                    end
+                end
+            else
+                -- write as /n if possible
+                if math.abs(ad.num)~=1 then
+                    if ad.num+0<0 then
+                        acc = -ad.num
+                    else
+                        acc = ad.num
+                    end
+                end
+                
+                
+                if (ad.num+0)<0 then
+                    acc = '_'..acc..'/'..ad.den
+                else
+                    acc = '^'..acc..'/'..ad.den
+                end
+                
+            end
+        end
+    end
+   return acc 
+end
+
 function abc_pitch(note_pitch)
     -- get the string represenation of a pitch table
     -- pitch; lowercase = +1 octave
@@ -395,41 +446,9 @@ function abc_pitch(note_pitch)
         end
     end
     
-    if note_pitch.accidental then
-    
-        local fraction = ''
-        
-        -- microtonal accidenals
-        if note_pitch.accidental_fraction then
-            if note_pitch.accidental_fraction.num == 1 then
-                fraction = '/' .. note_pitch.accidental_fraction.den
-            else
-                fraction = note_pitch.accidental_fraction.num .. '/' .. note_pitch.accidental_fraction.den
-            end
-            
-        end
-        
-        -- accidentals
-        if note_pitch.accidental==1 then
-            pitch = '^' .. fraction..pitch
-        end
-        
-        if note_pitch.accidental==2 then
-            pitch = '^^' ..fraction.. pitch
-        end
-        
-        if note_pitch.accidental==-1 then
-            pitch = '_' .. fraction..pitch
-        end
-        
-        if note_pitch.accidental==-2 then
-            pitch = '__' .. fraction..pitch
-        end
-        
-        if note_pitch.accidental==0 then
-            pitch = '=' .. fraction..pitch
-        end  
-    end
+   -- add accidentals
+    pitch = abc_accidental(note_pitch.accidental)..pitch
+       
     return pitch
 end
 

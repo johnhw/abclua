@@ -12,6 +12,12 @@ function apply_directive(song, directive, arguments)
     if directive_table[directive] then        
         directive_table[directive].fn(song, directive, arguments)
     end
+    
+    -- record all directives in the context
+    if song.context then
+       song.context.directives[directive] = song.context.directives[directive] or {}
+       table.insert(song.context.directives[directive], arguments)
+    end
 
 end
 

@@ -139,7 +139,6 @@ function start_new_voice(song, voice, specifiers)
     song.context.pattern_map = {}
     song.context.timing = {}
     
-    
     song.context.timing.triplet_state = 0
     song.context.timing.triplet_compress = 1
     song.context.timing.prev_broken_note = 1

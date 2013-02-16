@@ -45,37 +45,37 @@ function canonicalise_accidental(accidental)
     -- Transform string indicator to integer and record any fractional part
     -- (for microtonal tuning)
     local acc = accidental[1]
-    local value, fraction
+    local value
+    local fraction = {num=1, den=1}
 
     -- fractional accidentals
     if accidental[2] and (accidental[2].num or accidental[2].slashes) then
-        
         canonicalise_duration(accidental[2])
         fraction = accidental[2] 
     end
         
     -- accidentals
     if acc == '^' then
-       value = 1
+       value = {num=fraction.num, den=fraction.den}
     end
     
     if acc == '^^' then
-       value = 2
+       value = {num=2*fraction.num, den=fraction.den}
     end
     
     if acc == '_' then
-        value = -1
+        value = {num=-fraction.num, den=fraction.den}
     end
     
     if acc == '__' then
-        value = -2
+        value = {num=-2*fraction.num, den=fraction.den}
     end
     
     if acc == '=' then
-        value = 0
+        value = {num=0, den=0}
     end
     
-    return value, fraction
+    return value
 
 end
 
@@ -132,7 +132,7 @@ function canonicalise_note(note)
         note.pitch.octave = octave 
        
         if note.pitch.accidental then
-            note.pitch.accidental, note.pitch.accidental_fraction =  canonicalise_accidental(note.pitch.accidental)
+            note.pitch.accidental  =  canonicalise_accidental(note.pitch.accidental)
         end
     end
     
@@ -185,14 +185,16 @@ function midi_note_from_note(mapping, note, accidental)
        
     accidental = note.pitch.accidental or accidental
     
+   
     -- accidentals / keys
-    if accidental then        
+    if accidental then   
+        accidental = accidental.num / accidental.den
         base_pitch = base_pitch + accidental        
     else        
         -- apply key signature sharpening / flattening
         if mapping then
             accidental = mapping[string.lower(note.pitch.note)]
-            base_pitch = base_pitch + accidental
+            base_pitch = base_pitch + (accidental)
         end
     end    
     
@@ -247,13 +249,13 @@ function diatonic_transpose(tokens, shift)
                         -- check the note lower and sharpen it
                         token.note.pitch.note = inverse_mapping[(semi-1)%12] 
                         t = mapping[token.note.pitch.note]
-                        if t==0 then token.note.pitch.accidental=1 end
-                        if t==-1 then token.note.pitch.accidental=0 end
-                        if t==1 then token.note.pitch.accidental=2 end
+                        if t==0 then token.note.pitch.accidental={num=1, den=1} end
+                        if t==-1 then token.note.pitch.accidental={num=0, den=0} end
+                        if t==1 then token.note.pitch.accidental={num=2, den=1} end
                     else
                         -- if we can just flatten that one, use that
-                        if t==0 then token.note.pitch.accidental=-1 end
-                        if t==1 then token.note.pitch.accidental=0 end
+                        if t==0 then token.note.pitch.accidental={num=-1, den=1} end
+                        if t==1 then token.note.pitch.accidental={num=0, den=0} end
                     
                     end
                 
@@ -289,7 +291,7 @@ function compute_pitch(note, song)
     -- accidentals don't persist until the end of the bar. 
     if song.context.key.none or song.context.propagate_accidentals=='not' then
         -- must specify accidental as there is no key mapping
-        accidental = note.pitch.accidental or 0
+        accidental = note.pitch.accidental or {num=0, den=0}
     else
         local accidental_key 
         -- in 'octave' mode, accidentals only propagate within an octave

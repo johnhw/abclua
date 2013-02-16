@@ -30,6 +30,9 @@ ABCLua supports most of the 2.1 standard; tested features include:
 * `abc-include` to include files
 * `propagate-accidental` rules
 
+
+Extended features include
+* Fractional accidentals for microtonal music `^/2C` 
 See `tests/test_abc.lua` for examples of these in use.
 
 
@@ -766,8 +769,9 @@ field           description                                subfields
 [pitch]         Pitch of note as written.                  **note** the note, as a lowercase letter (e.g. 'c')\
                                                            **octave** octave of the note; 0 = uppercase letter\
                                                            [**accidental**] the accidental for this note. If present\
-                                                           can be 0 (natural), 1 (sharp), -1 (flat), 2 (double sharp) or -2 (double flat)
-                                                           
+                                                           has two subfields: **num** and **den** representing the fraction
+                                                           of semitones. 0/0 = '=', 1/1='^', 2/1='^^', -1/1='_', -2/1='__' and
+                                                           p/q = '^p/q' or '_p/q' depending on whether p is positive or negative.
                                                            
 duration        Duration of the note.                      **num** numerator of the duration (fraction of the unit length)\
                                                            **den** denominator of the duration of this note\

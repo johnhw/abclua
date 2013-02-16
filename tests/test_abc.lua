@@ -402,6 +402,7 @@ function test_directives()
     A B [R:this is a] G
     ]]
     songs = abclua.parse_abc_multisong(directives)
+    table_print(songs[1].voices['default'].context.directives)
     print(abclua.emit_abc(songs[1].token_stream))
 end
 
@@ -581,7 +582,7 @@ end
 -- test_include()
 test_overlay()
 -- test_macros()
--- test_directives()
+test_directives()
 -- test_clefs()
 -- test_decorations()
 -- test_inline()
