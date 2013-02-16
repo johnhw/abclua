@@ -188,7 +188,11 @@ function midi_note_from_note(mapping, note, accidental)
    
     -- accidentals / keys
     if accidental then   
-        accidental = accidental.num / accidental.den
+        if accidental.den==0 then 
+            accidental =  0 
+        else
+            accidental = accidental.num / accidental.den
+        end
         base_pitch = base_pitch + accidental        
     else        
         -- apply key signature sharpening / flattening
@@ -282,7 +286,7 @@ function compute_pitch(note, song)
     
     -- -1 indicates a rest note
     if note.rest or note.measure_rest then
-        return -1
+        return nil
     end
     
     local accidental
@@ -504,14 +508,15 @@ function insert_note(note, song)
             note.grace.sequence = expand_grace(song, note.grace) 
         end
         
+      
         -- insert the note events
-        if pitch==-1 then
+        if pitch==nil then
             -- rest
-            table.insert(song.opus, {event='rest', duration=duration,
+            table.insert(song.opus, {event='rest', duration=duration, bar_time = song.context.timing.bar_time,
             note=note})        
         else       
             -- pitched note
-            table.insert(song.opus, {event='note', pitch=pitch, duration=duration, note = note})
+            table.insert(song.opus, {event='note', pitch=pitch, bar_time = song.context.timing.bar_time, duration=duration, note = note})
             
         end
    
@@ -521,5 +526,8 @@ function insert_note(note, song)
         else
             song.context.timing.triplet_compress = 1
         end
-    
+   
+        
+        -- advance bar time (in fractions of a bar)
+        song.context.timing.bar_time = song.context.timing.bar_time + duration / song.context.timing.bar_length
 end

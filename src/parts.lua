@@ -28,6 +28,7 @@ function start_new_part(song, name)
     song.context.current_part = name
     song.context.in_variant = nil
     song.temp_part = {}
+    reset_timing(song)
     song.opus = song.temp_part   
 end
 

@@ -15,6 +15,8 @@ function update_timing(song)
     song.context.timing.base_note_length = rate / note_length
     
     song.context.timing.grace_note_length = rate / (song.context.grace_length.den/song.context.grace_length.num)
+    song.context.timing.bar_length = compute_bar_length(song)
+   
 end    
 
 
@@ -107,6 +109,33 @@ function apply_voice_specifiers(song)
     
 end
 
+function reset_timing(song)
+    -- reset the timing state of the song
+    song.context.timing = {} 
+    song.context.timing.triplet_state = 0
+    song.context.timing.triplet_compress = 1
+    song.context.timing.prev_broken_note = 1
+    song.context.timing.bar_time = 0
+    update_timing(song)
+end
+
+
+function reset_bar_time(song)
+  
+    -- if warnings are enabled, mark underfull and overfull bars
+    if song.context.bar_warnings then    
+        if song.context.timing.bar_time>1 then
+            warn('Overfull bar')
+        end
+        
+        if song.context.timing.bar_time<1 then
+            warn('Underfull bar')
+        end
+    end
+    
+    song.context.timing.bar_time = 0
+end
+
 function start_new_voice(song, voice, specifiers)
     -- compose old voice into parts
     if song.context and song.context.voice then
@@ -127,7 +156,6 @@ function start_new_voice(song, voice, specifiers)
             song.context.voice_specifiers[v.lhs] = v.rhs
         end    
     end    
-        
     
     apply_voice_specifiers(song)
     
@@ -137,11 +165,7 @@ function start_new_voice(song, voice, specifiers)
     song.context.current_part = 'default'
     song.context.part_map = {}
     song.context.pattern_map = {}
-    song.context.timing = {}
-    
-    song.context.timing.triplet_state = 0
-    song.context.timing.triplet_compress = 1
-    song.context.timing.prev_broken_note = 1
+    reset_timing(song)
     song.context.voice = voice
     song.temp_part = {}
     song.opus = song.temp_part
@@ -182,8 +206,8 @@ function expand_token_stream(song)
         
         -- deal with bars and repeat symbols
         if v.token=='bar' then
-            apply_repeats(song, v.bar)                               
-            v.bar.bar_length = compute_bar_length(song)
+            reset_bar_time(song)
+            apply_repeats(song, v.bar)  
             song.context.accidental = {} -- clear any lingering accidentals             
         end
         

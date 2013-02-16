@@ -12,7 +12,7 @@ function time_stream(stream)
     local written_measure = 1
     t = 0    
     local last_bar = 0
-    local last_bar_length = 0
+    local bar_time
     
     for i,event in ipairs(stream) do        
         event.t = t
@@ -21,13 +21,9 @@ function time_stream(stream)
         if event.event=='bar' and event.bar.type~='variant' then
             last_bar = event.t
             measure = measure + 1
-            written_measure = event.bar.measure -- record original bar number (e.g. from score)
-            last_bar_length = event.bar.bar_length
+            written_measure = event.bar.meeasure
         end
         
-        event.play_measure = measure
-        event.written_measure = written_measure
-        event.bar_t = (t-last_bar) / last_bar_length
         
         -- now, if we get an overlay, jump time
         -- back to the start of that bar
@@ -45,7 +41,11 @@ function time_stream(stream)
                     max_duration = event.duration
                 end
             end            
+            bar_time = event.bar_time
         end
+        
+        -- record bar/bar-relative timing
+        event.measure = {play_measure = measure, written_measure=measure, bar_time=bar_time}        
         
         -- chord symbols
        

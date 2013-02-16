@@ -34,7 +34,7 @@ function parse_directive(directive)
     -- parse a directive into a directive, followed by sequence of space separated directives
     -- returns true if this directive must be executed at parse time (e.g. abc-include)
     local directive_pattern = [[
-    directives <- (%s * ({:directive: %S+ :} ) %s+ ?  {:arguments: ( ({%S+} %s +) * {%S+}  ) -> {}  :} )  -> {}
+    directives <- (%s * ({:directive: %S+ :} ) %s+ ?  {:arguments: ( ({%S+} %s +) * {%S+}  )? -> {}  :} )  -> {}
     ]]
     
     local match = re.match(directive, directive_pattern)

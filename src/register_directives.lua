@@ -55,6 +55,14 @@ function directive_propagate_accidentals(song, directive, arguments)
     song.context.propagate_accidentals = arguments[1]
 end
 
+
+function directive_enable_bar_warnings(song, directive, arguments)
+    -- turn on bar warnings, so that overfull and underfull bars cause
+    -- warnings to be printed
+    song.context.bar_warnings = true
+end
+
+register_directive('enable-bar-warnings', directive_enable_bar_warnings)
 register_directive('gracenote', directive_set_grace_note_length)
 register_directive('abc-include', directive_abc_include)
 register_directive('propagate-accidentals', directive_propagate_accidentals)
