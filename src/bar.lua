@@ -37,7 +37,7 @@ end
 local bar_matcher = re.compile([[bar <- (  
         {:mid_repeat: <mid_repeat> :} /  {:end_repeat: <end_repeat> :}  / {:start_repeat: <start_repeat> :} / {:double: <double> :}
         /  {:thickthin: <thickthin> :} / {:thinthick: <thinthick> :} /  {:plain: <plain> :} / {:variant: <variant> :} / {:just_colons: <just_colons> :} ) -> {}        
-        mid_repeat <- ({}<colons> {}<plain>{} <colons>{}) -> {}
+        mid_repeat <- ({}<colons> {}(<plain>+){} <colons>{}) -> {}
         start_repeat <- (<plain> {} <colons> {} ) -> {}
         end_repeat <- ({}<colons> {} <plain> ) -> {}
         just_colons <- ({} ':' <colons>  {}) -> {}

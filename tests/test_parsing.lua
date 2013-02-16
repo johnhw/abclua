@@ -70,7 +70,7 @@ K:G]], 'Directives'
 
 check_reproduce([[X:1
 K:G
-ceg & C3 | dfa & D3 | C3 & E3 & G/2 G/2 G/2 G/2G/2G/2 |]], 'Voice overlay')
+ceg & C3 | dfa & D3 | C3 & E3 & G/2 G/2 G/2 G/2G/2G/2 | && D &&& C C C]], 'Voice overlay')
 
 check_reproduce([[X:1
 K:G
@@ -148,6 +148,14 @@ K:C
 A A z z | ^A _A =A z | ^^A __A =A z | z z z
 ^A A A z | _A A A z | _A A =A z | zzz]], 'Accidentals')
 
+check_result([[X:1
+K:C
+A A z z | ^/2A _/A =A z | ^^2/3A __/9A =A z | z z z
+^A A A z | _A A A z | _A A =A z | zzz]], [[X:1
+K:C
+A A z z | ^/2A _/2A =A z | ^^2/3A __/9A =A z | z z z
+^A A A z | _A A A z | _A A =A z | zzz]],'Fractional Accidentals')
+
 check_reproduce([[X:1
 m:d2=d//f//d2
 m:n4=o//n//t//n4
@@ -168,7 +176,29 @@ check_reproduce([[X:1
 K:G
 A B- D- D2- D3-]], 'Ties')
 
+check_reproduce([[X:1
+K:G
+[abc] [def] [CEg] D]], 'Chords')
 
+check_reproduce([[X:1
+K:G
+"Cm"F "D"(def) "Fmin/G"[CEg] "G7"]], 'Chord names')
+
+check_reproduce([[X:1
+K:G
+(AB) (CD) (EFG) (EEE)]], 'Slurs')
+
+
+check_reproduce([[X:1
+K:G
+A B C | D E F |] A B C [| DEG ||
+ABC |: DEF :|: GAB :|
+|: GAB :|1 DEF |2 GEF |3 FED ||
+|:: GAB ::|:: DEF ::|
+|:: GAB ::|:: DEF ::|
+| A B C | [4 DEF ||
+| A B C | [4,5 DEF ||
+| A B C | [1,4,5 DEF ||]], 'Bar types')
 
 check_result([[X:1
 m:n2=lmnopq
@@ -288,6 +318,8 @@ D:none
 F:this_file.abc
 G:ungrouped
 H:Very little is known
+H:about
++:this song
 I:abc-creator ABCLua
 L:1/4
 M:4/4

@@ -8,18 +8,26 @@ function time_stream(stream)
     local t 
     local in_chord = false
     local max_duration 
-    
-    t = 0
-    
+    local measure = 1
+    local written_measure = 1
+    t = 0    
     local last_bar = 0
+    local last_bar_length = 0
     
     for i,event in ipairs(stream) do        
         event.t = t
         
         -- record position of last bar
-        if event.event=='bar' then
+        if event.event=='bar' and event.bar.type~='variant' then
             last_bar = event.t
+            measure = measure + 1
+            written_measure = event.bar.measure -- record original bar number (e.g. from score)
+            last_bar_length = event.bar.bar_length
         end
+        
+        event.play_measure = measure
+        event.written_measure = written_measure
+        event.bar_t = (t-last_bar) / last_bar_length
         
         -- now, if we get an overlay, jump time
         -- back to the start of that bar

@@ -1,13 +1,5 @@
 -- functions for handling custom directives
 
-local grace_matcher = re.compile([[ 
-    length <- ({:num: (number) :} '/' {:den: (number) :}) -> {}
-    number <- ([0-9]+)
-    ]])
-
-
-
-
 -- table maps directive names to functions
 -- each function takes two arguments: the song structure, and an argument list from
 -- the directive (as a table)

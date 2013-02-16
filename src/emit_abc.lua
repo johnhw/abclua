@@ -263,6 +263,7 @@ function abc_field(v, inline)
     -- X:stuff
     
     local str
+    
     -- plain text tokens
     if v.token=='append_field_text' then 
         str =  '+' .. ':' .. v.content
@@ -395,25 +396,38 @@ function abc_pitch(note_pitch)
     end
     
     if note_pitch.accidental then
+    
+        local fraction = ''
+        
+        -- microtonal accidenals
+        if note_pitch.accidental_fraction then
+            if note_pitch.accidental_fraction.num == 1 then
+                fraction = '/' .. note_pitch.accidental_fraction.den
+            else
+                fraction = note_pitch.accidental_fraction.num .. '/' .. note_pitch.accidental_fraction.den
+            end
+            
+        end
+        
         -- accidentals
         if note_pitch.accidental==1 then
-            pitch = '^' .. pitch
+            pitch = '^' .. fraction..pitch
         end
         
         if note_pitch.accidental==2 then
-            pitch = '^^' .. pitch
+            pitch = '^^' ..fraction.. pitch
         end
         
         if note_pitch.accidental==-1 then
-            pitch = '_' .. pitch
+            pitch = '_' .. fraction..pitch
         end
         
         if note_pitch.accidental==-2 then
-            pitch = '__' .. pitch
+            pitch = '__' .. fraction..pitch
         end
         
         if note_pitch.accidental==0 then
-            pitch = '=' .. pitch
+            pitch = '=' .. fraction..pitch
         end  
     end
     return pitch
@@ -600,7 +614,7 @@ function abc_note_element(element)
     end
     
     if element.token=='overlay' then
-        return '&'
+        return string.rep('&', element.bars)
     end
     
     if element.token=='chord_begin' then
@@ -649,11 +663,10 @@ end
 
 function emit_abc(token_stream)
 -- return the token_stream out as a valid ABC string
-    local output = {}
-    
+    local output = {}       
     for i,v in ipairs(token_stream) do
          table.insert(output, abc_element(v))
-    end
+    end    
     -- concatenate into a single string
     return rtrim(table.concat(output))
 end
@@ -678,14 +691,16 @@ end
 function swap_or_insert(t, match, position, default)
     -- Find match in t; if it exists, swap it into position
     -- if not, insert a default at that position
-    local ref = find_first_match(tokens, match) 
+    local ref = find_first_match(t, match) 
     
     -- insert default if does not match
-    if not ref then 
-        table.insert(tokens, position, default)
-    else
+    if not ref then                 
+        table.insert(t, position, default)        
+    else        
+        elt = t[ref]
+        table.remove(t, ref)
         -- swap it into place
-        swap(tokens, position, ref)
+        table.insert(t, position, elt)
     end
     
 end
@@ -694,18 +709,21 @@ function validate_token_stream(tokens)
     -- Make sure the given token stream is valid
     -- Forces the token stream to begin with X:, followed by T:, followed by the other
     -- fields, followed by K:, followed by the notes
+        
+    swap_or_insert(tokens, {token='field_text', name='ref'}, 1, {token='field_text', name='ref', content='1', is_field=true})    
+    swap_or_insert(tokens, {token='field_text', name='title'}, 2, {token='field_text', name='title', content='untitled', is_field=true})
     
-    swap_or_insert(tokens, {event='field_text', name='ref'}, 1, {event='field_text', name='ref', content='1'})
-    swap_or_insert(tokens, {event='field_text', name='title'}, 2, {event='field_text', name='title', content='untitled'})
-    
-    local first_note
+        
+    local first_note = 1
     -- find first non-field element
-    for i,v in ipairs(tokens) do
-        
-        if not v.inline then
-            first_note = i
-        end
+    for i,v in ipairs(tokens) do                                               
+        if not v.is_field then
+            break
+        end        
+        first_note = i        
     end
-        
-    
+            
+    -- make sure last element before a note is a key
+    swap_or_insert(tokens, {token='key'}, first_note+1, {token='key', key={root='c'}})    
+    return tokens
 end

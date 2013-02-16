@@ -74,21 +74,47 @@ function parse_voice(voice)
 end
 
 
+
+
+
 local tempo_matcher = re.compile([[
 tempo <- (
 
-    (["] {:name: [^"]* :} ["] %s +) ?
+    (["] {:name: [^"]* :} ["] %s *) ?
     ( 
     (  (  (div (%s + div) *)  )  %s * '=' %s * {:tempo_rate: number:} )  /
     (  'C=' {:tempo_rate: number:} ) /
     (  {:tempo_rate: number :} ) 
-    ) 
+    ) ?
     (%s + ["] {:name: [^"]* :} ["] %s *) ?
 ) -> {}
 
 div <- ({:num: number:} %s * '/' %s * {:den: number:}) -> {}
 number <- ( [0-9] + )
 ]])
+
+-- standard tempo names
+local tempo_names = {
+larghissimo=40,
+moderato=104,
+adagissimo= 44,
+allegro= 120,
+allegretto= 112,
+lentissimo= 48,
+largo=        56,
+vivace =168,
+adagio=59,
+vivo=180,
+lento=62,
+presto=192,
+larghetto=66,
+allegrissimo=208,
+adagietto=76,
+vivacissimo=220,
+andante=88,
+prestissimo=240,
+andantino=96
+}
 
 function parse_tempo(l)
     -- Parse a tempo string
@@ -97,6 +123,14 @@ function parse_tempo(l)
     -- the numbered elements specify the unit lengths to be played up to that point
     -- each element has a "num" and "den" field to specify the numerator and denominator
     local captures = tempo_matcher:match(l)        
+    if captures and captures.name and not captures.tempo_rate then    
+        -- fill in rate / division if we just have a name        
+        if tempo_names[captures.name] then
+           captures.tempo_rate = tempo_names[captures.name]
+           captures[1] = {num=1, den=4}
+        end
+    end
+    
     return captures
 end
 
@@ -224,6 +258,7 @@ function parse_field(f, song, inline)
         end
      end    
         
+    local token
    
     local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'macro', 'user', 'voice', 'instruction'} -- those fields we parse individually
     local field = {name=field_name, content=content}
@@ -232,12 +267,11 @@ function parse_field(f, song, inline)
         if song.parse.last_field then
             -- append plain text if necessary
             if not is_in(song.parse.last_field, parsable) then            
-                table.insert(song.token_stream, {token='append_field_text', name=song.parse.last_field, content=content, inline=inline})
-                
+                token = {token='append_field_text', name=song.parse.last_field, content=content}                
             end
             
              if song.parse.last_field=='words' then
-                 table.insert(song.token_stream, {token='words', lyrics=parse_lyrics(content), inline=inline})            
+                 token = {token='words', lyrics=parse_lyrics(content)}
              end
          end
          
@@ -246,7 +280,7 @@ function parse_field(f, song, inline)
     
         song.parse.last_field = field_name
         if not is_in(field_name, parsable) then
-            table.insert(song.token_stream, {token='field_text', name=field_name, content=content, inline=inline}) 
+            token =  {token='field_text', name=field_name, content=content}
         end
 
     end
@@ -254,17 +288,17 @@ function parse_field(f, song, inline)
     
     -- update specific tune settings
     if field_name=='length' then
-        table.insert(song.token_stream, {token='note_length', note_length=parse_length(content), inline=inline}) 
+        token = {token='note_length', note_length=parse_length(content)}
     end
             
     -- update tempo
     if field_name=='tempo' then            
-        table.insert(song.token_stream, {token='tempo', tempo=parse_tempo(content), inline=inline})
+        token = {token='tempo', tempo=parse_tempo(content)}
     end
     
     -- parse lyric definitions
     if field_name=='words' then                        
-         table.insert(song.token_stream, {token='words', lyrics=parse_lyrics(content), inline=inline})            
+         token = {token='words', lyrics=parse_lyrics(content)}           
     end
     
      -- parse lyric definitions
@@ -276,7 +310,7 @@ function parse_field(f, song, inline)
             apply_directive(song, directive.directive, directive.arguments)
          else
             -- otherwise defer
-            table.insert(song.token_stream, {token='instruction', directive=directive, inline=inline})            
+            token = {token='instruction', directive=directive}           
          end
     end
             
@@ -284,9 +318,9 @@ function parse_field(f, song, inline)
     if field_name=='voice' then  
         -- in the header this just sets up the voice properties
         if song.parse.in_header then
-            table.insert(song.token_stream, {token='voice_def', voice=parse_voice(content), inline=inline})
+            token = {token='voice_def', voice=parse_voice(content)}
         else
-            table.insert(song.token_stream, {token='voice_change', voice=parse_voice(content), inline=inline})
+            token = {token='voice_change', voice=parse_voice(content)}
         end
     end
       
@@ -297,7 +331,7 @@ function parse_field(f, song, inline)
         if song.parse.in_header then
             local parts = content:gsub('\\.', '') -- remove dots
             parts = parse_parts(content)
-            table.insert(song.token_stream, {token='parts', parts=parts, inline=inline})            
+            token = {token='parts', parts=parts}           
         else
             
             -- otherwise we are starting a new part   
@@ -306,7 +340,7 @@ function parse_field(f, song, inline)
             part = part:gsub('\\.', '')
             part = string.sub(part,1,1)
                         
-            table.insert(song.token_stream, {token='new_part', part=part, inline=inline})            
+            token = {token='new_part', part=part}           
         end
     end
     
@@ -314,7 +348,7 @@ function parse_field(f, song, inline)
     if field_name=='user' then
         -- user macro (not transposable)
         if song.parse.no_expand then
-            table.insert(song.token_stream, {token='field_text', name='user', content=content, inline=inline})                    
+            token = {token='field_text', name='user', content=content}                   
         else        
             table.insert(song.parse.user_macros, parse_macro(content))
         end
@@ -322,7 +356,7 @@ function parse_field(f, song, inline)
     
     if field_name=='macro' then
         if song.parse.no_expand then
-            table.insert(song.token_stream, {token='field_text', name='macro', content=content, inline=inline})                    
+            token = {token='field_text', name='macro', content=content}                   
         else
             -- we DON'T insert macros into the token_stream. Instead
             -- we expand them as we find them
@@ -346,13 +380,19 @@ function parse_field(f, song, inline)
     
     -- update meter
     if field_name=='meter' then            
-        table.insert(song.token_stream, {token='meter', meter=parse_meter(content), inline=inline})            
+        token = {token='meter', meter=parse_meter(content)}           
     end       
     
     -- update key
     if field_name=='key' then            
-        table.insert(song.token_stream, {token='key', key=parse_key(content), inline=inline}) 
+        token = {token='key', key=parse_key(content)}
         song.parse.found_key = true -- key marks the end of the header
+    end
+    
+    if token then
+        token.inline = inline
+        token.is_field = true
+        table.insert(song.token_stream, token)
     end
     
     return true

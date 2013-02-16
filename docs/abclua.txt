@@ -28,6 +28,7 @@ ABCLua supports most of the 2.1 standard; tested features include:
 * Voice overlay with `&`
 * Macros, user macros and transposing macros
 * `abc-include` to include files
+* `propagate-accidental` rules
 
 See `tests/test_abc.lua` for examples of these in use.
 
@@ -689,6 +690,7 @@ bar             Some form of bar line                       `| |: [n,n`  **type*
                                                                          **end_repeats** number of repeats\
                                                                          **variant_range** list of variants\
                                                                          (e.g. [1-3,6 be {1,2,3,6})
+                                                                         **measure** number of this bar (starts at 1)
                                                                          
                                                                          
                                                                          
@@ -802,6 +804,8 @@ abc             A string of abc notation, representing the
                 
 note            Note receives duration and real pitch       **duration** Duration of the event in microseconds\
                                                             **pitch**    Pitch of the note in MIDI notes\
+                                                            
+rest            A rest -- just advances time.               **duration** Duration of rest in microseconds.
 -------------------------------------------------------------------------------------------------------------
 
 Table: Event types 

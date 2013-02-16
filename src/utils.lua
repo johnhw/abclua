@@ -95,6 +95,10 @@ end
 
 -- Print anything - including nested tables
 function table_print (tt, indent, done)
+  if tt==nil then
+    io.write('nil\n')
+    return
+  end
   done = done or {}
   indent = indent or 0
   if type(tt) == "table" then
@@ -186,7 +190,9 @@ function find_first_match(t, match)
         end
      end
      -- if we matched, we found it!
-     return i
+     if is_match then
+        return i
+    end
    end
    return nil
 end

@@ -16,6 +16,69 @@ function default_note_length(song)
     return 8
 end
 
+
+function canonicalise_duration(duration)
+    -- fill in duration field; remove slashes
+    -- and fill in numerator and denominator
+    
+    if duration.slashes and not duration.den then
+         local den = 1
+         local l = string.len(duration.slashes)
+         for i = 1,l do
+            den = den * 2
+         end
+         duration.den = den
+    end
+    
+    if not duration.num then
+        duration.num = 1
+    end
+    
+    if not duration.den then
+        duration.den = 1
+    end
+    duration.slashes = nil
+
+end
+
+function canonicalise_accidental(accidental)
+    -- Transform string indicator to integer and record any fractional part
+    -- (for microtonal tuning)
+    local acc = accidental[1]
+    local value, fraction
+
+    -- fractional accidentals
+    if accidental[2] and (accidental[2].num or accidental[2].slashes) then
+        
+        canonicalise_duration(accidental[2])
+        fraction = accidental[2] 
+    end
+        
+    -- accidentals
+    if acc == '^' then
+       value = 1
+    end
+    
+    if acc == '^^' then
+       value = 2
+    end
+    
+    if acc == '_' then
+        value = -1
+    end
+    
+    if acc == '__' then
+        value = -2
+    end
+    
+    if acc == '=' then
+        value = 0
+    end
+    
+    return value, fraction
+
+end
+
 function canonicalise_note(note)
     -- Canonicalise a note, filling in the full duration field. 
     -- Remove slashes from the duration
@@ -23,24 +86,9 @@ function canonicalise_note(note)
     -- Replaces broken with an integer representing the dotted value (e.g. 0 = plain, 1 = once dotted,
     --  2 = twice, etc.)
     
+    canonicalise_duration(note.duration)
     
-    if note.duration.slashes and not note.duration.den then
-         local den = 1
-         local l = string.len(note.duration.slashes)
-         for i = 1,l do
-            den = den * 2
-         end
-         note.duration.den = den
-    end
     
-    if not note.duration.num then
-        note.duration.num = 1
-    end
-    
-    if not note.duration.den then
-        note.duration.den = 1
-    end
-
     if note.broken then
         local shift = 0
         -- get the overall shift: negative means this note gets shortened
@@ -83,27 +131,9 @@ function canonicalise_note(note)
         note.pitch.note = string.lower(note.pitch.note)
         note.pitch.octave = octave 
        
-        -- accidentals
-        if note.pitch.accidental == '^' then
-           note.pitch.accidental = 1
+        if note.pitch.accidental then
+            note.pitch.accidental, note.pitch.accidental_fraction =  canonicalise_accidental(note.pitch.accidental)
         end
-        
-        if note.pitch.accidental == '^^' then
-           note.pitch.accidental = 2
-        end
-        
-        if note.pitch.accidental == '_' then
-            note.pitch.accidental = -1
-        end
-        
-        if note.pitch.accidental == '__' then
-            note.pitch.accidental = -2
-        end
-        
-        if note.pitch.accidental == '=' then
-            note.pitch.accidental = 0
-        end
-
     end
     
     -- tied notes
@@ -255,23 +285,39 @@ function compute_pitch(note, song)
     
     local accidental
     
-    -- in K:none mode, accidentals don't persist until the end of
-    -- the bar. 
-    if song.context.key.none then
+    -- in K:none mode or propagate-accidentals is off, 
+    -- accidentals don't persist until the end of the bar. 
+    if song.context.key.none or song.context.propagate_accidentals=='not' then
         -- must specify accidental as there is no key mapping
         accidental = note.pitch.accidental or 0
     else
+        local accidental_key 
+        -- in 'octave' mode, accidentals only propagate within an octave
+        -- otherwise, they propagate to all notes of the same pitch class
+        if song.context.propagate_accidentals=='octave' then
+           accidental_key = note.pitch.octave..note.pitch.note
+        else
+           accidental_key = note.pitch.note
+        end
+        
+        -- get the appropriate accidental
         if note.pitch.accidental then
-            song.context.accidental = note.pitch.accidental
+            song.context.accidental[accidental_key] = note.pitch.accidental
             accidental = note.pitch.accidental
         else
-            accidental = song.context.accidental
+            accidental = song.context.accidental[accidental_key]
         end            
     end    
     
     base_pitch = midi_note_from_note(song.context.key_mapping, note, accidental)                
     base_pitch = base_pitch + song.context.global_transpose + song.context.voice_transpose
     return base_pitch 
+end
+
+function compute_bar_length(song)
+    -- return the current length of one bar
+    local note_length = song.context.note_length or default_note_length(song)
+    return (song.context.meter_data.num / song.context.meter_data.den) * note_length * song.context.timing.base_note_length * 1e6 
 end
 
 function compute_duration(note, song)
@@ -285,21 +331,16 @@ function compute_duration(note, song)
     -- duration field of the note itself
     -- bars for multi-measure rests  
     
-    local length = 1
+    -- we are guaranteed to have filled out the num and den fields
+    length = note.duration.num / note.duration.den
     
     
-    -- measure rest
+    -- measure rest (duration is in bars, not unit lengths)
     if note.measure_rest then   
         -- one bar =  meter ratio * note length (e.g. 1/16 = 16)
-        local note_length = song.context.note_length or default_note_length(song)
-        local bars = note.duration.num / note.duration.den
-        return (song.context.meter_data.num / song.context.meter_data.den) * bars * note_length * song.context.timing.base_note_length * 1e6
+        return compute_bar_length(song) *  length
     end
     
-    -- we are guaranteed to have filled out the num and den fields
-    if note.duration then
-        length = note.duration.num / note.duration.den
-    end
     
     local shift = 1
     local this_note = 1
@@ -403,10 +444,10 @@ function parse_triplet(triplet, song)
         r = p
     end
 
-    
-    if p>9 then
-        warn("Bad triplet length (p>9)")
-    end
+    -- allow long triplets
+    -- if p>9 then
+        -- warn("Bad triplet length (p>9)")
+    -- end
     
     -- default to choosing q from the table
     local q_table = {-1,3,2,3,'n',2,'n',3,'n'}

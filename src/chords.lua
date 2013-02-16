@@ -159,7 +159,7 @@ bs=12
 
 
 local chord_matcher = re.compile([[
-        chord <- ({:root: root :} ({:type: %S +:}) ? ) -> {}
+        chord <- ({:root: root :} ({:type: [^/%s] +:}) ? ('/' {:inversion: <root> :}) ?) -> {}
         root <- ([a-g] ('b' / 's') ?)
     ]])
 
@@ -171,7 +171,7 @@ function match_chord(chord)
     chord = chord:gsub('#', 's')
     chord = string.lower(chord)
     
-    
+   
     
     local match = chord_matcher:match(chord)
     if not match or not match.root then
@@ -179,6 +179,13 @@ function match_chord(chord)
     end
     
     local base_pitch = note_table[match.root]
+    local inversion
+    -- get inversion pitch
+    if match.inversion then 
+        inversion = note_table[match.inversion]
+    end
+    
+    
     match.type = match.type or 'maj' -- default to major chord
     
     local chord_offsets
@@ -188,7 +195,7 @@ function match_chord(chord)
         return nil -- not a valid chord
     end
     
-    return {chord_type=match.type, base_pitch=base_pitch, notes=chord_offsets}
+    return {chord_type=match.type, base_pitch=base_pitch, notes=chord_offsets, inversion=inversion}
    
 end
 
@@ -209,12 +216,25 @@ function create_chord(chord)
     
     local match = match_chord(chord)
     local notes = {}
-    
+    local inversion = match.inversion
     if match then      
         for i,v in ipairs(match.notes) do
-            table.insert(notes, v+match.base_pitch)
+            -- if inversion, shift the note to the octave below
+            if inversion and inversion==(v+match.base_pitch) % 12 then
+                 table.insert(notes, v+match.base_pitch-12)
+                 inversion = nil -- clear the inversion field so we don't re-add the note
+            else
+                table.insert(notes, v+match.base_pitch)
+            end
         end
     end
+    
+    -- an inversion which was not in the chord itself
+    -- (e.g. Cmaj/F)
+    if inversion then
+        table.insert(notes, inversion-12)
+    end
+    
     return notes
     
 end
@@ -228,6 +248,10 @@ function voice_chord(notes, octave)
     
     local out_notes = {}    
 
+    -- make sure root is in first position
+    -- (may not be if chord is inverted)
+    table.sort(notes)
+    
     -- add original notes
     for i,v in ipairs(notes) do 
         table.insert(out_notes, v+base)
@@ -251,7 +275,7 @@ end
 
 function test_chords()
     
-    local test_chords = {'Gm', 'G', 'F#min7', 'dM9', 'bbmin'}
+    local test_chords = {'Gm', 'G', 'F#min7', 'dM9', 'bbmin', 'Dmin/F', 'Cmaj/E', 'Cmaj/F'}
     for i,v in ipairs(test_chords) do
         print(v)
         table_print(voice_chord(create_chord(v), 5))

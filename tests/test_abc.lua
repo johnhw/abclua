@@ -111,24 +111,24 @@ function test_trimming()
     abclua.make_midi_from_stream(stream, 'out/skye_untrimmed.mid')
     
     -- trim events that start within 3-6 seconds
-    start_stream = trim_event_stream(stream, 'starts', 3e6, 6e6)    
+    start_stream = abclua.trim_event_stream(stream, 'starts', 3e6, 6e6)    
     abclua.make_midi_from_stream(start_stream, 'out/skye_starts.mid')
     
     -- trim events that start within 3-6 seconds
-    end_stream = trim_event_stream(stream, 'ends', 3e6, 6e6)    
+    end_stream = abclua.trim_event_stream(stream, 'ends', 3e6, 6e6)    
     abclua.make_midi_from_stream(end_stream, 'out/skye_ends.mid')
     
     -- trim events that start or end within 3-6 seconds
-    any_stream = trim_event_stream(stream, 'any', 3e6, 6e6)    
+    any_stream = abclua.trim_event_stream(stream, 'any', 3e6, 6e6)    
     abclua.make_midi_from_stream(any_stream, 'out/skye_any.mid')
     
     -- trim events that start and end within 3-6 seconds
-    within_stream = trim_event_stream(stream, 'within', 3e6, 6e6)    
+    within_stream = abclua.trim_event_stream(stream, 'within', 3e6, 6e6)    
     abclua.make_midi_from_stream(within_stream, 'out/skye_within.mid')
     
     -- trim events that start and end any time 3-6 seconds, but cut
     -- the events to fit exactly
-    trim_stream = trim_event_stream(stream, 'trim', 3e6, 6e6)    
+    trim_stream = abclua.trim_event_stream(stream, 'trim', 3e6, 6e6)    
     abclua.make_midi_from_stream(trim_stream, 'out/skye_trim.mid')
             
     
@@ -392,7 +392,7 @@ function test_directives()
             print(v)
         end
     end
-    abclua.register_user_directive('printargs', print_args)
+    abclua.register_directive('printargs', print_args)
     directives = [[
     I:gracenote 1/64
     I:pagesize A4
@@ -427,6 +427,7 @@ function test_overlay()
     X:1    
     K:G
     ceg & C3 | dfa & D3 | C3 & E3 & G/ G/ G/  G/G/G/ |
+    C C C & E E E | F F F & G E G |
     ]]
     songs = abclua.parse_abc_multisong(overlay)
     abclua.make_midi(songs[1], 'out/overlay.mid')    
@@ -495,11 +496,90 @@ function test_file()
     end 
 end
 
-test_rests()
+
+function test_tempos()
+
+  -- Test rests and measure rests
+    tempos = [[
+    X:1
+    Q:120
+    Q:1/8=120
+    Q:"allegro"
+    Q:"lento"
+    Q:"allegro" 1/4=120
+    Q:1/4=120 "allegro"     
+    K:G    
+    ]]
+    songs = abclua.parse_abc_multisong(tempos) 
+    table_print(songs[1].token_stream)
+end
+
+function test_validate()
+    -- empty
+    print(abclua.emit_abc(abclua.validate_token_stream({})))
+    print()
+    print(abclua.emit_abc(abclua.validate_token_stream(abclua.parse_abc_fragment([[
+    T:title
+    X:2
+    K:G
+    ]]))))
+    print()
+    print(abclua.emit_abc(abclua.validate_token_stream(abclua.parse_abc_fragment([[
+    T:title
+    X:2
+    K:G
+    ABCD]]))))
+    print()
+    print(abclua.emit_abc(abclua.validate_token_stream(abclua.parse_abc_fragment([[
+    T:title
+    X:2    
+    ABCD
+    K:G
+    ]]))))
+    print()
+    print(abclua.emit_abc(abclua.validate_token_stream(abclua.parse_abc_fragment([[
+    ABCD
+    K:G
+    ]]))))
+    
+    print()
+    print(abclua.emit_abc(abclua.validate_token_stream(abclua.parse_abc_fragment([[
+    ABCD
+    ]]))))
+    
+    print()
+    print(abclua.emit_abc(abclua.validate_token_stream(abclua.parse_abc_fragment([[
+    ABCD
+    K:G
+    ]]))))
+    
+end
+
+function test_propagate()
+    -- test acciental propagation modes
+    propagate =  [[
+    K:G
+    %%propagate-accidentals pitch
+    A ^A B ^B A B a' B, | B A |
+    %%propagate-accidentals not
+    A ^A B ^B A B a' B, | B A |
+    %%propagate-accidentals octave
+    A ^A B ^B A B a' B, | B A |
+    ]]
+    songs = abclua.parse_abc_multisong(propagate) 
+    table_print(filter_event_stream(songs[1].voices['default'].stream, 'note'))
+    abclua.make_midi(songs[1], 'out/propagate.mid')        
+       
+end
+
+-- test_propagate()
+-- test_validate()
+-- test_tempos()
+-- test_rests()
 -- test_cross_ref()  
 -- test_octaves()  
 -- test_include()
--- test_overlay()
+test_overlay()
 -- test_macros()
 -- test_directives()
 -- test_clefs()

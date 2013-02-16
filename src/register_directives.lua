@@ -1,3 +1,8 @@
+local grace_matcher = re.compile([[ 
+    length <- ({:num: (number) :} '/' {:den: (number) :}) -> {}
+    number <- ([0-9]+)
+    ]])
+
 
 function directive_set_grace_note_length(song, directive, arguments)
     -- set the length of grace notes
@@ -11,8 +16,6 @@ function directive_set_grace_note_length(song, directive, arguments)
     end
     update_timing(song) -- must recompute note lengths
 end
-
-
 
 
 function directive_abc_include(song, directive, arguments)
@@ -44,6 +47,15 @@ function directive_abc_include(song, directive, arguments)
     end
 end
 
+function directive_propagate_accidentals(song, directive, arguments)
+    -- Set the accidental propagation mode. Can be
+    -- 'not': do not propagate accidentals
+    -- 'ocatave': propagate only within an octave until end of bar
+    -- 'pitch': propagate within pitch class until end of bar
+    song.context.propagate_accidentals = arguments[1]
+end
 
 register_directive('gracenote', directive_set_grace_note_length)
 register_directive('abc-include', directive_abc_include)
+register_directive('propagate-accidentals', directive_propagate_accidentals)
+

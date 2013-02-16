@@ -5,7 +5,7 @@ local tune_pattern = [[
 elements <- ( ({}  <element>)  +) -> {}
 element <- (  {:field: field :}  / ({:slur: <slurred_note> :}) / ({:chord_group: <chord_group> :})  / {:overlay: <overlay> :} / {:bar: (<bar> / <variant>) :}   / {:free_text: free :} / {:triplet: triplet :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
 
-overlay <- ('&')
+overlay <- ('&' +)
 continuation <- ('\')
 beam_split <- (%s +)
 free <- ( '"' {:text: [^"]* :} '"' ) -> {}
@@ -26,10 +26,10 @@ full_note <-  (({:pitch: (note) :} / {:rest: (rest) :} / {:measure_rest: <measur
 rest <- ( 'z' / 'x' )
 measure_rest <- (('Z' / 'X')  ) -> {}
 broken <- ( ('<' +) / ('>' +) )
-note <- (({:accidental: (accidental )  :})? ({:note:  ([a-g]/[A-G]) :}) ({:octave: (octave)  :}) ? ) -> {}
+note <- (({:accidental: ({accidental} duration ? ) -> {}  :})? ({:note:  ([a-g]/[A-G]) :}) ({:octave: (octave)  :}) ? ) -> {}
 decoration <- ('.' / [~] / 'H' / 'L' / 'M' / 'O' / 'P' / 'S' / 'T' / 'u' / 'v' / ('!' ([^!] *) '!') / ('+' ([^+] *) '+'))
 octave <- (( ['] / ',') +)
-accidental <- (  '^^' /  '__' /  '^' / '_' / '=' )
+accidental <- ( ('^^' /  '__' /  '^' / '_' / '=')   ) 
 duration <- ( (({:num: ([1-9] +) :}) ? ({:slashes: ('/' +)  :})?  ({:den: ((  [1-9]+  ) ) :})?))  -> {}
 
 field <- (  '['  {:contents: field_element  ':'  [^]`] + :} ']' ) -> {}
@@ -75,7 +75,7 @@ function read_tune_segment(tune_data, song)
             
             -- voice overlay
             if v.overlay then
-                table.insert(song.token_stream, {token='overlay'})
+                table.insert(song.token_stream, {token='overlay', bars=string.len(v.overlay)})
             end
             
             -- beam splits
@@ -90,8 +90,14 @@ function read_tune_segment(tune_data, song)
                 
             
             -- deal with bars and repeat symbols
-            if v.bar then            
-                table.insert(song.token_stream, {token='bar', bar=parse_bar(v.bar)  })                      
+            if v.bar then   
+                local bar = parse_bar(v.bar)
+                if bar.type ~= 'variant' then
+                    song.parse.measure = song.parse.measure + 1 -- record the measures numbers as written
+                end
+                bar.measure = song.parse.measure
+                table.insert(song.token_stream, {token='bar', bar=bar})
+                
             end
             
             -- chord groups
@@ -233,9 +239,10 @@ function parse_abc_string(song, str)
     -- parse an ABC file and fill in the song structure
     -- this is a separate method so that recursive calls can be made to it 
     -- to include subfiles
+    
+    
     local lines = split(str, "[\r\n]")
-    for i,line in pairs(lines) do 
-        --parse_abc_line(line, song)
+    for i,line in pairs(lines) do        
         song.parse.line = i
         local success, err = pcall(parse_abc_line, line, song)
         if not success then
@@ -252,7 +259,7 @@ function parse_abc(str, options)
     
     song.token_stream = {}
     options = options or {}    
-    song.parse = {in_header=true, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand or false, cross_ref=options.cross_ref or false}    
+    song.parse = {in_header=true, has_notes=false, macros={}, user_macros={}, measure = options.measure or 1, no_expand=options.no_expand or false, cross_ref=options.cross_ref or false}    
     parse_abc_string(song, str)
      
     return song 
@@ -274,7 +281,9 @@ function get_default_context()
     key_mapping = {c=0,d=0,e=0,f=0,g=0,a=0,b=0},
     global_transpose = 0,
     voice_transpose = 0,
-    grace_length = {num=1, den=32}
+    grace_length = {num=1, den=32},
+    propagate_accidentals = 'pitch',
+    accidental = {},
     })
 end
     
@@ -361,14 +370,7 @@ end
 
 function parse_abc_fragment(str, options)
     -- Parse a short abc fragment, and return the token stream table
-    local song = {}
-    options = options or {}
-    song.token_stream = {}
-    
-    -- use default parse structure if not one specified
-    song.parse = parse or {in_header=options.in_header, has_notes=false, macros={}, user_macros={}, no_expand=options.no_expand, cross_ref=options.cross_ref}    
-    parse_abc_string(song, str)
-    
+    local song = parse_abc(str, options)
     return song.token_stream
 end
 
@@ -418,63 +420,27 @@ abc_from_songs = abc_from_songs,
 diatonic_transpose = diatonic_transpose,
 get_note_stream = get_note_stream,
 get_chord_stream = get_chord_stream,
-abc_element = abc_element
+abc_element = abc_element,
+validate_token_stream = validate_token_stream
 }
 
-function directive_set_grace_note_length(song, directive, arguments)
-    -- set the length of grace notes
-    -- Directive should be of the form I:gracenotes 1/64
-    if arguments[1] then
-        -- extract ratio
-        local ratio = grace_matcher:match(arguments[1])
-        if ratio then
-            song.context.grace_note_length = {num=ratio.num, den=ratio.den}
-        end
-    end
-    update_timing(song) -- must recompute note lengths
-end
 
-
-
-
-function directive_abc_include(song, directive, arguments)
-    -- Include a file. We can just directly invoke parse_abc_string() on 
-    -- the file contents. The include file must have only one tune -- no multi-tune files
-    
-    local filename = arguments[1]
-    if filename then
-        local f = io.open(filename, 'r')            
-        song.includes = song.includes or {}
-        
-        -- disallow include loops!
-        if song.includes[filename] then
-            return 
-        end
-        
-        -- remember we included this file
-        song.includes[filename] = filename
-        
-        -- check if the file exists
-        if f then
-            -- and we can read it...
-            local contents = f:read('*a')
-            if contents then
-                -- then recursively invoke parse_abc_string
-                parse_abc_string(song, contents)
-            end
-        end
-    end
-end
-
-
-
+return abclua
 
 -- TODO:
 
 -- render decorations
 
--- add an option to force emitter to write fields in correct order (X: T: header K: notes)
--- check measure rests
+-- Multi-measure overlay with && &&& etc.
+
+-- fix in bar position for first bar
+
+-- Extended tuplet values with nested tuplets
+-- Fractional accidentals
+
+-- ABCLint -> check abc files for problems
+
+-- Midi processing routines.
 
 -- transposing macros don't work when octave modifiers and ties are applied
 -- tidy up stream rendering

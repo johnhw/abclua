@@ -1,6 +1,6 @@
 -- concatenates entire source into one lua file
 
-local files = {"utils", "keys", "parts",  "lyrics", "chords", "stream", "macro", "directives", "fields", "bar", "notes", "emit_abc", "compile", "parse_abc"}
+local files = {"utils", "keys", "parts",  "lyrics", "chords", "stream", "macro", "directives", "fields", "bar", "notes", "emit_abc", "compile", "parse_abc", "register_directives"}
 
 local out = io.open('abclua_all.lua', 'w')
 
@@ -55,7 +55,7 @@ for i,v in ipairs(files) do
     f:close()
             
     -- make all functions local
-    contents = contents:gsub('\nfunction ([^\n]*)\n', '\nfunction %1\n')
+    contents = contents:gsub('\nfunction ([^\n]*)\n', '\nlocal function %1\n')
     
     out:write('\n')
     out:write('--\n')
@@ -65,6 +65,6 @@ for i,v in ipairs(files) do
     out:write('\n\n')
 end
 
-
+out:write('return abclua')
 
 out:close()

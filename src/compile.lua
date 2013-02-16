@@ -139,6 +139,7 @@ function start_new_voice(song, voice, specifiers)
     song.context.pattern_map = {}
     song.context.timing = {}
     
+    
     song.context.timing.triplet_state = 0
     song.context.timing.triplet_compress = 1
     song.context.timing.prev_broken_note = 1
@@ -157,10 +158,10 @@ function expand_token_stream(song)
    
         -- write in the ABC notation event as a string
         table.insert(song.opus, {event='abc', abc=abc_element(v)}) 
-        
+        local event
         -- copy in standard events that don't change the context state
         if v.token ~= 'note' then
-           local event = copy_table(v)
+           event = copy_table(v)
            event.event = event.token
            event.token = nil
            table.insert(song.opus, event)
@@ -183,19 +184,19 @@ function expand_token_stream(song)
         -- deal with bars and repeat symbols
         if v.token=='bar' then
             apply_repeats(song, v.bar)                               
-            song.context.accidental = nil -- clear any lingering accidentals             
+            v.bar.bar_length = compute_bar_length(song)
+            song.context.accidental = {} -- clear any lingering accidentals             
         end
+        
             
-       
-        if v.token=='append_field_text' then       
-            song.metadata[v.name] = song.metadata[v.name] .. ' ' .. v.content
-        else
-            -- write in metadata table
-            local metadata_fields = {'field_text'}            
-            if is_in(v.token, metadata_fields) then               
-                song.metadata[v.name] = v.content
+        -- text fields
+        if v.token=='field_text' or v.token=='append_field_text' then       
+            if song.metadata[v.name] then
+                song.metadata[v.name] = song.metadata[v.name] .. ' ' .. v.content
+            else            
+                song.metadata[v.name] =  v.content
             end
-        end
+        end                
         
         -- new voice
         if v.token=='voice_change' then
