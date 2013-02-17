@@ -186,8 +186,10 @@ local key_matcher = re.compile([[
     
     mode <- ( ({'maj'}) / ({'aeo'}) / ({'ion'}) / ({'mix'}) / ({'dor'}) / ({'phr'}) / ({'lyd'}) /
           ({'loc'}) /  ({'exp'}) / ({'min'}) / {'m'}) 
-    accidentals <- ( {accidental} (%s+ {accidental}) * ) -> {}
-    accidental <- ( ('^' / '_' / '__' / '^^' / '=') [a-g] )
+    accidentals <- ( accidental (%s+ accidental) * ) -> {} 
+    accidental <- ( {('^^' / '__' / '_' / '^' / '=')} (duration)? {[a-g]}  ) -> {} 
+    duration <- ( (({:num: ([1-9] +) :}) ? ({:slashes: ('/' +)  :})?  ({:den: ((  [1-9]+  ) ) :})?))  -> {}
+
 ]])
 
 function parse_key(k)
@@ -197,6 +199,17 @@ function parse_key(k)
     k = k:lower()
     local captures = key_matcher:match(k)
     
+    -- normalise the accidentals
+    local accidentals = {}
+    local value
+    if captures.accidentals then    
+        for i,v in ipairs(captures.accidentals) do            
+            value = canonicalise_accidental(v)
+            table.insert(accidentals, {note=v[3],accidental=value})
+        end
+    end
+    captures.accidentals = accidentals
+   
     --replace +8 / -8 with a straightforward transpose
     if captures.clef and captures.clef.plus8 then
         if captures.clef.plus8=='-8' then
@@ -279,21 +292,10 @@ function create_key_structure(k)
         -- add accidentals
         if k.accidentals then
             for i,v in pairs(k.accidentals) do
-                local acc = re.match(v, "({('^'/'^^'/'='/'_'/'__')} {[a-g]}) -> {}")
-                if acc[1]=='^' then 
-                    key_mapping[acc[2]] = 1
-                end
-                if acc[1]=='^^' then 
-                    key_mapping[acc[2]] = 2
-                end
-                if acc[1]=='=' then 
-                    key_mapping[acc[2]] = 0
-                end
-                if acc[1]=='_' then 
-                    key_mapping[acc[2]] = -1
-                end
-                if acc[1]=='__' then 
-                    key_mapping[acc[2]] = -2
+                if v.accidental.num == 0 then
+                    key_mapping[v.note] = 0
+                else
+                    key_mapping[v.note] = v.accidental.num / v.accidental.den
                 end
             end
         end

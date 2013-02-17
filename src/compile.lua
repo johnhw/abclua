@@ -173,6 +173,7 @@ function start_new_voice(song, voice, specifiers)
 end
 
 
+
 function expand_token_stream(song)
     -- expand a token_stream into a song structure
     

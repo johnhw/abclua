@@ -164,6 +164,9 @@ function get_simplified_meter(meter)
         return {num=2, den=2, emphasis={0}}
     end
     
+    if meter.none then
+        return {num=0, den=0, emphasis={0}}
+    end
     
     local total_num = 0
     local emphasis = {}
@@ -178,7 +181,7 @@ local meter_matcher = re.compile([[
     meter <- (fraction / cut / common / none) 
     common <- ({:common: 'C' :}) -> {}
     cut <- ({:cut: 'C|' :}) -> {}
-    none <- ('none' / '')  -> {}    
+    none <- ({:none: 'none' / '' :})  -> {}    
     fraction <- ({:num: complex :} %s * '/' %s * {:den: [0-9]+ :}) -> {}    
     complex <- ( '(' ? ((number + '+') * number) ->{} ')' ? )
     number <- {([0-9]+)}     

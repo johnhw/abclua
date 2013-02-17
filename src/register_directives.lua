@@ -47,17 +47,13 @@ function directive_abc_include(song, directive, arguments)
     end
 end
 
-function directive_midi(song, directive, arguments)
-    if arguments then
-        if arguments[1]=='ratio' then
-            local p = arguments[2]
-            local q = arguments[3] or 1
-            song.context.broken_ratio = p/q
-        end
-    
-    end
-
+function directive_broken_ratio(song, directive, arguments)
+        -- set the broken rhythm ratio
+        local p = arguments[2]
+        local q = arguments[3] or 1
+        song.context.broken_ratio = p/q
 end
+
 
 function directive_propagate_accidentals(song, directive, arguments)
     -- Set the accidental propagation mode. Can be
@@ -77,5 +73,7 @@ end
 register_directive('enable-bar-warnings', directive_enable_bar_warnings)
 register_directive('gracenote', directive_set_grace_note_length)
 register_directive('abc-include', directive_abc_include)
+register_directive('broken-ratio', directive_broken_ratio)
 register_directive('propagate-accidentals', directive_propagate_accidentals)
+
 

@@ -149,6 +149,7 @@ function read_tune_segment(tune_data, song)
     
 end
 
+
 function expand_macros(song, line)
     -- expand any macros in a line   
     local converged = false
@@ -434,6 +435,7 @@ return abclua
 
 -- Multi-measure overlay with && &&& etc.
 
+-- continuation should continue notes or fields (not simple line breaks)
 -- Extended tuplet values with nested tuplets
 -- Extend fractional accidentals to keys
 

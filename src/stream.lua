@@ -454,7 +454,7 @@ function song_to_opus(song, patches)
     local score = {1000,
         {    
             {'set_tempo', 0, 1000000},     
-           {'patch_change', 0,1,41},     
+           {'patch_change', 0,1,1},     
              
         },          
     }    
@@ -464,7 +464,7 @@ function song_to_opus(song, patches)
         if patches[i] then
             table.insert(score[2], {'patch_change', 0, i, patches[i]})
         else
-            table.insert(score[2], {'patch_change', 0, j, 41})
+            table.insert(score[2], {'patch_change', 0, j, 1})
         end
         j = j + 1
     end

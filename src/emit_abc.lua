@@ -36,6 +36,11 @@ function abc_meter(meter)
     -- a compound numerator (e.g. M:(2+3+2)/4)
     local num = ''
     
+    -- free meter
+    if meter.num==0 and meter.den==0 then
+        return 'M:none'
+    end
+    
     if #meter.emphasis==1 then
         -- simple meter
         num = meter.num
@@ -116,7 +121,7 @@ function abc_key(key)
     if key.accidentals then
         acc = ''
         for i,v in ipairs(key.accidentals) do
-            acc = acc .. ' '.. v
+            acc = acc .. ' '.. abc_accidental(v.accidental)..v.note
         end
     end
     
