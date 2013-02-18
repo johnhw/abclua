@@ -16,6 +16,9 @@ function update_timing(song)
     
     song.context.timing.grace_note_length = rate / (song.context.grace_length.den/song.context.grace_length.num)
     song.context.timing.bar_length = compute_bar_length(song)
+        
+    table.insert(song.opus, {event='timing_change', base_note_length=song.context.timing.base_note_length*1e6, bar_length=song.context.timing.bar_length,
+    beats_in_bar = song.context.meter.num, note_length=note_length, beat_length = song.context.timing.bar_length/song.context.meter.num})
    
 end    
 
@@ -24,7 +27,7 @@ end
 function is_compound_time(song)
     -- return true if the meter is 6/8, 9/8 or 12/8
     -- and false otherwise
-    local meter = song.context.meter_data
+    local meter = song.context.meter
     if meter then
         if meter.den==8 and (meter.num==6 or meter.num==9 or meter.num==12) then
             return true
@@ -164,12 +167,12 @@ function start_new_voice(song, voice, specifiers)
     song.context.current_part = 'default'
     song.context.part_map = {}
     song.context.pattern_map = {}
-    reset_timing(song)
+    
     song.context.voice = voice
     song.temp_part = {}
     song.opus = song.temp_part
-        
-    update_timing(song) -- make sure default timing takes effect    
+    reset_timing(song)
+            
 end
 
 
@@ -216,13 +219,26 @@ function expand_token_stream(song)
         
             
         -- text fields
-        if v.token=='field_text' or v.token=='append_field_text' then       
+        if v.token=='field_text'  then       
             if song.metadata[v.name] then
-                song.metadata[v.name] = song.metadata[v.name] .. ' ' .. v.content
+                table.insert(song.metadata[v.name], v.content)
             else            
-                song.metadata[v.name] =  v.content
+                song.metadata[v.name] =  {v.content}
             end
         end                
+        
+        -- append fields
+        if v.token=='append_field_text' then
+            local last
+            if song.metadata[v.name] then
+                last = song.metadata[v.name][#song.metadata[v.name]] 
+                last = last..' '..v.content
+                song.metadata[v.name][#song.metadata[v.name]]  = last                
+            else
+                warn("Continuing a field with +: that doesn't exist.")
+            end          
+                
+        end
         
         -- new voice
         if v.token=='voice_change' then
@@ -249,6 +265,9 @@ function expand_token_stream(song)
         if v.token=='tempo' then
             song.context.tempo = v.tempo
             update_timing(song)
+             -- store tempo string in metadata
+            song.metadata.tempo = string.sub(abc_tempo(v.tempo),3)
+   
         end
         
         if v.token=='words' then         
@@ -267,14 +286,20 @@ function expand_token_stream(song)
         end
         
         if v.token=='meter' then  
-            song.context.meter_data = v.meter
-            update_timing(song)   
+            song.context.meter = v.meter
+            update_timing(song)  
+            -- store key string in metadata
+            song.metadata.meter = string.sub(abc_meter(v.meter),3)
+                
         end
         
         -- update key
         if v.token=='key' then            
             song.context.key = v.key
             apply_key(song, song.context.key)
+            
+            -- store key string in metadata
+            song.metadata.key = string.sub(abc_key(v.key),3)
         end
  
     

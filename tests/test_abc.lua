@@ -246,12 +246,13 @@ function test_macros()
    ]]
     
     songs = abclua.parse_abc_multisong(macros)      
+    abclua.make_midi(songs[1], 'out/macros.mid')
     abclua.print_notes(songs[1].voices['default'].stream)
     print(abclua.emit_abc(songs[1].token_stream))
     
     songs = abclua.parse_abc_multisong(macros, {no_expand=true})      
     print(abclua.emit_abc(songs[1].token_stream))
-    abclua.make_midi(songs[1], 'out/macros.mid')
+  
 end
 
 
@@ -303,10 +304,11 @@ function test_octaves()
     c'd'e'f'g'a'b'
     c''d''e''f''g''a''b''
     C,D,E,F,G,A,B,
-    C,,D,,,E,,,F,,,G,,,A,,B,,
+    C,,D,,E,,F,,G,,A,,B,,
     C,,,D,,,E,,,F,,,G,,,A,,,B,,,
     ]]
     songs = abclua.parse_abc_multisong(octaves)
+    table_print(songs[1].voices['default'].stream)
     abclua.make_midi(songs[1], 'out/octaves.mid')    
 end
 
@@ -427,7 +429,7 @@ function test_overlay()
     overlay = [[
     X:1    
     K:G
-    ceg & C3 | dfa & D3 | C3 & E3 & G/ G/ G/  G/G/G/ |
+    ceg & C3 | dfa & D3 | C3 & E3 & G/ G/ G/  G/G/G/ | D D D |
     C C C & E E E | F F F & G E G |
     ]]
     songs = abclua.parse_abc_multisong(overlay)
@@ -441,7 +443,7 @@ function test_rests()
     rests = [[
     X:1    
     K:G
-    c z c z2 | Z | Z2 | c z c z
+    c z c z2 | Z  | c c c c |  Z2 | c z c z
     ]]
     songs = abclua.parse_abc_multisong(rests)
     abclua.make_midi(songs[1], 'out/rests.mid')    
@@ -573,6 +575,50 @@ function test_propagate()
        
 end
 
+
+function test_bar_timing()
+    timing = [[
+    M:3/4
+    L:1/4
+    K:G
+    %%enable-bar-warnings
+    A B C | D E F | G E G | F A F F | E D | A B C- | D E F |
+    ]]
+    songs = abclua.parse_abc_multisong(timing)    
+    table_print(filter_event_stream(songs[1].voices['default'].stream, 'note'))       
+end
+ 
+function test_broken()
+    broken = [[
+    K:G
+    %%MIDI ratio 2 1
+    A>BB | B>BB | B>B>F |
+    %%MIDI ratio 3 1
+    A>BB | B>BB | B>B>F |
+    %%MIDI ratio 4 1
+    A>BB | B>BB | B>B>F |
+    %%MIDI ratio 4 3
+    A>BB | B>BB | B>B>F ]]
+    songs = abclua.parse_abc_multisong(broken) 
+    abclua.make_midi(songs[1], 'out/broken.mid')        
+end
+ 
+function test_bar_numbers()
+    bar_numbers = [[
+    X:1
+    K:G
+    %%measurefirst 0
+    A | G>A>F>F |
+    %%setbarnb 5
+    F>F>A>G | D>EAA |
+    ]]
+    songs = abclua.parse_abc_multisong(bar_numbers)
+    table_print(songs[1].token_stream)
+end
+
+test_bar_numbers()
+-- test_broken()
+-- test_bar_timing()
 -- test_propagate()
 -- test_validate()
 -- test_tempos()
@@ -580,9 +626,9 @@ end
 -- test_cross_ref()  
 -- test_octaves()  
 -- test_include()
-test_overlay()
+-- test_overlay()
 -- test_macros()
-test_directives()
+-- test_directives()
 -- test_clefs()
 -- test_decorations()
 -- test_inline()

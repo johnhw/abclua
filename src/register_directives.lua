@@ -70,10 +70,19 @@ function directive_enable_bar_warnings(song, directive, arguments)
     song.context.bar_warnings = true
 end
 
+function directive_set_bar_number(song, directive, arguments)
+    -- set the current (or first) bar number
+    song.parse.measure = tonumber(arguments[1])
+    
+end
+
 register_directive('enable-bar-warnings', directive_enable_bar_warnings)
 register_directive('gracenote', directive_set_grace_note_length)
-register_directive('abc-include', directive_abc_include)
+register_directive('abc-include', directive_abc_include, true)
 register_directive('broken-ratio', directive_broken_ratio)
+
 register_directive('propagate-accidentals', directive_propagate_accidentals)
 
+register_directive('setbarnb', directive_set_bar_number, true)
+register_directive('measurefirst', directive_set_bar_number, true)
 

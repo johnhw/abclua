@@ -277,7 +277,7 @@ function get_default_context()
     return   deepcopy({
     tempo = {tempo_rate=120, [1]={num=1, den=8}}, 
     use_parts = false,
-    meter_data = {num=4, den=4},
+    meter = {num=4, den=4},
     key = { root='C', mode='maj', clef={}},
     key_mapping = {c=0,d=0,e=0,f=0,g=0,a=0,b=0},
     global_transpose = 0,
@@ -305,7 +305,6 @@ function parse_abc_multisong(str, options)
    
     
     str = str..'\n'
-    
     
     -- tunes must begin with a field (although there
     -- can be directives or comments first)
@@ -437,7 +436,7 @@ return abclua
 
 -- continuation should continue notes or fields (not simple line breaks)
 -- Extended tuplet values with nested tuplets
--- Extend fractional accidentals to keys
+-- Allow chords with key-relative values (e.g. "ii", "V", "V7", "I")
 
 -- ABCLint -> check abc files for problems
 

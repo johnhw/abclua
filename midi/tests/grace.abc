@@ -1,0 +1,11 @@
+X:437
+T:grace test
+Q:1/4=140 
+M:3/4
+L:1/4
+K:G
+%%MIDI gracedivider 4
+D>ED | G2 G | A3 |
+{f}D>{fg}ED | {a'}G2 {a2d2a/}G | A3 |
+%%MIDI gracedivider 3
+{f}D>{fg}ED | {a'}G2 {a2d2a/}G | A3 |

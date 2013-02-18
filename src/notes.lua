@@ -5,8 +5,8 @@ function default_note_length(song)
     -- return the default note length
     -- if meter.num/meter.den > 0.75 then 1/8
     -- else 1/16
-    if song.context.meter_data then
-        local ratio = song.context.meter_data.num / song.context.meter_data.num
+    if song.context.meter then
+        local ratio = song.context.meter.num / song.context.meter.num
         if ratio>=0.75 then
             return 8
         else
@@ -323,7 +323,7 @@ end
 function compute_bar_length(song)
     -- return the current length of one bar
     local note_length = song.context.note_length or default_note_length(song)
-    return (song.context.meter_data.num / song.context.meter_data.den) * note_length * song.context.timing.base_note_length * 1e6 
+    return (song.context.meter.num / song.context.meter.den) * note_length * song.context.timing.base_note_length * 1e6 
 end
 
 function compute_duration(note, song)
@@ -508,6 +508,10 @@ function insert_note(note, song)
             note.grace.sequence = expand_grace(song, note.grace) 
         end
         
+        -- extract any chords into a separate event
+        if note.chord then
+            table.insert(song.opus, {event='chord', chord=note.chord})
+        end
       
         -- insert the note events
         if pitch==nil then
@@ -519,6 +523,8 @@ function insert_note(note, song)
             table.insert(song.opus, {event='note', pitch=pitch, bar_time = song.context.timing.bar_time, duration=duration, note = note})
             
         end
+        
+        
    
         -- update tuplet counter; if back to zero, reset triplet compression
         if song.context.timing.triplet_state>0 then 

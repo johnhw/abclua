@@ -189,6 +189,29 @@ K:G
 (AB) (CD) (EFG) (EEE)]], 'Slurs')
 
 
+check_result([[X:1
+M:none
+M:
+M:C
+M:C|
+M:4/4
+M:3/4
+M:(1+3)/4
+M:(2+2+2)/4
+K:G
+A B C]],
+[[X:1
+M:none
+M:none
+M:4/4
+M:2/2
+M:4/4
+M:3/4
+M:(1+3)/4
+M:(2+2+2)/4
+K:G
+A B C]], 'Meters')
+
 check_reproduce([[X:1
 K:G
 A B C | D E F |] A B C [| DEG ||
@@ -215,6 +238,28 @@ K:G
 D E D | A B :|
 |:: A A A ::|1 B B B :|2 c c c :|3 d d d |]
 |: d e d :|: A B c :|1 g ||]], 'Repeats')
+
+
+check_result([[X:1
+K:G
+GABcdefg
+K:G ^c _g
+GABcdefg z4
+K:G ^^c __g _f
+GABcdefg
+K:G ^2/3c _/4g _/f
+GABcdefg
+]], 
+[[X:1
+K:G
+GABcdefg
+K:G ^c _g
+GABcdefg z4
+K:G ^^c __g _f
+GABcdefg
+K:G ^2/3c _/4g _/2f
+GABcdefg]], 
+'Keys with fraction accidentals')
 
 check_reproduce([[X:1
 K:none

@@ -53,8 +53,8 @@ function parse_directive(directive)
     ]]
     
     local match = re.match(directive, directive_pattern)
-    
-    if match and directive_table[match] and directive_table[match].parse then       
+  
+    if match and directive_table[match.directive] and directive_table[match.directive].parse then       
         return true, match
     else
         return false, match
