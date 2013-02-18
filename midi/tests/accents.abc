@@ -1,0 +1,11 @@
+X:1
+T:accent test
+M:4/4
+L:1/4
+K:C
+%%MIDI nobeataccents
+D>D F F | D D F>F |
+%%MIDI beataccents
+D>D F F|  D D F>F |
+%%MIDI beat 127 127 60 2
+D>D F F| D D F>F |

@@ -1,0 +1,22 @@
+X:437
+T:Over the Sea to Skye
+T:The Skye Boat Song 
+S:Childhood memories
+Z:Nigel Gatherer
++:and friends
+Q:1/4=140 
+M:3/4
+L:1/4
+K:G
+%%MIDI chordattack 0
+"Dmaj" D>ED | "G7" G2 G | "Emin" A>BA |
+%%MIDI chordattack 10
+ "D" d3 | "Dmaj" B>AB | "Emin" E2 E |
+%%MIDI chordattack 40
+ "Dmaj" D2- | "A7" D3 
+ %%MIDI chordattack 0
+"Dmaj" D>ED | "G7" G2 G | "Emin" A>BA |
+ %%MIDI randomchordattack 60
+"Dmaj" D>ED | "G7" G2 G | "Emin" A>BA |
+
+
