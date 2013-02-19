@@ -18,6 +18,23 @@ function get_default_chord_pattern(meter)
 end
 
 
+function expand_counted_sequence(sequence)
+    -- expand a counted sequence with 'type' and 'count' fields
+    -- into a sequence of individual values
+    -- e.g. {{type=a, count=2}, {type=b, count=3}} becomes
+    -- {a,a,b,b,b}
+    local expanded = {}
+    for i,v in ipairs(sequence) do
+        v.count = tonumber(v.count) or 1
+        
+        -- expand the table, removing repeat indicators
+        for j=1,v.count do 
+            table.insert(expanded, v.type)
+        end
+    end    
+    return expanded
+end
+
 function midi_gchord(args,midi_state,score)
     -- set the chord pattern
     local chord_matcher = re.compile([[
@@ -28,16 +45,8 @@ function midi_gchord(args,midi_state,score)
     ]])
    
     local pattern = chord_matcher:match(args[2])
-    local expanded = {}
-    for i,v in ipairs(pattern) do
-        v.count = tonumber(v.count) or 1
-        
-        -- expand the table, removing repeat indicators
-        for j=1,v.count do 
-            table.insert(expanded, v.type)
-        end
-    end    
-    midi_state.chord.pattern = expanded
+    if not pattern then return nil end
+    midi_state.chord.pattern = expand_counted_sequence(pattern)
 end
 
 
@@ -115,7 +124,7 @@ function insert_midi_chord(event, midi_state)
     
     -- arpeggiated notes, in the form {chord_number, transpose}
     local arpegs = {g={1,0}, h={2,0}, i={3,0}, j={4,0}, G={1,-12}, H={2,-12}, I={3,-12}, J={4,-12}}
-    
+        
     -- play the pattern
     for i,v in ipairs(pattern) do
         -- bass note
@@ -132,7 +141,7 @@ function insert_midi_chord(event, midi_state)
             for j, n in ipairs(notes) do
                  -- chords get transposed too
                  local pitch = n
-                 add_note(midi_state, chord_score, t, division, chord.channel, pitch, chord.velocity)
+                 add_note(midi_state, chord_score, chord_t, division, chord.channel, pitch, chord.velocity)
                  chord_t = chord_t + chord.delay + math.random()*chord.random_delay
                  
             end            

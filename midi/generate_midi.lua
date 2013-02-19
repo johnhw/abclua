@@ -67,7 +67,7 @@ function reset_midi_state(midi_state, channel)
      midi_state.beat_length = 0
      midi_state.beats_in_bar = 0
      midi_state.note_length = 4
-     
+     midi_state.base_note_length = 0
     
 end
 
@@ -77,13 +77,12 @@ function default_midi_state()
         channel = 0,
         program = 1,  
          -- 'default': update everytime we see a meter marker and at start of song
-        chord = {enabled=true, delay=20, random_delay = 10, channel=14, program=24, octave=0, velocity=82, pattern='default', notes_down={}, track={}},
+        chord = {enabled=true, delay=0, random_delay = 0, channel=14, program=24, octave=0, velocity=82, pattern='default', notes_down={}, track={}},
         bass = {program=45, channel=13, octave=0, velocity=88, notes_down={}, track={}},
         drone = {enabled=false, program=70, pitches={70,45}, velocities={80,80}, channel=12, track={}},
         drum = {enabled=false, bars=1, pattern='dddd', pitches={35,35,35,35}, velocities={110,80,90,80}, track={}},
         note_mapping = {}, -- for drummap
-        accents = {enabled=true, first=127, strong=100, other=80, accent_multiple=0.25, beat_pattern=''},
-        stress = {enabled=false, mode=1, model = {{1.2, 1.4}, {0.8, 0.6}, {1.2, 1.2}, {0.8, 0.8}}},
+        accents = {enabled=true, mode='beat', first=127, strong=100, other=80, accent_multiple=4, pattern=nil,stress=nil},
         transpose = 0,
         trimming = 1.0,
         grace_divider = 4,
@@ -97,7 +96,8 @@ function default_midi_state()
         base_note_length = 0,
         beat_length = 0,
         beats_in_bar = 0,
-        last_bar_time = 0
+        last_bar_time = 0,
+    
     }
     
     -- create the note down table
@@ -145,7 +145,6 @@ end
 
 
 
-
 ----------------------------
 ---- TRACKS ----------------
 ----------------------------
@@ -159,10 +158,8 @@ function stable_sort(t,key)
 end
 
 function new_track(patch, channel)
-    -- return a new, empty track, with one tick per second
-    
-    local track = {{'set_tempo', 0, 1000000}}
-    print(patch, channel)
+    -- return a new, empty track, with one tick per second    
+    local track = {{'set_tempo', 0, 1000000}}    
     if patch and channel then
         table.insert(track, {'patch_change', 0, channel, patch})
     end
@@ -188,7 +185,100 @@ function delta_time(tracks)
 end
 
 
+-----------------------------
+------ BEATS ----------------
+-----------------------------
 
+function midi_beat(args, midi_state)
+    if not check_argument(args[2], 1, 128, 'Bad beat first velocity') then return end
+    if not check_argument(args[3], 1, 128, 'Bad beat strong velocity') then return end
+    if not check_argument(args[4], 1, 128, 'Bad beat other velocity') then return end
+    if not check_argument(args[5], 1, 64, 'Bad beat multiple') then return end
+    
+    midi_state.accents.first = tonumber(args[2])
+    midi_state.accents.strong = tonumber(args[3])
+    midi_state.accents.other = tonumber(args[4])
+    midi_state.accents.accent_multiple = tonumber(args[5])
+    midi_state.accents.pattern = nil -- clear any explicit pattern
+end
+
+function midi_beatstring(args, midi_state)
+ -- set the beat string for note empahsis
+ local beat_matcher = re.compile([[
+    gchord <- (<elt>+) -> {}
+    elt <- ({:type: <type> :} {:count: <count>? :}) -> {}
+    type <- ('f'/'m'/'p')
+    count <- ([0-9]+)
+    ]])
+    local pattern = beat_matcher:match(args[2])
+    if pattern then
+        midi_state.accents.pattern = expand_counted_sequence(pattern)
+    end
+end
+
+function midi_set_stress(args, midi_state)
+    -- set the stress accenting. If not present, uses the default
+    -- stress model for the current rhythm
+
+end
+
+function midi_stressmodel(args, midi_state)
+    -- set the stress mode (beat, articulate or distort)
+    if args[2]=='beat' or tonumber(args[2])==0 then
+        midi_state.accents.mode = 'beat'
+    end
+    
+    if args[2]=='articulate' or tonumber(args[2])==1 then
+        midi_state.accents.mode = 1
+    end
+    
+    if args[2]=='distort' or tonumber(args[2])==1 then
+        midi_state.accents.mode = 2
+    end
+    
+    midi_set_stress()
+end
+
+
+
+function midi_ptstress(args, midi_state)
+    -- set the stress model
+    local stress = {}
+    local nbeats
+    
+    if not args[2] then
+        -- set default stress model for this rhythm if no stress
+        accents.stress = nil
+        midi_set_stress()
+    end
+    
+    if tonumber(args[2]) then
+        -- is a literal stress model
+        nbeats = args[2]
+        local arg_index = 3
+        -- first number is the number of divisions, subsequent numbers are velocity, stress pairs
+        for i=1,nbeats do
+            table.insert(stress, {velocity=args[arg_index], stretch=args[arg_index+1]})
+            arg_index = arg_index + 2
+        end
+        
+    else
+        local f = io.open(args[2], 'r')
+        -- read from a file
+        if f then
+            -- file consists of number of beats, followed by velocity, stress pairs
+            nbeats = f:read('*number')                 
+            for i=1,nbeats do
+                table.insert(stress, {velocity=f:read('*number'), stretch=f:read('*number')})
+            end
+            
+            f:close()
+        end
+    end
+    stress.divisions = nbeats
+    
+    midi_state.accents.stress = stress    
+end
 
 -- the dispatch table for the various directives
 local midi_directives = {
@@ -213,6 +303,10 @@ local midi_directives = {
     gchord = midi_gchord,
     drone = midi_drone,
     control = midi_control,
+    beat = midi_beat,
+    beatstring = midi_beatstring,
+    beataccents = function(args,midi_state,score) midi_state.accents.enabled=true end,
+    nobeataccents = function(args,midi_state,score) midi_state.accents.enabled=false end,
 }
 
 
@@ -248,12 +342,50 @@ function add_note(midi_state, track, t, duration, channel, pitch, velocity, tied
                 
 end
 
+function get_beat_velocity(midi_state)
+    -- get the velocity of a note from the accent, when using
+    -- simple beat form
+    local velocity
+    if midi_state.t == midi_state.last_bar_time then
+            velocity = midi_state.accents.first
+        else                    
+            -- not first note, work out which multiple it is and emphasise that
+            local beat_index = math.floor((midi_state.t-midi_state.last_bar_time) / midi_state.beat_length+1)            
+            if beat_index % midi_state.accents.accent_multiple==0 then
+                velocity = midi_state.accents.strong
+            else
+                velocity = midi_state.accents.other
+            end
+        end
+    return velocity
+end
+
+function get_beat_string_velocity(midi_state)
+    -- get the velocity of a note from the accent, when using
+    -- the full beat string
+    local beats = #midi_state.accents.pattern
+    -- work out which segment we are in
+    local beat_index = math.floor(((midi_state.t-midi_state.last_bar_time) / midi_state.bar_length)*beats)+1    
+    local velocities = {f=midi_state.accents.first, m=midi_state.accents.strong, p=midi_state.accents.other}
+    return  velocities[midi_state.accents.pattern[beat_index]]
+end
+
+
 function insert_midi_note(event, midi_state)
     -- insert a plain note into the score
     local duration = event.duration/1e3
     local velocity = 127    
     local track = midi_state.current_track
     midi_state.t = event.t / 1e3
+    
+    -- work out velocity from the accents
+    if midi_state.accents.enabled then
+        if midi_state.accents.pattern then
+            velocity = get_beat_string_velocity(midi_state)
+        else
+            velocity = get_beat_velocity(midi_state)
+        end
+    end
     
     -- render grace notes
     if event.note.grace then
@@ -271,10 +403,9 @@ function insert_midi_note(event, midi_state)
         end            
         -- adjust duration and timing of following note       
         midi_state.t = t
-    end
+    end    
     
-    add_note(midi_state, track, midi_state.t, duration*midi_state.trimming, midi_state.channel, event.pitch, velocity, event.tie)
-    
+    add_note(midi_state, track, midi_state.t, duration*midi_state.trimming, midi_state.channel, event.pitch, velocity, event.tie)    
     midi_state.t = midi_state.t+duration
 end
 
@@ -282,6 +413,7 @@ end
 function update_midi_meter(event, midi_state)
     -- change of meter 
     midi_state.meter = event.meter
+    midi_set_stress()
 end
 
 function produce_midi_opus(song)
@@ -326,6 +458,7 @@ function produce_midi_opus(song)
             if event.event=='bar' and event.bar.type~='variant' then
                 midi_state.last_bar_time = event.t/1e3
                 midi_state.t = event.t/1e3
+                
             end
             
             -- change of meter
@@ -334,7 +467,12 @@ function produce_midi_opus(song)
                 update_midi_meter(event, midi_state)
                 
             end
-            
+                        
+             -- change of rhythm specifier
+            if event.event=='field_text' and event.name=='rhythm' then
+                midi_set_stress()
+                
+            end
             if event.event=='note_length' then
                 -- update grace subdivisions
                 midi_state.note_length = note_length
@@ -365,7 +503,7 @@ function produce_midi_opus(song)
 end
 
 local MIDI = require "MIDI"
-fname = 'micro'
+fname = 'beatstring'
 songs = parse_abc_file('midi/tests/'..fname..'.abc')
 opus = produce_midi_opus(songs[1])
 --table_print(opus)
