@@ -143,7 +143,7 @@ function insert_midi_note(event, midi_state)
     velocity, trimming = get_accent_velocity(midi_state, duration)
     
     -- render grace notes
-    if event.note.grace then
+    if event.note.grace and midi_state.grace_divider~=0 then
         local sequence = event.note.grace.sequence            
         -- get grace note length
         local note_duration = midi_state.base_note_length / midi_state.grace_divider        

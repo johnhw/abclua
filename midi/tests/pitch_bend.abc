@@ -1,0 +1,15 @@
+X:1
+T:pitch bend test
+M:4/4
+L:1/4
+Q:1/4=140
+K:C
+f f
+%%MIDI pitchbend 3000 
+ff
+%%MIDI pitchbend 0 
+f f
+%%MIDI pitchbend -900 
+f f
+f f
+

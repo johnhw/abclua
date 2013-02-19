@@ -88,6 +88,16 @@ function midi_chordprog(arguments, midi_state, score)
 
 end
 
+function midi_chordname(args, midi_state)
+    -- define a new custom chord
+    local name = string.lower(args[2])
+    local semis = {}
+    for i=3,#args do
+        table.insert(semis,args[i])
+    end
+    midi_state.custom_chords[name] = semis
+end
+
 
 
 function insert_midi_chord(event, midi_state)
@@ -95,6 +105,11 @@ function insert_midi_chord(event, midi_state)
     
     -- do nothing if chords are currently disabled
     if not midi_state.chord.enabled then return end
+    
+    if event.event=='text' then
+        event.chord = event.text
+    end
+   
     
     local pattern
     -- if no pattern specified, find a matching default pattern for
@@ -119,7 +134,10 @@ function insert_midi_chord(event, midi_state)
     local t = midi_state.last_bar_time -- start the pattern at the start of this bar
     
     -- get chord notes (first is the bass note)
-    local base_notes = create_chord(event.chord)
+    local base_notes = create_chord(event.chord, midi_state.custom_chords)
+    -- do nothing if this is not a valid chord
+    if not base_notes then return end
+    
     local notes = voice_chord(base_notes, chord.octave+4)
     
     -- arpeggiated notes, in the form {chord_number, transpose}

@@ -90,6 +90,7 @@ function default_midi_state()
         transpose = 0,
         trimming = 1.0,
         grace_divider = 4,
+        custom_chords = {},
         note_length = 4,
         portamento = {normal=0, bass=0, chord=0},
         meter = {den=4, num=4, empahsis={0}},
@@ -103,7 +104,7 @@ function default_midi_state()
         last_bar_time = 0,
         rhythm = '',        
         sustain = false,
-        
+        drum_map = {}
     }
     
     -- create the note down table
@@ -129,11 +130,11 @@ function check_argument(argument, min, max, msg)
     -- Check if the arguments is present, is a number
     -- and is within a given range
     msg = msg..(argument or '<nil>')
-    if not argument then warn(msg) return false end
+    if not argument then warn(msg) return nil end
     argument = tonumber(argument)
-    if not argument then warn(msg) return false end
-    if argument<min or argument>max then warn(msg) return false end
-    return true
+    if not argument then warn(msg) return nil end
+    if argument<min or argument>max then warn(msg) return nil end
+    return tonumber(argument)
 end
 
 
@@ -231,7 +232,8 @@ function produce_midi_opus(song)
             end
             
                         
-            if event.event=='chord' then
+            if event.event=='chord' or event.event=='text' then
+                -- check free text for custom chord events!
                 insert_midi_chord(event, midi_state)
             end
             
@@ -290,6 +292,9 @@ local midi_directives = {
     program = midi_program,
     bassprog = midi_bassprog,
     chordprog = midi_chordprog,
+    chordname = midi_chordname,
+    chordvol = function(args,midi_state,score) midi_state.chord.velocity=(check_argument(args[2],1,128,'Bad chord velocity')+1) or midi_state.chord.velocity end,
+    bassvol = function(args,midi_state,score) midi_state.bass.velocity=(check_argument(args[2],1,128,'Bad bass velocity')+1) or midi_state.bass.velocity end,
     gchordoff = function(args,midi_state,score) midi_state.chord.enable=false end,
     gchordon = function(args,midi_state,score) midi_state.chord.enable=true end,
     chordattack = function(args,midi_state,score) midi_state.chord.delay=tonumber(args[2]) or midi_state.chord.delay end,
@@ -338,7 +343,8 @@ function test_file(fname)
     midifile:close()  
 end
 
-tests = {'stress_2', 'stress_1', 'accents', 'beatstring', 'chordattack', 'chords', 'drone', 'micro', 'transpose', 'trim', 'linear', 'pitch_bend', 'drum'}
+tests = {'stress_2', 'stress_1', 'accents', 'beatstring', 'chordattack', 'chords', 'drone', 
+'micro', 'transpose', 'trim', 'linear', 'pitch_bend', 'drum', 'chordname'}
 
 for i,v in ipairs(tests) do
     test_file(v)
