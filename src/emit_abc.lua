@@ -633,6 +633,11 @@ function abc_note_element(element)
         return '\n'
     end
     
+    if element.token=='continue_line' then
+        return '\\\n'
+    end
+    
+    
     if element.token=='chord' then
             return '"' .. element.chord .. '"'
     end

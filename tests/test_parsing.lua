@@ -235,6 +235,16 @@ FGABcd]],'Transposing macro expansion'
 
 check_reproduce([[X:1
 K:G
+A A A
+B B B\
+C C C\
+D D D
+E E E]],
+'Line breaks and continue')
+
+
+check_reproduce([[X:1
+K:G
 D E D | A B :|
 |:: A A A ::|1 B B B :|2 c c c :|3 d d d |]
 |: d e d :|: A B c :|1 g ||]], 'Repeats')

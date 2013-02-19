@@ -31,11 +31,14 @@ ABCLua supports most of the 2.1 standard; tested features include:
 * `propagate-accidental` rules
 
 
-Extended features include
+Extended features include:
+
 * Fractional accidentals for microtonal music `^/2C` 
+* Nested tuplets (e.g. `(7:5:7 A A (3 A A A A A`)
+
 See `tests/test_abc.lua` for examples of these in use.
 
-
+ABCLua comes with a package which performs most of the operations of abc2midi (chords, drums, accentuation etc.)
 
 
 ### Requires: 
@@ -674,9 +677,11 @@ field_text      Metadata field                              T:title     **name**
                 
 split           Beam split in the score                     <whitespace>
 
-line_split      Line break in the notation                  <newline>
+split_line      Line break in the notation                  <newline>
 
-note            A note definition                           `g'2-`      See [note](#note_table) table.        
+continue_line   Line continuation in the notation           `\`<newline>    
+
+note            A note definition                           `g'2-`       See [note](#note_table) table.        
 
 bar             Some form of bar line                       `| |: [n,n`  **type** type of the bar as a text field\
                                                                          **type** can be:\
@@ -806,8 +811,8 @@ header_end      End of the header in the original notation
 abc             A string of abc notation, representing the 
                 next event in the stream
                 
-timing_change   New timing information.                     **base_note_length** length of default note in microseconds\
-                                                            **bar_length** length of one measure in microseconds\
+timing_change   New timing information. There is always     **base_note_length** length of default note in microseconds\
+                one of these at the start of a song.        **bar_length** length of one measure in microseconds\
                                                             **beats_in_bar** number of beats in each bar\
                                                             **note_length** length of default note (8=1/8th, 4=1/4 etc.)\
                                                             **beat_length** length of one beat in microseconds\

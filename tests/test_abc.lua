@@ -483,7 +483,11 @@ function test_file()
     local songs = abclua.parse_abc_file('tests/p_hardy.abc')
         
     for i,v in ipairs(songs) do
-        title = v.metadata.title or 'untitled'
+        if v.metadata.title then
+            title = v.metadata.title[1] or 'untitled'
+        else
+            title = 'untitled'
+        end
         title = title:gsub(' ', '_')
         title = title:gsub('/', '')        
         title = title:gsub('?', '')        
@@ -603,6 +607,17 @@ function test_broken()
     abclua.make_midi(songs[1], 'out/broken.mid')        
 end
  
+function test_nested_tuplet()
+    nested = [[
+    K:G
+    A A A A |
+    (3 A A A A A |
+    (7:5:7 A A (3 A A A A A
+    ]]
+    songs = abclua.parse_abc_multisong(nested)
+    abclua.make_midi(songs[1], 'out/nested.mid')        
+end
+ 
 function test_bar_numbers()
     bar_numbers = [[
     X:1
@@ -616,34 +631,35 @@ function test_bar_numbers()
     table_print(songs[1].token_stream)
 end
 
+test_nested_tuplet()
 test_bar_numbers()
--- test_broken()
--- test_bar_timing()
--- test_propagate()
--- test_validate()
--- test_tempos()
--- test_rests()
--- test_cross_ref()  
--- test_octaves()  
--- test_include()
--- test_overlay()
--- test_macros()
--- test_directives()
--- test_clefs()
--- test_decorations()
--- test_inline()
--- test_keys()
--- test_trimming()
--- test_grace_notes()
--- test_chord_names()
--- test_voices()
--- test_rhythms()
--- test_accidentals()
--- test_repeats()
--- test_lyrics()
--- test_parts()
--- test_fragments()
--- test_triplets()
--- test_skye()
--- test_file()
+test_broken()
+test_bar_timing()
+test_propagate()
+test_validate()
+test_tempos()
+test_rests()
+test_cross_ref()  
+test_octaves()  
+test_include()
+test_overlay()
+test_macros()
+test_directives()
+test_clefs()
+test_decorations()
+test_inline()
+test_keys()
+test_trimming()
+test_grace_notes()
+test_chord_names()
+test_voices()
+test_rhythms()
+test_accidentals()
+test_repeats()
+test_lyrics()
+test_parts()
+test_fragments()
+test_triplets()
+test_skye()
+test_file()
 

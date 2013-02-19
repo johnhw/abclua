@@ -22,8 +22,6 @@ function update_timing(song)
    
 end    
 
-
-
 function is_compound_time(song)
     -- return true if the meter is 6/8, 9/8 or 12/8
     -- and false otherwise
@@ -35,8 +33,6 @@ function is_compound_time(song)
     end
     return false
 end
-
-
 
 function apply_repeats(song, bar)
         -- clear any existing material
@@ -115,7 +111,7 @@ end
 function reset_timing(song)
     -- reset the timing state of the song
     song.context.timing = {} 
-    song.context.timing.triplet_state = 0
+    song.context.timing.triplet_state = {}    
     song.context.timing.triplet_compress = 1
     song.context.timing.prev_broken_note = 1
     song.context.timing.bar_time = 0

@@ -87,6 +87,11 @@ function read_tune_segment(tune_data, song)
             if v.linebreak then
                 table.insert(song.token_stream, {token='split_line'})
             end
+            
+            if v.continue_line then
+                table.insert(song.token_stream, {token='continue_line'})
+            end
+            
                 
             
             -- deal with bars and repeat symbols
@@ -227,7 +232,10 @@ function parse_abc_line(line, song)
             -- insert linebreaks if there is not a continuation symbol
             if  not match[#match].continuation then
                 table.insert(match, {linebreak=''})    
-            end                             
+            else
+                table.insert(match, {continue_line=''})    
+            end
+            
             read_tune_segment(match, song)
         end
     end
@@ -433,9 +441,6 @@ return abclua
 -- TODO:
 
 -- Multi-measure overlay with && &&& etc.
-
--- continuation should continue notes or fields (not simple line breaks)
--- Extended tuplet values with nested tuplets
 -- Allow chords with key-relative values (e.g. "ii", "V", "V7", "I")
 
 -- ABCLint -> check abc files for problems

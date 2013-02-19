@@ -390,6 +390,40 @@ function compute_duration(note, song)
 end
 
 
+function update_triplet_ratio(song)
+    -- compute the current compression ratio
+    -- The product of all active triplets
+    local ratio = 1
+    for i,v in ipairs(song.context.timing.triplet_state) do
+        ratio = ratio / v.ratio
+    end
+    song.context.timing.triplet_compress = ratio
+end
+
+function push_triplet(song, p, q, r)
+    -- push a new triplet onto the stack
+    table.insert(song.context.timing.triplet_state, {count=r, ratio=p/q})
+    update_triplet_ratio(song)
+end
+
+function update_tuplet_state(song)
+    -- a note has occured; change tuplet state
+    -- update tuplet counters; if back to zero, remove that triplet
+    
+    local actives = {}
+    for i,v in ipairs(song.context.timing.triplet_state) do
+        v.count = v.count-1
+        -- keep only triplets with counters > 0
+        if v.count > 0 then
+            table.insert(actives, v)
+        end
+    end    
+    song.context.timing.triplet_state = actives
+        
+    -- update the time compression
+    update_triplet_ratio(song)
+
+end
 
 function apply_triplet(song, triplet)
     -- set the triplet fields in the song
@@ -409,11 +443,12 @@ function apply_triplet(song, triplet)
     p = triplet.p
     r = triplet.r 
     
-    -- set compression and number of notes to apply this to
-    song.context.timing.triplet_compress = triplet.q / triplet.p
-    song.context.timing.triplet_state = triplet.r
-              
+    -- set compression and number of notes to apply this to    
+    push_triplet(song, triplet.p, triplet.q, triplet.r)
+    
 end
+
+
 
 function parse_triplet(triplet, song)
 -- parse a triplet/tuplet definition, which specifies the contraction of the following
@@ -475,8 +510,7 @@ function expand_grace(song, grace_note)
     song.context.timing.prev_broken_note = 1
     song.context.timing.triplet_compress = 1
     song.context.timing.base_note_length = song.context.timing.grace_note_length -- switch to grace note timing
-    
-    
+       
     local grace = {}
     
     for i,v in ipairs(grace_note) do
@@ -489,14 +523,15 @@ function expand_grace(song, grace_note)
     -- restore timing state
     song.context.timing = preserved_state
     
-    -- insert the grace sequence
-    
+    -- insert the grace sequence   
     return grace
-    
-    
 
 end
     
+    
+
+
+
 function insert_note(note, song)
         -- insert a new note into the song
         local note_def = note
@@ -523,15 +558,8 @@ function insert_note(note, song)
             table.insert(song.opus, {event='note', pitch=pitch, bar_time = song.context.timing.bar_time, duration=duration, note = note})
             
         end
-        
-        
-   
-        -- update tuplet counter; if back to zero, reset triplet compression
-        if song.context.timing.triplet_state>0 then 
-            song.context.timing.triplet_state = song.context.timing.triplet_state - 1
-        else
-            song.context.timing.triplet_compress = 1
-        end
+    
+        update_tuplet_state(song)
    
         
         -- advance bar time (in fractions of a bar)

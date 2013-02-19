@@ -57,10 +57,10 @@ function midi_drum(args,midi_state,score)
     local j = 1
     for i,v in ipairs(drum.pattern) do
         if v=='d' then 
-            drum.pattern[j] = {'d', notes[j] or 50, velocities[j] or 100}
+            drum.pattern[i] = {'d', notes[j] or 50, velocities[j] or 100}
             j = j + 1
         else
-            drum.pattern[j] = {'f'}
+            drum.pattern[i] = {'z'}
         end
     end
     
@@ -105,7 +105,6 @@ function insert_midi_drum(midi_state)
     -- divide up bar
     local division = (midi_state.bar_length / #bar_pattern)
     local t = midi_state.last_bar_time -- start the pattern at the start of this bar
-    
         
     -- play the pattern
     for i,v in ipairs(bar_pattern) do
