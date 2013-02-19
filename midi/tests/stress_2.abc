@@ -1,0 +1,16 @@
+X:1
+T:stress mode 2 test
+M:4/4
+L:1/4
+Q:1/4=140
+K:C
+%%MIDI stressmodel 2
+%%MIDI ptstress 4.0 127 1.25 80 0.75 100 1.2 90 0.6
+D D D D | D D D D |
+%%MIDI stressmodel beat
+D D D D | D D D D |
+%%MIDI stressmodel articulate
+D D D D | D D D D |
+%%MIDI stressmodel distort
+D D D D | D D D D |
+

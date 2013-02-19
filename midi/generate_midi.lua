@@ -3,6 +3,7 @@ local re = require "re"
 require "midi/drone"
 require "midi/chords"
 require "midi/beats"
+require "midi/commands"
 
 
 
@@ -69,7 +70,8 @@ function reset_midi_state(midi_state, channel)
      midi_state.beats_in_bar = 0
      midi_state.note_length = 4
      midi_state.base_note_length = 0
-    
+     midi_state.last_bar_time = 0
+     midi_state.sustain = false     
 end
 
 function default_midi_state()
@@ -83,14 +85,14 @@ function default_midi_state()
         drone = {enabled=false, program=70, pitches={70,45}, velocities={80,80}, channel=12, track={}},
         drum = {enabled=false, bars=1, pattern='dddd', pitches={35,35,35,35}, velocities={110,80,90,80}, track={}},
         note_mapping = {}, -- for drummap
-        accents = {enabled=true, mode='beat', first=127, strong=100, other=80, accent_multiple=4, pattern=nil,stress=nil},
+        accents = {enabled=true, mode='beat', first=127, strong=100, other=80, accent_multiple=4, pattern=nil,stress={}},
         transpose = 0,
         trimming = 1.0,
         grace_divider = 4,
         note_length = 4,
         portamento = {normal=0, bass=0, chord=0},
         meter = {den=4, num=4, empahsis={0}},
-        channel_notes_down = {},
+        sustained_notes = {},
         t = 0,
         current_track = {},
         bar_length = 0,
@@ -99,12 +101,13 @@ function default_midi_state()
         beats_in_bar = 0,
         last_bar_time = 0,
         rhythm = '',
+        sustain = false
     
     }
     
     -- create the note down table
     for i=0,15 do 
-        midi_state.channel_notes_down[i] = {}
+        midi_state.sustained_notes[i] = {}
     end
     
     -- create the tracks
@@ -188,35 +191,6 @@ end
 
 
 
--- the dispatch table for the various directives
-local midi_directives = {
-    channel = midi_channel,
-    program = midi_program,
-    bassprog = midi_bassprog,
-    chordprog = midi_chordprog,
-    gchordoff = function(args,midi_state,score) midi_state.chord.enable=false end,
-    gchordon = function(args,midi_state,score) midi_state.chord.enable=true end,
-    chordattack = function(args,midi_state,score) midi_state.chord.delay=tonumber(args[2]) or midi_state.chord.delay end,
-    randomchordattack = function(args,midi_state,score) midi_state.chord.random_delay=tonumber(args[2]) or midi_state.chord.random_delay end,
-    drumoff = function(args,midi_state,score) midi_state.drum.enable=false end,
-    drumon = function(args,midi_state,score) midi_state.drum.enable=true end,
-    transpose = function(args,midi_state,score) midi_state.transpose=tonumber(args[2]) or midi_state.transpose end,
-    rtranspose = function(args,midi_state,score) midi_state.transpose=midi_state.transpose + (tonumber(args[2]) or 0) end,
-    trim = midi_trim,
-    gracedivider = function(args,midi_state,score) midi_state.grace_divider=tonumber(args[2]) or midi_state.grace_divider end,
-    grace = function() warn('grace not supported; use gracedivider instead.') end,
-    droneoff = disable_drone,
-    droneon = enable_drone,
-    drumbars =function(args,midi_state,score) midi_state.drum.bars=(tonumber(args[2]) or midi_state.drum.bars) end, 
-    gchord = midi_gchord,
-    drone = midi_drone,
-    control = midi_control,
-    beat = midi_beat,
-    beatstring = midi_beatstring,
-    beataccents = function(args,midi_state,score) midi_state.accents.enabled=true end,
-    nobeataccents = function(args,midi_state,score) midi_state.accents.enabled=false end,
-}
-
 
 
 function apply_midi_directive(arguments, midi_state, score)
@@ -231,25 +205,41 @@ function add_note(midi_state, track, t, duration, channel, pitch, velocity, tied
     -- for fractional notes
     pitch = pitch+midi_state.transpose        
     
+    local real_t, real_duration
+    -- distort the time and duration
+    real_t = get_distorted_time(t, midi_state)
+    real_duration = get_distorted_duration(t, duration, midi_state)
+    
     -- insert pitch bends for microtones
     local pitch_offset = pitch-math.floor(pitch)
-    if math.abs(pitch_offset)>0.01 then       
-        
-        table.insert(track, {'pitch_wheel_change', t, channel,  4096*pitch_offset})    
+    if math.abs(pitch_offset)>0.01 then               
+        table.insert(track, {'pitch_wheel_change', real_t, channel,  4096*pitch_offset})    
     end
     
-    table.insert(track, {'note_on', t, channel,  pitch, velocity})
-    if not tied then
-        table.insert(track, {'note_off', t+duration-0.1, channel, pitch, velocity})                
+    table.insert(track, {'note_on', real_t, channel,  pitch, velocity})
+    if not tied and not midi_state.sustain then
+        table.insert(track, {'note_off', real_t+real_duration-0.1, channel, pitch, velocity})                
         
         if math.abs(pitch_offset)>0.01 then       
-            table.insert(track, {'pitch_wheel_change', t+duration-0.05, channel,  0})    
+            table.insert(track, {'pitch_wheel_change', real_t+real_duration-0.05, channel,  0})    
         end
     
+    end
+    
+    -- store sustained notes so we can turn them off later
+    if midi_state.sustain then
+        midi_state.sustained_notes[pitch] = channel
     end
                 
 end
 
+function flush_sustained_notes(track, midi_state)
+    -- clear any sustained notes playing
+   real_t = get_distorted_time(midi_state.t, midi_state)
+   for i,v in midi_state.sustained_notes do
+        table.insert(track, {'note_off', real_t, v, i, 127})                
+   end   
+end
 
 
 
@@ -258,7 +248,23 @@ function insert_midi_note(event, midi_state)
     local duration = event.duration/1e3
     local velocity = 127    
     local track = midi_state.current_track
+    local trimming 
     midi_state.t = event.t / 1e3
+        
+    trimming = midi_state.trimming    
+    
+    if midi_state.accents.mode=='distort' then
+        -- get velocity of this beat before we do any distortion
+        velocity = get_distorted_beat_velocity(midi_state)
+    end
+    
+    -- work out trimming and velocity from articulation
+    if midi_state.accents.mode=='articulate' then
+        local stretch
+        velocity, stretch = get_articulated_beat(midi_state, duration)
+        trimming = trimming*stretch        
+    end
+    
     
     -- work out velocity from the accents
     if midi_state.accents.mode=='beat' or not midi_state.accents.stress then
@@ -289,7 +295,7 @@ function insert_midi_note(event, midi_state)
         midi_state.t = t
     end    
     
-    add_note(midi_state, track, midi_state.t, duration*midi_state.trimming, midi_state.channel, event.pitch, velocity, event.tie)    
+    add_note(midi_state, track, midi_state.t, duration*trimming, midi_state.channel, event.pitch, velocity, event.tie)    
     midi_state.t = midi_state.t+duration
 end
 
@@ -297,7 +303,7 @@ end
 function update_midi_meter(event, midi_state)
     -- change of meter 
     midi_state.meter = event.meter
-    midi_set_stress()
+    midi_set_stress(midi_state)
 end
 
 function produce_midi_opus(song)
@@ -312,7 +318,7 @@ function produce_midi_opus(song)
     local channel = 0
     -- new state and track for each voice
     for id,voice in pairs(song.voices) do
-        midi_state.current_track = new_track(0, channel)
+        midi_state.current_track = new_track(40, channel)
         
         midi_state.channel = channel
         channel = channel + 1
@@ -355,7 +361,7 @@ function produce_midi_opus(song)
              -- change of rhythm specifier
             if event.event=='field_text' and event.name=='rhythm' then            
                 midi_state.rhythm = event.content
-                midi_set_stress()
+                midi_set_stress(midi_state)
                 
             end
             if event.event=='note_length' then
@@ -387,11 +393,51 @@ function produce_midi_opus(song)
     return tracks
 end
 
-local MIDI = require "MIDI"
-fname = 'beatstring'
-songs = parse_abc_file('midi/tests/'..fname..'.abc')
-opus = produce_midi_opus(songs[1])
---table_print(opus)
-local midifile = assert(io.open('midi/tests/'..fname..'.mid','wb'))
-midifile:write(MIDI.opus2midi(opus))
-midifile:close()  
+
+-- the dispatch table for the various directives
+local midi_directives = {
+    channel = midi_channel,
+    program = midi_program,
+    bassprog = midi_bassprog,
+    chordprog = midi_chordprog,
+    gchordoff = function(args,midi_state,score) midi_state.chord.enable=false end,
+    gchordon = function(args,midi_state,score) midi_state.chord.enable=true end,
+    chordattack = function(args,midi_state,score) midi_state.chord.delay=tonumber(args[2]) or midi_state.chord.delay end,
+    randomchordattack = function(args,midi_state,score) midi_state.chord.random_delay=tonumber(args[2]) or midi_state.chord.random_delay end,
+    drumoff = function(args,midi_state,score) midi_state.drum.enable=false end,
+    drumon = function(args,midi_state,score) midi_state.drum.enable=true end,
+    transpose = function(args,midi_state,score) midi_state.transpose=tonumber(args[2]) or midi_state.transpose end,
+    rtranspose = function(args,midi_state,score) midi_state.transpose=midi_state.transpose + (tonumber(args[2]) or 0) end,
+    trim = midi_trim,
+    gracedivider = function(args,midi_state,score) midi_state.grace_divider=tonumber(args[2]) or midi_state.grace_divider end,
+    grace = function() warn('grace not supported; use gracedivider instead.') end,
+    droneoff = disable_drone,
+    droneon = enable_drone,
+    drumbars =function(args,midi_state,score) midi_state.drum.bars=(tonumber(args[2]) or midi_state.drum.bars) end, 
+    gchord = midi_gchord,
+    drone = midi_drone,
+    control = midi_control,
+    beat = midi_beat,
+    beatstring = midi_beatstring,
+    beataccents = function(args,midi_state,score) midi_state.accents.enabled=true end,
+    nobeataccents = function(args,midi_state,score) midi_state.accents.enabled=false end,
+    ptstress = midi_ptstress,
+    stressmodel = midi_stressmodel,
+    temperamentlinear = midi_temparament_linear
+}
+
+
+function test_file(fname)
+    local MIDI = require "MIDI"   
+    songs = parse_abc_file('midi/tests/'..fname..'.abc')
+    opus = produce_midi_opus(songs[1])
+    --table_print(opus)
+    local midifile = assert(io.open('midi/tests/'..fname..'.mid','wb'))
+    midifile:write(MIDI.opus2midi(opus))
+    midifile:close()  
+end
+
+tests = {'stress_2', 'stress_1', 'accents', 'beatstring', 'chordattack', 'chords', 'drone', 'micro', 'transpose', 'trim'}
+for i,v in ipairs(tests) do
+    test_file(v)
+end
