@@ -6,7 +6,7 @@ function midi_control(args, midi_state)
     
     -- change bass, guitar, drone or drums channel
     if args[2]=='bass' or args[2]=='guitar' or args[2]=='drum' or args[2]=='drums' then
-        if check_arguments(args[3], 1, 128, 'Bad CC number') and check_arguments(args[4], 1, 128, 'Bad CC value') then
+        if check_argument(args[3], 1, 128, 'Bad CC number') and check_argument(args[4], 1, 128, 'Bad CC value') then
             cc = tonumber(args[3])-1
             value = tonumber(args[4])-1
             
@@ -20,7 +20,7 @@ function midi_control(args, midi_state)
         end
     else
         -- change the cc on the current channel
-        if check_arguments(args[2], 1, 128, 'Bad CC number') and check_arguments(args[3], 1, 128, 'Bad CC value') then
+        if check_argument(args[2], 1, 128, 'Bad CC number') and check_argument(args[3], 1, 128, 'Bad CC value') then
             channel = midi_state.channel
             track = midi_state.current_track
             cc = tonumber(args[2])-1
@@ -31,6 +31,41 @@ function midi_control(args, midi_state)
     -- distort time
     local t = get_distorted_time(midi_state.t, midi_state)
     table.insert(track, {'control_change', t, channel, cc, value})
+end
+
+
+
+function midi_pitchbend(args, midi_state)
+    -- insert a control change
+    local value, channel, track
+    
+    
+    -- change bass, guitar, drone or drums channel
+    if args[2]=='bass' or args[2]=='guitar' or args[2]=='drum' or args[2]=='drums' then
+        if check_argument(args[3], -8192, 8192, 'Bad pitch bend')  then
+            
+            value = tonumber(args[3])
+            
+            -- find out which instrument we are working with
+            local instrument_map={bass=midi_state.bass,
+            guitar=midi_state.guitar,
+            drone=midi_state.drone,
+            drum=midi_state.drum}
+            channel = channel_map[args[2]].channel
+            track = channel_map[args[2]].track
+        end
+    else
+        -- change the cc on the current channel
+        if check_argument(args[2], -8192, 8192, 'Bad pitch bend')  then
+            channel = midi_state.channel
+            track = midi_state.current_track            
+            value = tonumber(args[2])
+        end
+    end
+    
+    -- distort time
+    local t = get_distorted_time(midi_state.t, midi_state)
+    table.insert(track, {'pitch_wheel_change', t, channel, value})
 end
 
 

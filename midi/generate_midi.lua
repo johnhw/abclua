@@ -314,6 +314,7 @@ local midi_directives = {
     nobeataccents = function(args,midi_state,score) midi_state.accents.enabled=false end,
     ptstress = midi_ptstress,
     stressmodel = midi_stressmodel,
+    pitchbend = midi_pitchbend,
     temperamentlinear = midi_temperamentlinear,
     temperamentnormal = function(args,midi_state,score) midi_state.temperament = nil end,
 }
@@ -337,8 +338,8 @@ function test_file(fname)
     midifile:close()  
 end
 
---tests = {'stress_2', 'stress_1', 'accents', 'beatstring', 'chordattack', 'chords', 'drone', 'micro', 'transpose', 'trim', 'linear'}
-tests = {'linear'}
+tests = {'stress_2', 'stress_1', 'accents', 'beatstring', 'chordattack', 'chords', 'drone', 'micro', 'transpose', 'trim', 'linear', 'pitch_bend'}
+
 for i,v in ipairs(tests) do
     test_file(v)
 end
