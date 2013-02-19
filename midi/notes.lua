@@ -104,31 +104,13 @@ function midi_temperamentlinear(args, midi_state)
         
 end
 
-
-
-function insert_midi_note(event, midi_state)
-    -- insert a plain note into the score
-    local duration = event.duration/1e3
-    local velocity = 127    
-    local track = midi_state.current_track
-    local trimming 
-    midi_state.t = event.t / 1e3
-        
-    trimming = midi_state.trimming    
-    
+function get_accent_velocity(midi_state, duration)
+    -- get the velocity and trimming of the current time
+    trimming = midi_state.trimming  
     if midi_state.accents.mode=='distort' then
         -- get velocity of this beat before we do any distortion
         velocity = get_distorted_beat_velocity(midi_state)
     end
-    
-    -- work out trimming and velocity from articulation
-    if midi_state.accents.mode=='articulate' then
-        local stretch
-        velocity, stretch = get_articulated_beat(midi_state, duration)
-        trimming = trimming*stretch        
-    end
-    
-    
     -- work out velocity from the accents
     if midi_state.accents.mode=='beat' or not midi_state.accents.stress then
         if midi_state.accents.enabled then
@@ -139,6 +121,26 @@ function insert_midi_note(event, midi_state)
             end
         end
     end    
+    
+    -- work out trimming and velocity from articulation
+    if midi_state.accents.mode=='articulate' then
+        local stretch
+        velocity, stretch = get_articulated_beat(midi_state, duration)
+        trimming = trimming*stretch        
+    end
+    return velocity, trimming
+   
+end
+
+
+function insert_midi_note(event, midi_state)
+    -- insert a plain note into the score
+    local duration = event.duration/1e3
+    local velocity = 127    
+    local track = midi_state.current_track
+    local trimming 
+    midi_state.t = event.t / 1e3
+    velocity, trimming = get_accent_velocity(midi_state, duration)
     
     -- render grace notes
     if event.note.grace then

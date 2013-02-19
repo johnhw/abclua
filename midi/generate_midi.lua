@@ -5,15 +5,15 @@ require "midi/chords"
 require "midi/beats"
 require "midi/commands"
 require "midi/notes"
-
+require "midi/drums"
 
 
     -- %%MIDI barlines
     --++ %%MIDI bassprog
     -- %%MIDI beat
-    -- %%MIDI beataccents
+    --++ %%MIDI beataccents
     -- %%MIDI beatmod
-    -- %%MIDI beatstring
+    --++ %%MIDI beatstring
     -- %%MIDI bendvelocity
     --++ %%MIDI channel
     --++ %%MIDI chordattack
@@ -40,14 +40,14 @@ require "midi/notes"
     --++ %%MIDI gracedivider
     -- %%MIDI makechordchannels
     -- %%MIDI nobarlines
-    -- %%MIDI nobeataccents
-    -- %%MIDI pitchbend
+    --++ %%MIDI nobeataccents
+    --++ %%MIDI pitchbend
     -- %%MIDI portamento
     --++ %%MIDI program
     -- %%MIDI ptstress
     --++ %%MIDI randomchordattack
     -- %%MIDI ratio
-    -- %%MIDI stressmodel
+    --++ %%MIDI stressmodel
     -- %%MIDI snt
     --++ %%MIDI rtranspose
     --++ %%MIDI transpose
@@ -72,7 +72,7 @@ function reset_midi_state(midi_state, channel)
      midi_state.note_length = 4
      midi_state.base_note_length = 0
      midi_state.last_bar_time = 0
-     midi_state.sustain = false     
+     midi_state.sustain = false          
 end
 
 function default_midi_state()
@@ -84,7 +84,7 @@ function default_midi_state()
         chord = {enabled=true, delay=0, random_delay = 0, channel=14, program=24, octave=0, velocity=82, pattern='default', notes_down={}, track={}},
         bass = {program=45, channel=13, octave=0, velocity=88, notes_down={}, track={}},
         drone = {enabled=false, program=70, pitches={70,45}, velocities={80,80}, channel=12, track={}},
-        drum = {enabled=false, bars=1, pattern='dddd', pitches={35,35,35,35}, velocities={110,80,90,80}, track={}},
+        drum = {enabled=true, bars=1, pattern=nil, pitches={35,35,35,35}, velocities={110,80,90,80}, channel=9, bar_counter=0, track={}},
         note_mapping = {}, -- for drummap
         accents = {enabled=true, mode='beat', first=127, strong=100, other=80, accent_multiple=4, pattern=nil,stress={}},
         transpose = 0,
@@ -102,8 +102,8 @@ function default_midi_state()
         beats_in_bar = 0,
         last_bar_time = 0,
         rhythm = '',        
-        sustain = false
-    
+        sustain = false,
+        
     }
     
     -- create the note down table
@@ -230,8 +230,7 @@ function produce_midi_opus(song)
                 insert_midi_note(event,midi_state)
             end
             
-            
-            
+                        
             if event.event=='chord' then
                 insert_midi_chord(event, midi_state)
             end
@@ -239,7 +238,7 @@ function produce_midi_opus(song)
             if event.event=='bar' and event.bar.type~='variant' then
                 midi_state.last_bar_time = event.t/1e3
                 midi_state.t = event.t/1e3
-                
+                insert_midi_drum(midi_state)                
             end
             
             -- change of meter
@@ -317,6 +316,7 @@ local midi_directives = {
     pitchbend = midi_pitchbend,
     temperamentlinear = midi_temperamentlinear,
     temperamentnormal = function(args,midi_state,score) midi_state.temperament = nil end,
+    drum = midi_drum,
 }
 
 function apply_midi_directive(arguments, midi_state, score)
@@ -338,7 +338,7 @@ function test_file(fname)
     midifile:close()  
 end
 
-tests = {'stress_2', 'stress_1', 'accents', 'beatstring', 'chordattack', 'chords', 'drone', 'micro', 'transpose', 'trim', 'linear', 'pitch_bend'}
+tests = {'stress_2', 'stress_1', 'accents', 'beatstring', 'chordattack', 'chords', 'drone', 'micro', 'transpose', 'trim', 'linear', 'pitch_bend', 'drum'}
 
 for i,v in ipairs(tests) do
     test_file(v)
