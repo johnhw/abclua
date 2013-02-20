@@ -1,0 +1,15 @@
+X:1
+T:beatmod accent test
+M:4/4
+L:1/4
+Q:1/4=200
+K:C
+%%MIDI beataccents
+%%MIDI beat 127 100 60 2
+D>D F F | D D F>F |
+%%MIDI beatmod -40
+D>D F F|  D D F>F |
+%%MIDI beatmod -40
+D>D F F| D D F>F |
+%%MIDI beatmod 100
+D>D F F| D D F>F |

@@ -264,6 +264,33 @@ function get_articulated_beat(midi_state, duration)
     return velocity, stretch
 end
 
+
+function saturated_increment(value, inc, v_min, v_max)
+    -- increase a value by inc, clipping it to [v_min, v_max]
+    value = value+inc
+    if value<v_min then value=v_min end
+    if value>v_max then value=v_max end    
+    return value
+end
+
+function midi_deltaloudness(args, midi_state)
+    -- set the delta loudness adjustment for crescendo and diminuendo
+    midi_state.accents.delta = (check_argument(args[2], -128,128, 'Bad deltaloudness value')) or midi_state.accents.delta
+end
+
+function increment_dynamics(midi_state, n)
+    -- adjust beat accent dynamics by n steps
+    midi_state.accents.first = saturated_increment(midi_state.accents.first, n, 0, 127)
+    midi_state.accents.strong = saturated_increment(midi_state.accents.strong, n, 0, 127)
+    midi_state.accents.other = saturated_increment(midi_state.accents.other, n, 0, 127)            
+end
+
+function midi_beatmod(args, midi_state)
+    -- adjust the velocities in beat accent mode
+    local n = check_argument(args[2], -128, 128, 'Bad beatmod value')    
+    increment_dynamics(midi_state, n)
+end
+
 function get_beat_velocity(midi_state)
     -- get the velocity of a note from the accent, when using
     -- simple beat form

@@ -66,7 +66,21 @@ function midi_drum(args,midi_state,score)
     
 end
 
-
+function midi_drum_map(args, midi_state)
+    -- set the mapping from a note (as written) and a semitone
+    -- maps every occurence of that note in the that octave *only* to the given midi pitch
+    
+    local semi = check_argument(args[3], 1, 128, 'Bad semitone in drummap')-1    
+    local note = parse_abc_fragment(args[2])[1]    
+    if note.note and note.note.pitch then
+    -- store mapping from root note + octave
+        local note_id = note.note.pitch.note..note.note.pitch.octave
+        midi_state.drum.map[note_id] = semi        
+    else
+        print("Bad note in drummap")
+    end
+    
+end
 
 function insert_midi_drum(midi_state)
     -- Insert a drum pattern into the score

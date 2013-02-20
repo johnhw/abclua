@@ -40,7 +40,7 @@ function add_note(midi_state, track, t, duration, channel, pitch, velocity, tied
     end
     
     -- store sustained notes so we can turn them off later
-    if midi_state.sustain then
+    if midi_state.sustain then        
         midi_state.sustained_notes[pitch] = channel
     end
                 
@@ -48,8 +48,8 @@ end
 
 function flush_sustained_notes(track, midi_state)
     -- clear any sustained notes playing
-   real_t = get_distorted_time(midi_state.t, midi_state)
-   for i,v in midi_state.sustained_notes do
+   real_t = get_distorted_time(midi_state.t, midi_state)   
+   for i,v in pairs(midi_state.sustained_notes) do        
         table.insert(track, {'note_off', real_t, v, i, 127})                
    end   
 end
@@ -108,9 +108,11 @@ function get_accent_velocity(midi_state, duration)
     -- get the velocity and trimming of the current time
     trimming = midi_state.trimming  
     if midi_state.accents.mode=='distort' then
+    
         -- get velocity of this beat before we do any distortion
         velocity = get_distorted_beat_velocity(midi_state)
     end
+    
     -- work out velocity from the accents
     if midi_state.accents.mode=='beat' or not midi_state.accents.stress then
         if midi_state.accents.enabled then
@@ -132,6 +134,46 @@ function get_accent_velocity(midi_state, duration)
    
 end
 
+function apply_modifier_decorations(midi_state, decorations)
+    -- apply state modifiying decorations like !ped! !crescendo!
+    local modifiers = {
+    ['!ped!'] = function() midi_state.sustain=true end, 
+    ['!ped-end!'] = function() midi_state.sustain=false flush_sustained_notes(midi_state.current_track, midi_state) end,    
+    ['!crescendo(!'] = function() increment_dynamics(midi_state, midi_state.accents.delta) end,
+    ['!crescendo)!'] = function() increment_dynamics(midi_state, -midi_state.accents.delta) end,
+    ['!diminuendo(!'] = function() increment_dynamics(midi_state, -midi_state.accents.delta) end,
+    ['!diminuendo)!'] = function() increment_dynamics(midi_state, midi_state.accents.delta) end,
+    }
+    
+    for i,v in ipairs(decorations) do
+        if modifiers[v] then modifiers[v]() end
+    end
+end
+  
+
+function apply_velocity_decorations(midi_state,  velocity, decorations) 
+    local modifier = 1
+    local dynamics_decorations = {
+    ["!ppp!"]=0.15,
+    ["!pp!"]=0.3,
+    ["!p!"]=0.6,
+    ["!mp!"]=0.9,
+    ["!mf!"]=1.2,
+    ["!ff!"]=1.6,
+    ["!fff!"]=2.0    
+    }
+    
+    -- find any matching decorations
+    for i,v in pairs(dynamics_decorations) do
+        if decorations[i] then modifier=v end
+    end
+    
+    velocity = velocity * modifier
+    
+    -- force saturation by incrementing by 0
+    saturated_increment(velocity, 0, 0, 127) 
+    return velocity
+end
 
 function insert_midi_note(event, midi_state)
     -- insert a plain note into the score
@@ -140,7 +182,26 @@ function insert_midi_note(event, midi_state)
     local track = midi_state.current_track
     local trimming 
     midi_state.t = event.t / 1e3
+    
+    local decorations = event.note.decoration or {}
+    
+    -- check for state modifier  decorators
+    apply_modifier_decorations(midi_state, decorations)
+    
+    -- check if we need to remap this pitch from the drummap
+    local note_id =  event.note.pitch.note..event.note.pitch.octave        
+    pitch = midi_state.drum.map[note_id] or event.pitch
+        
+    -- get the velocity and articulation of this note
     velocity, trimming = get_accent_velocity(midi_state, duration)
+    
+    -- apply staccato
+    if decorations['.'] or decorations['!staccato!'] then
+        trimming = trimming * 0.5
+    end
+    
+    -- apply !ff! etc.
+    velocity = apply_velocity_decorations(midi_state, velocity, decorations)
     
     -- render grace notes
     if event.note.grace and midi_state.grace_divider~=0 then
@@ -160,6 +221,7 @@ function insert_midi_note(event, midi_state)
         midi_state.t = t
     end    
     
-    add_note(midi_state, track, midi_state.t, duration*trimming, midi_state.channel, event.pitch, velocity, event.tie)    
+       
+    add_note(midi_state, track, midi_state.t, duration*trimming, midi_state.channel, pitch, velocity, event.tie)    
     midi_state.t = midi_state.t+duration
 end

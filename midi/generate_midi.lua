@@ -84,9 +84,9 @@ function default_midi_state()
         chord = {enabled=true, delay=0, random_delay = 0, channel=14, program=24, octave=0, velocity=82, pattern='default', notes_down={}, track={}},
         bass = {program=45, channel=13, octave=0, velocity=88, notes_down={}, track={}},
         drone = {enabled=false, program=70, pitches={70,45}, velocities={80,80}, channel=12, track={}},
-        drum = {enabled=true, bars=1, pattern=nil, pitches={35,35,35,35}, velocities={110,80,90,80}, channel=9, bar_counter=0, track={}},
+        drum = {enabled=true, bars=1, pattern=nil, pitches={35,35,35,35}, velocities={110,80,90,80}, channel=9, bar_counter=0, track={}, map={}},
         note_mapping = {}, -- for drummap
-        accents = {enabled=true, mode='beat', first=127, strong=100, other=80, accent_multiple=4, pattern=nil,stress={}},
+        accents = {enabled=true, delta=15, mode='beat', first=127, strong=100, other=80, accent_multiple=4, pattern=nil,stress={}},
         transpose = 0,
         trimming = 1.0,
         grace_divider = 4,
@@ -103,14 +103,9 @@ function default_midi_state()
         beats_in_bar = 0,
         last_bar_time = 0,
         rhythm = '',        
-        sustain = false,
-        drum_map = {}
+        sustain = false,        
     }
     
-    -- create the note down table
-    for i=0,15 do 
-        midi_state.sustained_notes[i] = {}
-    end
     
     -- create the tracks
     local chord_score = new_track(midi_state.chord.program, midi_state.chord.channel)
@@ -190,8 +185,6 @@ function delta_time(tracks)
 end
 
 
-
-
 function update_midi_meter(event, midi_state)
     -- change of meter 
     midi_state.meter = event.meter
@@ -227,7 +220,7 @@ function produce_midi_opus(song)
                 -- insert_midi_rest(event,midi_state,score)
             -- end
             
-            if event.event=='note' then
+            if event.event=='note' then                
                 insert_midi_note(event,midi_state)
             end
             
@@ -322,6 +315,9 @@ local midi_directives = {
     temperamentlinear = midi_temperamentlinear,
     temperamentnormal = function(args,midi_state,score) midi_state.temperament = nil end,
     drum = midi_drum,
+    drummap = midi_drum_map,
+    beatmod = midi_beatmod,
+    deltaloudness = midi_deltaloudness
 }
 
 function apply_midi_directive(arguments, midi_state, score)
@@ -344,7 +340,9 @@ function test_file(fname)
 end
 
 tests = {'stress_2', 'stress_1', 'accents', 'beatstring', 'chordattack', 'chords', 'drone', 
-'micro', 'transpose', 'trim', 'linear', 'pitch_bend', 'drum', 'chordname'}
+'micro', 'transpose', 'trim', 'linear', 'pitch_bend', 'drum', 'chordname', 'beatmod', 'drummap', 'pedal', 'crescendo',
+'dynamics'
+}
 
 for i,v in ipairs(tests) do
     test_file(v)
