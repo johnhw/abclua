@@ -361,7 +361,7 @@ function note_stream_to_opus(note_stream)
     table.sort(note_stream, function(a,b) return a.t<b.t end)
     
     local last_t = 0
-    score = {}
+    local score = {}    
     local dtime
     for i,event in ipairs(note_stream) do
         dtime = (event.t - last_t)/1000.0 -- microseconds to milliseconds
@@ -381,6 +381,7 @@ function get_chord_stream(stream, octave)
    local t
    local channel = channel or 1
    octave = octave or 5
+   local notes
    
    for i,event in ipairs(stream) do        
         
@@ -427,10 +428,9 @@ end
 -- sort out stream functions
 
 function stream_to_opus(stream,  patch)
-    -- return the opus form of a single note stream song, with millisecond timing    
-    channel = channel or 1
+    -- return the opus form of a single note stream song, with millisecond timing        
     patch = patch or 41 -- default to violin
-    
+    local channel = 0
     local note_stream = get_note_stream(stream, channel)
     
      local score = {
@@ -489,7 +489,7 @@ function make_midi_from_stream(stream, fname)
     -- Turn a note stream into a MIDI file
      local MIDI = require 'MIDI'
 
-     opus = stream_to_opus(stream)
+     local opus = stream_to_opus(stream)
      local midifile = assert(io.open(fname,'wb'))
      midifile:write(MIDI.opus2midi(opus))
      midifile:close()

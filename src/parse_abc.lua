@@ -451,12 +451,12 @@ diatonic_transpose = diatonic_transpose,
 get_note_stream = get_note_stream,
 get_chord_stream = get_chord_stream,
 abc_element = abc_element,
-validate_token_stream = validate_token_stream
+validate_token_stream = validate_token_stream,
+filter_event_stream = filter_event_stream
 }
 
 
 return abclua
-
 -- TODO:
 
 -- Multi-measure overlay with && &&& etc.

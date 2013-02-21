@@ -1,4 +1,4 @@
-abclua = require "abclua"
+abclua = require "abclua_all"
 -- Print anything - including nested tables
 function table_print (tt, indent, done)
   done = done or {}
@@ -26,7 +26,7 @@ end
 
 
 
-skye=[[
+local skye=[[
 % this is a comment
 X:437
 T:Over the Sea to Skye
@@ -51,7 +51,7 @@ B>GB | B3 | A>EA | A3 | G>EG | G2 G | E3 | D3 ||
 
 function test_chord_names()
 
-skye_chords=[[
+local skye_chords=[[
 % this is a comment
 X:437
 T:Over the Sea to Skye
@@ -73,31 +73,31 @@ B>GB | B3 | A>EA | A3 | G>EG | G2 G | E3 | D3 ||
 |: D>ED  | G2 G | A>BA | d3 | B>AB | E2- :|1 E | D2 |  D3 :|2 E | F2 | G3 :|  
 ]]
 
-    songs = abclua.parse_abc_multisong(skye_chords)
+    local songs = abclua.parse_abc_multisong(skye_chords)
     abclua.make_midi_from_stream(songs[1].voices['default'].stream, 'out/skye_chords.mid')        
     
 end
 
 function test_grace_notes()
-    grace = [[
+    local grace = [[
 X:1
 K:G
 DED | ABA | DED |
 {ed}DED | {fgA}ABA | {ed}DE{fA}D |
 ]]
-    songs = abclua.parse_abc_multisong(grace)
-    grace_stream = abclua.render_grace_notes(songs[1].voices['default'].stream)    
+    local songs = abclua.parse_abc_multisong(grace)
+    local grace_stream = abclua.render_grace_notes(songs[1].voices['default'].stream)    
     abclua.make_midi_from_stream(grace_stream, 'out/grace.mid')        
     
 end
 
 function test_cross_ref()
-    xref = [[
+    local xref = [[
 X:1
 K:G
 DED | ABA | DED |
 ]]
-    songs = abclua.parse_abc_multisong(xref, {cross_ref=true})
+    local songs = abclua.parse_abc_multisong(xref, {cross_ref=true})
     table_print(songs[1].token_stream)    
     
 end
@@ -107,28 +107,28 @@ function test_trimming()
     -- test event trimming into time windows
     local songs = abclua.parse_abc_multisong(skye)
             
-    stream = songs[1].voices['default'].stream    
+    local stream = songs[1].voices['default'].stream
     abclua.make_midi_from_stream(stream, 'out/skye_untrimmed.mid')
     
     -- trim events that start within 3-6 seconds
-    start_stream = abclua.trim_event_stream(stream, 'starts', 3e6, 6e6)    
+    local start_stream = abclua.trim_event_stream(stream, 'starts', 3e6, 6e6)    
     abclua.make_midi_from_stream(start_stream, 'out/skye_starts.mid')
     
     -- trim events that start within 3-6 seconds
-    end_stream = abclua.trim_event_stream(stream, 'ends', 3e6, 6e6)    
+    local end_stream = abclua.trim_event_stream(stream, 'ends', 3e6, 6e6)    
     abclua.make_midi_from_stream(end_stream, 'out/skye_ends.mid')
     
     -- trim events that start or end within 3-6 seconds
-    any_stream = abclua.trim_event_stream(stream, 'any', 3e6, 6e6)    
+    local any_stream = abclua.trim_event_stream(stream, 'any', 3e6, 6e6)    
     abclua.make_midi_from_stream(any_stream, 'out/skye_any.mid')
     
     -- trim events that start and end within 3-6 seconds
-    within_stream = abclua.trim_event_stream(stream, 'within', 3e6, 6e6)    
+    local within_stream = abclua.trim_event_stream(stream, 'within', 3e6, 6e6)    
     abclua.make_midi_from_stream(within_stream, 'out/skye_within.mid')
     
     -- trim events that start and end any time 3-6 seconds, but cut
     -- the events to fit exactly
-    trim_stream = abclua.trim_event_stream(stream, 'trim', 3e6, 6e6)    
+    local trim_stream = abclua.trim_event_stream(stream, 'trim', 3e6, 6e6)    
     abclua.make_midi_from_stream(trim_stream, 'out/skye_trim.mid')
             
     
@@ -138,10 +138,10 @@ end
 function test_fragments()
     -- Test that parsing fragments produces sensible
     -- token streams, and that token -> event conversion works
-    tokens = abclua.parse_abc_fragment('A>bA')
+    local tokens = abclua.parse_abc_fragment('A>bA')
     table_print(tokens)
     
-    events = abclua.compile_tokens(tokens)
+    local events = abclua.compile_tokens(tokens)
     table_print(events)
     
     tokens = abclua.parse_abc_fragment('X:title')
@@ -161,20 +161,20 @@ end
 
 function test_inline()
     -- Test inline fields and chords (i.e. [] groups)
-    inline = [[
+    local inline = [[
     X:1
     K:G
     A B [CEG] A B [K:G] A B F [R:remarkable]
     ]]
     
-    songs = abclua.parse_abc_multisong(inline)    
+    local songs = abclua.parse_abc_multisong(inline)    
     print(abclua.emit_abc(songs[1].token_stream))
     abclua.make_midi(songs[1], 'out/inline.mid')        
 end
 
 function test_keys()
     -- Test that key signature affects notes appropriately
-    keys = [[
+    local keys = [[
     X:1
     K:none
     CDEFGABc z4
@@ -199,27 +199,27 @@ function test_keys()
     GABcdefg z4        
     ]]
     
-    songs = abclua.parse_abc_multisong(keys)    
+    local songs = abclua.parse_abc_multisong(keys)    
     print(abclua.emit_abc(songs[1].token_stream))
     abclua.make_midi(songs[1], 'out/keys.mid')
 end
 
 function test_triplets()
     -- Test that triplet timing works as expected
-    triplets = [[
+    local triplets = [[
     X:1
     K:G
     A A A z | (3 A A A A z | A A A z | (5:3:5 A A A A A z 
     ]]
 
-    songs = abclua.parse_abc_multisong(triplets)    
+    local songs = abclua.parse_abc_multisong(triplets)    
     print(abclua.emit_abc(songs[1].token_stream))
     abclua.make_midi(songs[1], 'out/triplets.mid')
 end
 
 function test_repeats()
     -- Test repeats and variant endings
-    repeats = [[
+    local repeats = [[
     X:1
     K:G
     D E D | A B  :|
@@ -227,7 +227,7 @@ function test_repeats()
     |: d e d :|: A B c :|1 g ||
     ]]
     
-    songs = abclua.parse_abc_multisong(repeats)      
+    local songs = abclua.parse_abc_multisong(repeats)      
     abclua.print_notes(songs[1].voices['default'].stream)
     abclua.make_midi(songs[1], 'out/repeats.mid')
 end
@@ -235,7 +235,7 @@ end
 
 function test_macros()
     -- Test macros, transposing macros and user macros
-    macros = [[
+    local macros = [[
     X:1
     U:n=G/G
     U:p=A/A
@@ -245,7 +245,7 @@ function test_macros()
     A B C | p n p | d2 A | a4 B | d4 B | e,4 B |
    ]]
     
-    songs = abclua.parse_abc_multisong(macros)      
+    local songs = abclua.parse_abc_multisong(macros)      
     abclua.make_midi(songs[1], 'out/macros.mid')
     abclua.print_notes(songs[1].voices['default'].stream)
     print(abclua.emit_abc(songs[1].token_stream))
@@ -258,7 +258,7 @@ end
 
 function test_accidentals()
     -- Test accidentals (sharp, flat, implied)
-    accs = [[
+    local accs = [[
     X:1
     K:C
     A A z z | ^A _A =A z | ^^A __A =A z | z z z 
@@ -268,7 +268,7 @@ function test_accidentals()
     ^A A A z | _A A A z | _A A =A z |  zzz
     ]]
     
-    songs = abclua.parse_abc_multisong(accs)          
+    local songs = abclua.parse_abc_multisong(accs)          
     print(abclua.emit_abc(songs[1].token_stream))
     abclua.make_midi(songs[1], 'out/accidentals.mid')
 end
@@ -276,7 +276,7 @@ end
 
 function test_lyrics()
     -- Test lyrics aligned with notes
-    lyrics = [[
+    local lyrics = [[
     X:1
     K:G
     A B C D | E F G A | B4
@@ -289,7 +289,7 @@ function test_lyrics()
     w:lyric spacing works
     ]]
 
-    songs = abclua.parse_abc_multisong(lyrics)    
+    local songs = abclua.parse_abc_multisong(lyrics)    
     print(abclua.emit_abc(songs[1].token_stream))
     abclua.print_lyrics_notes(songs[1].voices['default'].stream)
     
@@ -297,7 +297,7 @@ end
 
 function test_octaves()
     -- Test octave specifiers
-    octaves =[[
+    local octaves =[[
     X:1
     K:G
     CDEFGABcdefgab
@@ -307,14 +307,14 @@ function test_octaves()
     C,,D,,E,,F,,G,,A,,B,,
     C,,,D,,,E,,,F,,,G,,,A,,,B,,,
     ]]
-    songs = abclua.parse_abc_multisong(octaves)
+    local songs = abclua.parse_abc_multisong(octaves)
     table_print(songs[1].voices['default'].stream)
     abclua.make_midi(songs[1], 'out/octaves.mid')    
 end
 
 function test_parts()
     -- Test multi-part sequences and variant endings
-    parts = [[
+    local parts = [[
     X:1
     P:ABABA2(CAC)2
     M:3/4
@@ -326,7 +326,7 @@ function test_parts()
     P:C
     a a a [2 a'
     ]]
-    songs = abclua.parse_abc_multisong(parts)
+    local songs = abclua.parse_abc_multisong(parts)
     abclua.make_midi(songs[1], 'out/parts.mid')
     abclua.print_notes(songs[1].voices['default'].stream)
 end
@@ -334,7 +334,7 @@ end
 function test_rhythms()
     -- Test rhythms (/ /2 1/2) dotted rhythms >< and rest durations
     -- (regular and multi-measure)
-    rhythms = [[
+    local rhythms = [[
     X:1
     M:3/4
     K:G
@@ -345,7 +345,7 @@ function test_rhythms()
     A z A z1 A z2 A z/ A z/ A  z4
     A A A A z A>A A>A z A<A A<A z Z a a a Z2 a a a
     ]]
-    songs = abclua.parse_abc_multisong(rhythms)
+    local songs = abclua.parse_abc_multisong(rhythms)
     abclua.make_midi(songs[1], 'out/rhythms.mid')
     print(abclua.emit_abc(songs[1].token_stream))
 end
@@ -353,7 +353,7 @@ end
 
 function test_voices()
     -- Test multi-voice output
-    voices = [[
+    local voices = [[
     X:1    
     M:3/4
     V:B octave=-2
@@ -365,14 +365,14 @@ function test_voices()
     V:C transpose=4 octave=0
     b3 | d3 | b/ d/ b/ f/ a/ b/
     ]]
-    songs = abclua.parse_abc_multisong(voices)
+    local songs = abclua.parse_abc_multisong(voices)
     abclua.make_midi(songs[1], 'out/voices.mid')    
     print(abclua.emit_abc(songs[1].token_stream))
 end
 
 function test_clefs()   
     -- Test clef definitions on the key line
-    clefs = [[
+    local clefs = [[
     X:1    
     K:G clef=alto
     K:G bass
@@ -382,7 +382,7 @@ function test_clefs()
     K:G middle=3 transpose=-4 octave=2 bass
     K:G clef=treble-8
     ]]
-    songs = abclua.parse_abc_multisong(clefs)
+    local songs = abclua.parse_abc_multisong(clefs)
     print(abclua.emit_abc(songs[1].token_stream))
 end
 
@@ -395,7 +395,7 @@ function test_directives()
         end
     end
     abclua.register_directive('printargs', print_args)
-    directives = [[
+    local directives = [[
     I:gracenote 1/64
     I:pagesize A4
     I:abc-version 2.0
@@ -403,14 +403,14 @@ function test_directives()
     K:g
     A B [R:this is a] G
     ]]
-    songs = abclua.parse_abc_multisong(directives)
+    local songs = abclua.parse_abc_multisong(directives)
     table_print(songs[1].voices['default'].context.directives)
     print(abclua.emit_abc(songs[1].token_stream))
 end
 
 function test_decorations()
     -- Test chords, grace notes and decorations
-    decorations = [[
+    local decorations = [[
     X:1    
     K:G
     C D ~F .G +fermata+D !legato!G 
@@ -418,7 +418,7 @@ function test_decorations()
     "Cm7"C G "Dmaj"D A D
     {cg}"Cm7"+fermata+~=D    
     ]]
-    songs = abclua.parse_abc_multisong(decorations)
+    local songs = abclua.parse_abc_multisong(decorations)
     abclua.make_midi(songs[1], 'out/decorations.mid')    
     print(abclua.emit_abc(songs[1].token_stream))
 end
@@ -426,13 +426,13 @@ end
 
 function test_overlay()
     -- Test voice overlay with &
-    overlay = [[
+    local overlay = [[
     X:1    
     K:G
     ceg & C3 | dfa & D3 | C3 & E3 & G/ G/ G/  G/G/G/ | D D D |
     C C C & E E E | F F F & G E G |
     ]]
-    songs = abclua.parse_abc_multisong(overlay)
+    local songs = abclua.parse_abc_multisong(overlay)
     abclua.make_midi(songs[1], 'out/overlay.mid')    
     print(abclua.emit_abc(songs[1].token_stream))
 end
@@ -440,12 +440,12 @@ end
 
 function test_rests()
     -- Test rests and measure rests
-    rests = [[
+    local rests = [[
     X:1    
     K:G
     c z c z2 | Z  | c c c c |  Z2 | c z c z
     ]]
-    songs = abclua.parse_abc_multisong(rests)
+    local songs = abclua.parse_abc_multisong(rests)
     abclua.make_midi(songs[1], 'out/rests.mid')    
     table_print(songs[1].token_stream)
     print(abclua.emit_abc(songs[1].token_stream))
@@ -453,7 +453,7 @@ end
 
 function test_include()
     -- test file inclusion
-    includes = [[
+    local includes = [[
     %%abc-include tests/notarealfile.abc
     X:4    
     K:G
@@ -463,7 +463,7 @@ function test_include()
     [I:abc-include tests/tune.abc]
     %%abc-include tests/recursive.abc
     ]]
-    songs = abclua.parse_abc_multisong(includes)
+    local songs = abclua.parse_abc_multisong(includes)
     abclua.make_midi(songs[1], 'out/includes.mid')    
     print(abclua.emit_abc(songs[1].token_stream))
 end
@@ -481,7 +481,7 @@ end
 
 function test_file()
     local songs = abclua.parse_abc_file('tests/p_hardy.abc')
-        
+    local title
     for i,v in ipairs(songs) do
         if v.metadata.title then
             title = v.metadata.title[1] or 'untitled'
@@ -507,7 +507,7 @@ end
 function test_tempos()
 
   -- Test rests and measure rests
-    tempos = [[
+    local tempos = [[
     X:1
     Q:120
     Q:1/8=120
@@ -517,7 +517,7 @@ function test_tempos()
     Q:1/4=120 "allegro"     
     K:G    
     ]]
-    songs = abclua.parse_abc_multisong(tempos) 
+    local songs = abclua.parse_abc_multisong(tempos) 
     table_print(songs[1].token_stream)
 end
 
@@ -564,7 +564,7 @@ end
 
 function test_propagate()
     -- test acciental propagation modes
-    propagate =  [[
+    local propagate =  [[
     K:G
     %%propagate-accidentals pitch
     A ^A B ^B A B a' B, | B A |
@@ -573,27 +573,27 @@ function test_propagate()
     %%propagate-accidentals octave
     A ^A B ^B A B a' B, | B A |
     ]]
-    songs = abclua.parse_abc_multisong(propagate) 
-    table_print(filter_event_stream(songs[1].voices['default'].stream, 'note'))
+    local songs = abclua.parse_abc_multisong(propagate) 
+    table_print(abclua.filter_event_stream(songs[1].voices['default'].stream, 'note'))
     abclua.make_midi(songs[1], 'out/propagate.mid')        
        
 end
 
 
 function test_bar_timing()
-    timing = [[
+    local timing = [[
     M:3/4
     L:1/4
     K:G
     %%enable-bar-warnings
     A B C | D E F | G E G | F A F F | E D | A B C- | D E F |
     ]]
-    songs = abclua.parse_abc_multisong(timing)    
-    table_print(filter_event_stream(songs[1].voices['default'].stream, 'note'))       
+    local songs = abclua.parse_abc_multisong(timing)    
+    table_print(abclua.filter_event_stream(songs[1].voices['default'].stream, 'note'))       
 end
  
 function test_broken()
-    broken = [[
+    local broken = [[
     K:G
     %%MIDI ratio 2 1
     A>BB | B>BB | B>B>F |
@@ -603,23 +603,23 @@ function test_broken()
     A>BB | B>BB | B>B>F |
     %%MIDI ratio 4 3
     A>BB | B>BB | B>B>F ]]
-    songs = abclua.parse_abc_multisong(broken) 
+    local songs = abclua.parse_abc_multisong(broken) 
     abclua.make_midi(songs[1], 'out/broken.mid')        
 end
  
 function test_nested_tuplet()
-    nested = [[
+    local nested = [[
     K:G
     A A A A |
     (3 A A A A A |
     (7:5:7 A A (3 A A A A A
     ]]
-    songs = abclua.parse_abc_multisong(nested)
+    local songs = abclua.parse_abc_multisong(nested)
     abclua.make_midi(songs[1], 'out/nested.mid')        
 end
  
 function test_bar_numbers()
-    bar_numbers = [[
+    local bar_numbers = [[
     X:1
     K:G
     %%measurefirst 0
@@ -627,7 +627,7 @@ function test_bar_numbers()
     %%setbarnb 5
     F>F>A>G | D>EAA |
     ]]
-    songs = abclua.parse_abc_multisong(bar_numbers)
+    local songs = abclua.parse_abc_multisong(bar_numbers)
     table_print(songs[1].token_stream)
 end
 
@@ -662,4 +662,5 @@ test_fragments()
 test_triplets()
 test_skye()
 test_file()
+
 

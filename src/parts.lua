@@ -123,7 +123,7 @@ function compose_parts(song)
                 local vc = variant_counts[c]
                 if song.context.part_map[c].variants and song.context.part_map[c].variants[vc] then
                     -- find the name of this variant ending
-                    variant_part_name = song.context.part_map[c].variants[vc]
+                    local variant_part_name = song.context.part_map[c].variants[vc]
                     pattern = deepcopy(expand_patterns(song.context.part_map[variant_part_name]))
                     append_table(song.stream, pattern)
                 

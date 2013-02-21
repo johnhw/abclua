@@ -330,25 +330,27 @@ function apply_midi_directive(arguments, midi_state, score)
 end
 
 
-function test_file(fname)
+function convert_file(abc_fname, mid_fname)
+    -- convert an abc file to a midi file
     local MIDI = require "MIDI"   
-    songs = parse_abc_file('midi/tests/'..fname..'.abc')
-    opus = produce_midi_opus(songs[1])
-    --table_print(opus)
-    local midifile = assert(io.open('midi/tests/'..fname..'.mid','wb'))
+    songs = parse_abc_file(abc_fname)
+    opus = produce_midi_opus(songs[1])    
+    local midifile = assert(io.open(mid_fname,'wb'))
     midifile:write(MIDI.opus2midi(opus))
     midifile:close()  
 end
 
-tests = {'stress_2', 'stress_1', 'accents', 'beatstring', 'chordattack', 'chords', 'drone', 
-'micro', 'transpose', 'trim', 'linear', 'pitch_bend', 'drum', 'chordname', 'beatmod', 'drummap', 'pedal', 'crescendo',
-'dynamics', 'grace', 'ornaments', 'portamento', 'cc'}
+function test_midi_generation()
+    -- run the test suite
+    tests = {'stress_2', 'stress_1', 'accents', 'beatstring', 'chordattack', 'chords', 'drone', 
+    'micro', 'transpose', 'trim', 'linear', 'pitch_bend', 'drum', 'chordname', 'beatmod', 'drummap', 'pedal', 'crescendo',
+    'dynamics', 'grace', 'ornaments', 'portamento', 'cc'}
 
-for i,v in ipairs(tests) do
-    test_file(v)
+    for i,v in ipairs(tests) do
+        convert_file('midi/tests/'..v..'.abc','midi/tests/'..v..'.mid')
+    end
 end
 
 -- todo:
--- portamento
 -- chordattack apply to chords
 -- ccs for decorations

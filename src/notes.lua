@@ -251,7 +251,7 @@ function compute_pitch(note, song)
             accidental = song.context.accidental[accidental_key]
         end            
     end    
-    
+    local base_pitch
     base_pitch = midi_note_from_note(song.context.key_mapping, note, accidental)                
     base_pitch = base_pitch + song.context.global_transpose + song.context.voice_transpose
     return base_pitch 
@@ -277,7 +277,7 @@ function compute_duration(note, song)
     if note.space then return 0 end
     
     -- we are guaranteed to have filled out the num and den fields
-    length = note.duration.num / note.duration.den
+    local length = note.duration.num / note.duration.den
     
     
     -- measure rest (duration is in bars, not unit lengths)

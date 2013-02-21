@@ -1,11 +1,8 @@
+
 function repeat_string(str, times)
     -- return the concatenation of a string a given number of times
     -- e.g. repeat_string('abc', '3') = 'abcabcabc'
-    local reps = {}
-    for i=1,times do
-        table.insert(reps, str)
-    end
-    return table.concat(reps)
+    return string.rep(str, times)       
 end
 
 -- return the greatest common divisor of a and b

@@ -193,8 +193,7 @@ local key_matcher = re.compile([[
 ]])
 
 function parse_key(k)
-    -- Parse a key definition, in the format <root>[b][#][mode] [accidentals] [expaccidentals]
-    
+    -- Parse a key definition, in the format <root>[b][#][mode] [accidentals] [expaccidentals]    
 
     k = k:lower()
     local captures = key_matcher:match(k)
@@ -215,7 +214,7 @@ function parse_key(k)
         if captures.clef.plus8=='-8' then
             captures.clef.octave = (captures.clef.octave or 0) + 1
         else
-            captures.clefoctave = (captures.clef.octave or 0) - 1 
+            captures.clef.octave = (captures.clef.octave or 0) - 1 
         end
         captures.clef.plus8 = nil
     end
@@ -226,9 +225,7 @@ function parse_key(k)
         captures.clef.t = nil
     end
     
-    return captures
-    
-    
+    return captures       
 end
 
 

@@ -101,12 +101,20 @@ function apply_voice_specifiers(song)
     -- apply the voice specifiers. this sets the voice transpose if need be
     song.context.voice_transpose = 0
     -- compute transpose
-    transpose =  song.context.voice_specifiers.transpose or  song.context.voice_specifiers.t or 0
-    octaves =   (song.context.voice_specifiers.octave) or 0
+    local transpose =  song.context.voice_specifiers.transpose or  song.context.voice_specifiers.t or 0
+    local octaves =   (song.context.voice_specifiers.octave) or 0
+    
+    -- look for '+8' or '-8' at the end of a clef (e.g. treble+8)
+    if song.context.voice_specifiers.clef then
+        local clef = song.context.voice_specifiers.clef
+        if string.len(clef)>2 and string.sub(clef,-2)=='+8' then octaves=octaves+1 end
+        if string.len(clef)>2 and string.sub(clef,-2)=='-8' then octaves=octaves-1 end
+    end
     
     song.context.voice_transpose = 12*octaves + transpose   
     
 end
+
 
 function reset_timing(song)
     -- reset the timing state of the song

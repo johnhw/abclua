@@ -88,44 +88,47 @@ function diatonic_transpose(tokens, shift)
             
         end
         
+    end       
+end
+
+
+function swap_or_insert(t, match, position, default)
+    -- Find match in t; if it exists, swap it into position
+    -- if not, insert a default at that position
+    local ref = find_first_match(t, match) 
+    local elt
+    
+    -- insert default if does not match
+    if not ref then                 
+        table.insert(t, position, default)        
+    else        
+        elt = t[ref]
+        table.remove(t, ref)
+        -- swap it into place
+        table.insert(t, position, elt)
     end
     
 end
 
-
- -- if token.token=='note' and mapping then
-            -- --if we have a pitched note
-            -- if token.note.pitch then                
-                -- local semi = (midi_note_from_note(original_key, token.note) % 12) + shift
-                
-                -- wrap semitone to 0-11
-                -- semi = semi % 12
-                                
-                ----if we don't need an accidental
-                -- if inverse_mapping[semi] then
-                    -- token.note.pitch.note = inverse_mapping[semi]       
-                    -- token.note.pitch.accidental = nil
-                -- else
-                    ----check the next note
-                    -- token.note.pitch.note = inverse_mapping[(semi+1)%12]                     
-                    -- t = mapping[token.note.pitch.note]
-                    
-                    -- if not t or t==-1 then 
-                       ---- check the note lower and sharpen it
-                        -- token.note.pitch.note = inverse_mapping[(semi-1)%12] 
-                        -- t = mapping[token.note.pitch.note]
-                        -- if t==0 then token.note.pitch.accidental={num=1, den=1} end
-                        -- if t==-1 then token.note.pitch.accidental={num=0, den=0} end
-                        -- if t==1 then token.note.pitch.accidental={num=2, den=1} end
-                    -- else
-                      ----  if we can just flatten that one, use that
-                        -- if t==0 then token.note.pitch.accidental={num=-1, den=1} end
-                        -- if t==1 then token.note.pitch.accidental={num=0, den=0} end
-                    
-                    -- end
-                
-                    
-                -- end                                
-            -- end
-        -- end
+function validate_token_stream(tokens)
+    -- Make sure the given token stream is valid
+    -- Forces the token stream to begin with X:, followed by T:, followed by the other
+    -- fields, followed by K:, followed by the notes
         
+    swap_or_insert(tokens, {token='field_text', name='ref'}, 1, {token='field_text', name='ref', content='1', is_field=true})    
+    swap_or_insert(tokens, {token='field_text', name='title'}, 2, {token='field_text', name='title', content='untitled', is_field=true})
+    
+        
+    local first_note = 1
+    -- find first non-field element
+    for i,v in ipairs(tokens) do                                               
+        if not v.is_field then
+            break
+        end        
+        first_note = i        
+    end
+            
+    -- make sure last element before a note is a key
+    swap_or_insert(tokens, {token='key'}, first_note+1, {token='key', key={root='c'}})    
+    return tokens
+end

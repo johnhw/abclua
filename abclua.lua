@@ -1,4 +1,5 @@
 re = require "re"
+-- require "strict"
 require "src/utils"
 require "src/chords"
 require "src/fields"

@@ -85,7 +85,7 @@ function insert_lyrics_stream(lyrics, stream, new_stream, stream_index)
         note_wait = 'end'
     end
     
-    
+    local v
     while stream_index<#stream do    
         v = stream[stream_index]
         
@@ -112,11 +112,12 @@ function insert_lyrics_stream(lyrics, stream, new_stream, stream_index)
             
         -- if we've waited long enough, insert the lyric symbol into the stream
         if advance then
+            
             table.insert(new_stream, {event='lyric', syllable=lyrics[lyric_index].syllable})
             lyric_index = lyric_index + 1                    
             -- move on the lyric pointer
             if lyric_index > #lyrics then
-                wait = 'end'
+                note_wait = 'end'
             else
                 note_wait = lyrics[lyric_index].advance                
             end
@@ -159,7 +160,7 @@ end
 
 function test_lyric_parsing()
     -- test the lyrics parser
-    tests = {
+    local tests = {
     'hello',
     'he-llo',
     'he-llo th-is~a te\\-st___',
