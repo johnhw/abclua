@@ -37,7 +37,8 @@
 -- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.**
 --
 
-require 'strict'local validate_token_stream
+local re = require "re"
+local validate_token_stream
 local swap_or_insert
 local diatonic_transpose
 local diatonic_transpose_note
@@ -70,8 +71,6 @@ local apply_key
 local apply_repeats
 local is_compound_time
 local update_timing
-local validate_token_stream
-local swap_or_insert
 local abc_from_songs
 local emit_abc
 local abc_element
@@ -191,7 +190,6 @@ local set_property
 local first_difference_string
 local gcd
 local repeat_string
-local re = require "re"
 
 --
 -- From source file: utils.lua
@@ -3776,45 +3774,6 @@ function abc_from_songs(songs, creator)
     end
 end
 
-function swap_or_insert(t, match, position, default)
-    -- Find match in t; if it exists, swap it into position
-    -- if not, insert a default at that position
-    local ref = find_first_match(t, match) 
-    
-    -- insert default if does not match
-    if not ref then                 
-        table.insert(t, position, default)        
-    else        
-        elt = t[ref]
-        table.remove(t, ref)
-        -- swap it into place
-        table.insert(t, position, elt)
-    end
-    
-end
-
-function validate_token_stream(tokens)
-    -- Make sure the given token stream is valid
-    -- Forces the token stream to begin with X:, followed by T:, followed by the other
-    -- fields, followed by K:, followed by the notes
-        
-    swap_or_insert(tokens, {token='field_text', name='ref'}, 1, {token='field_text', name='ref', content='1', is_field=true})    
-    swap_or_insert(tokens, {token='field_text', name='title'}, 2, {token='field_text', name='title', content='untitled', is_field=true})
-    
-        
-    local first_note = 1
-    -- find first non-field element
-    for i,v in ipairs(tokens) do                                               
-        if not v.is_field then
-            break
-        end        
-        first_note = i        
-    end
-            
-    -- make sure last element before a note is a key
-    swap_or_insert(tokens, {token='key'}, first_note+1, {token='key', key={root='c'}})    
-    return tokens
-end
 
 
 
