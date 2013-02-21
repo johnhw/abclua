@@ -179,6 +179,7 @@ function apply_articulation_decorators(midi_state, velocity, trimming, decoratio
     ["L"]=2.0,
     ["!emphasis!"]=2.0,
     ["!accent!"]=2.0,
+    ["!staccato!"]=0.8,
     }
     
     -- find any matching decorations
@@ -186,9 +187,15 @@ function apply_articulation_decorators(midi_state, velocity, trimming, decoratio
         if dynamics_decorations[v] then 
             modifier=dynamics_decorations[v] 
         end
+        
         if v=='.' or v=='!staccato!' then
             trimming = trimming * 0.3
         end
+        
+        if v=='!emphasis!' or v=='!accent!' then
+            trimming = trimming * 0.8
+        end
+        
         
         if v=='!tenuto!' or v=='!legato!' then
             trimming = trimming * 1.2
