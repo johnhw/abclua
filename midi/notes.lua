@@ -4,9 +4,13 @@
 ---------------------------
 
 function add_note(midi_state, track, t, duration, channel, pitch, velocity, tied)
+    
     -- add a note/off pair, applying the transpose, and inserting necessary pitch bend commands
     -- for fractional notes
-    pitch = pitch+midi_state.transpose        
+    pitch = pitch+midi_state.transpose  
+
+    -- fix notes too short to render
+    if duration<1 then return end
     
     local real_t, real_duration
     -- distort the time and duration
@@ -145,43 +149,114 @@ function apply_modifier_decorations(midi_state, decorations)
     ['!diminuendo)!'] = function() increment_dynamics(midi_state, midi_state.accents.delta) end,
     }
     
+    modifiers['!>(!'] = modifiers['crescendo(']
+    modifiers['!>)!'] = modifiers['crescendo)']
+    modifiers['!<(!'] = modifiers['diminuendo(']
+    modifiers['!<)!'] = modifiers['diminuendo)']
+    
     for i,v in ipairs(decorations) do
         if modifiers[v] then modifiers[v]() end
     end
 end
   
 
-function apply_velocity_decorations(midi_state,  velocity, decorations) 
+
+
+function apply_articulation_decorators(midi_state, velocity, trimming, decorations)
+    -- apply staccato and dynamics modifiers
+        
     local modifier = 1
     local dynamics_decorations = {
+    ["!pppp!"]=0.05,
     ["!ppp!"]=0.15,
     ["!pp!"]=0.3,
     ["!p!"]=0.6,
     ["!mp!"]=0.9,
     ["!mf!"]=1.2,
     ["!ff!"]=1.6,
-    ["!fff!"]=2.0    
+    ["!fff!"]=2.0,
+    ["!ffff!"]=2.5,
+    ["L"]=2.0,
+    ["!emphasis!"]=2.0,
+    ["!accent!"]=2.0,
     }
     
     -- find any matching decorations
-    for i,v in pairs(dynamics_decorations) do
-        if decorations[i] then modifier=v end
+    for i,v in ipairs(decorations) do
+        if dynamics_decorations[v] then 
+            modifier=dynamics_decorations[v] 
+        end
+        if v=='.' or v=='!staccato!' then
+            trimming = trimming * 0.3
+        end
+        
+        if v=='!tenuto!' or v=='!legato!' then
+            trimming = trimming * 1.2
+        end
+        
+        if v=='!snap!' then
+            trimming = trimming * 0.1
+        end
+        if v=='!+!' then
+            trimming = trimming * 0.15
+        end                
+    end    
+    
+    velocity = velocity * modifier    
+    -- force saturation by incrementing by 0
+    velocity = saturated_increment(velocity, 0, 0, 127) 
+    
+    return velocity, trimming
+    
+end
+
+function apply_slides(midi_state, start_time, end_time, decorations)
+    -- apply slides and rolls; does not play well with microtones or linear temperaments
+    -- since both use the pitch wheel to apply tuning changes
+    local t, real_t, semi_bend
+    local duration, fraction
+    
+    
+    for i,v in ipairs(decorations) do
+        if v=='!slide!' then 
+            -- slide up in the first half of the note
+            duration = (end_time-start_time)/2
+            for j=1,16 do
+                fraction = j/16.0
+                t = start_time + duration*fraction
+                real_t = get_distorted_time(t, midi_state)
+                semi_bend = -(1-fraction)
+                table.insert(midi_state.current_track, {'pitch_wheel_change', real_t, midi_state.channel, semi_bend*4096})
+            end            
+            table.insert(midi_state.current_track, {'pitch_wheel_change', real_t, midi_state.channel, 0})
+        end
+        
+        if v=='!bend!' then 
+            -- bend the note, bending more towards the end
+            for j=1,16 do
+                fraction = j/16.0
+                t = start_time + (end_time-start_time)*fraction
+                real_t = get_distorted_time(t, midi_state)
+                semi_bend = fraction*fraction*2
+                table.insert(midi_state.current_track, {'pitch_wheel_change', real_t, midi_state.channel, semi_bend*4096})
+            end
+            table.insert(midi_state.current_track, {'pitch_wheel_change', real_t, midi_state.channel, 0})
+        end
+        
     end
     
-    velocity = velocity * modifier
-    
-    -- force saturation by incrementing by 0
-    saturated_increment(velocity, 0, 0, 127) 
-    return velocity
 end
 
 function insert_midi_note(event, midi_state)
     -- insert a plain note into the score
     local duration = event.duration/1e3
+    
     local velocity = 127    
     local track = midi_state.current_track
     local trimming 
     midi_state.t = event.t / 1e3
+    local start_time = midi_state.t
+    local end_time = midi_state.t + duration
     
     local decorations = event.note.decoration or {}
     
@@ -193,35 +268,66 @@ function insert_midi_note(event, midi_state)
     pitch = midi_state.drum.map[note_id] or event.pitch
         
     -- get the velocity and articulation of this note
-    velocity, trimming = get_accent_velocity(midi_state, duration)
+    velocity, trimming = get_accent_velocity(midi_state, duration)    
+    -- apply articulation modifiers 
+    velocity, trimming = apply_articulation_decorators(midi_state, velocity, trimming, decorations)    
     
-    -- apply staccato
-    if decorations['.'] or decorations['!staccato!'] then
-        trimming = trimming * 0.5
-    end
-    
-    -- apply !ff! etc.
-    velocity = apply_velocity_decorations(midi_state, velocity, decorations)
-    
+    local notes_to_render = {}   
     -- render grace notes
-    if event.note.grace and midi_state.grace_divider~=0 then
-        local sequence = event.note.grace.sequence            
+    if event.note.grace and midi_state.grace_divider~=0 then        
         -- get grace note length
-        local note_duration = midi_state.base_note_length / midi_state.grace_divider        
-        local t = midi_state.t 
-        for j,n in ipairs(sequence) do            
-            -- don't include grace notes that run over
-            if t+note_duration<midi_state.t+duration then
-                add_note(midi_state, track, t, note_duration, midi_state.channel, n.pitch, velocity)
-                t = t + note_duration
-                duration = duration - note_duration
-            end
-        end            
-        -- adjust duration and timing of following note       
-        midi_state.t = t
+        local note_duration = midi_state.base_note_length / midi_state.grace_divider                
+        for j,n in ipairs(event.note.grace.sequence) do            
+                table.insert(notes_to_render, {pitch=n.pitch, duration=note_duration, velocity=velocity})                                               
+        end        
     end    
     
-       
-    add_note(midi_state, track, midi_state.t, duration*trimming, midi_state.channel, pitch, velocity, event.tie)    
-    midi_state.t = midi_state.t+duration
+    -- add ornaments
+    for i,v in ipairs(decorations) do
+        -- upper mordents
+        if v=='!uppermordent!' or v=='!pralltriller!' or v=='P' then
+            table.insert(notes_to_render, {pitch=pitch, duration=duration/8, velocity=velocity}) 
+            table.insert(notes_to_render, {pitch=pitch+2, duration=duration/4, velocity=velocity}) 
+        end
+        -- lower mordents
+        if v=='!lowermordent!' or v=='!mordent!' or v=='M' then
+            table.insert(notes_to_render, {pitch=pitch, duration=duration/8, velocity=velocity}) 
+            table.insert(notes_to_render, {pitch=pitch-2, duration=duration/4, velocity=velocity}) 
+        end
+        -- trills
+        if v=='!trill!' or v=='T' then
+            local trill_duration = midi_state.base_note_length/8
+            for i=1,7 do
+                table.insert(notes_to_render, {pitch=pitch+(i%2)*2, duration=trill_duration, velocity=velocity}) 
+            end            
+        end
+        -- rolls
+        if v=='!roll!' or v=='~' then
+            table.insert(notes_to_render, {pitch=pitch+2, duration=midi_state.base_note_length/4, velocity=velocity}) 
+            table.insert(notes_to_render, {pitch=pitch-2, duration=midi_state.base_note_length/4, velocity=velocity}) 
+        end
+        -- turns
+        if v=='!turn!' or v=='!turnx!' then
+            table.insert(notes_to_render, {pitch=pitch+2, duration=duration/4, velocity=velocity}) 
+            table.insert(notes_to_render, {pitch=pitch, duration=duration/4, velocity=velocity}) 
+            table.insert(notes_to_render, {pitch=pitch-2, duration=duration/4, velocity=velocity}) 
+        end
+        
+    end
+    
+    table.insert(notes_to_render, {pitch=pitch, duration=duration*trimming, velocity=velocity, tied=event.tie})       
+    for i,v in ipairs(notes_to_render) do                
+        -- truncate notes that would be longer than the original note
+        if midi_state.t+v.duration>end_time then
+            v.duration = end_time - midi_state.t
+        end
+        -- render the notes themselves
+        add_note(midi_state, track, midi_state.t, v.duration, midi_state.channel, v.pitch, v.velocity, v.tied)    
+        midi_state.t = midi_state.t + v.duration
+    end
+    
+    -- add slides and bends
+    apply_slides(midi_state, start_time, end_time, decorations)
+    
+    midi_state.t = end_time
 end

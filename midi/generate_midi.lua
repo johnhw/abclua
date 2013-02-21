@@ -317,7 +317,8 @@ local midi_directives = {
     drum = midi_drum,
     drummap = midi_drum_map,
     beatmod = midi_beatmod,
-    deltaloudness = midi_deltaloudness
+    deltaloudness = midi_deltaloudness,
+    portamento = midi_portamento,
 }
 
 function apply_midi_directive(arguments, midi_state, score)
@@ -341,9 +342,13 @@ end
 
 tests = {'stress_2', 'stress_1', 'accents', 'beatstring', 'chordattack', 'chords', 'drone', 
 'micro', 'transpose', 'trim', 'linear', 'pitch_bend', 'drum', 'chordname', 'beatmod', 'drummap', 'pedal', 'crescendo',
-'dynamics'
-}
+'dynamics', 'grace', 'ornaments', 'portamento', 'cc'}
 
 for i,v in ipairs(tests) do
     test_file(v)
 end
+
+-- todo:
+-- portamento
+-- chordattack apply to chords
+-- ccs for decorations

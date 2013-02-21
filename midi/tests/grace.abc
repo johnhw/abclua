@@ -6,6 +6,6 @@ L:1/4
 K:G
 %%MIDI gracedivider 4
 D>ED | G2 G | A3 |
-{f}D>{fg}ED | {a'}G2 {a2d2a/}G | A3 |
+{d}D>{de}ED | {g}G2 {g2g2c/}G | A3 |
 %%MIDI gracedivider 3
-{f}D>{fg}ED | {a'}G2 {a2d2a/}G | A3 |
+{d}D>{de}ED | {g}G2 {g2g2c/}G | A3 |

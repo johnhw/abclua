@@ -5,8 +5,8 @@
 
 function get_default_chord_pattern(meter)
     local patterns
-    patterns = {{'c'}, {'f','c'},{'f', 'z', 'c'}, {'f','z','c','z'}, {'f','z','z','c','z'}, {'f','z','f','c','z','z'}, {'f','z','f','z','c','z','z'}, 
-    {'f', 'z', 'z', 'z', 'c', 'z', 'f', 'z'}, {'f', 'z', 'f', 'z', 'z', 'c', 'z', 'f', 'z'}}
+    patterns = {{'c'}, {'f','c'},{'f','z','c','z','c','z'}, {'f','z','c','z','f','z','c','z'}, {'f','z','z','c','z'}, {'f','z','c','f','z','c'}, {'f','z','f','z','c','z','z'}, 
+    {'f', 'z', 'z', 'z', 'c', 'z', 'f', 'z'}, {'f', 'z', 'c', 'f', 'z', 'c', 'f', 'z', 'c'}}
     
     if meter.den==8 then
         -- changes here    

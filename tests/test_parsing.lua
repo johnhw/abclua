@@ -45,6 +45,7 @@ function check_result(str, result, name)
     if mis then
         print("Mismatch")
         print(name)
+        print(result)
         print(str)        
         print(string.sub(result, 1, mis)..'-->'..string.sub(result, mis))
         
@@ -72,12 +73,18 @@ check_reproduce([[X:1
 K:G
 ceg & C3 | dfa & D3 | C3 & E3 & G/2 G/2 G/2 G/2G/2G/2 | && D &&& C C C]], 'Voice overlay')
 
-check_reproduce([[X:1
+check_result([[X:1
 K:G
-C D ~F .G +fermata+D !legato!G
+C D ~F T~.G +fermata+D !legato!G
 {cg}D {ab}C {f2fe}G
 "Cm7"C G "Dmaj"D A D
 {cg}"Cm7"+fermata+~=D
+G]],[[X:1
+K:G
+C D ~F T~.G !fermata!D !legato!G
+{cg}D {ab}C {f2fe}G
+"Cm7"C G "Dmaj"D A D
+{cg}"Cm7"!fermata!~=D
 G]], 'Decorations and chord names')
 
 check_reproduce(
@@ -183,6 +190,15 @@ K:G
 check_reproduce([[X:1
 K:G
 "Cm"F "D"(def) "Fmin/G"[CEg] "G7"]], 'Chord names')
+
+check_reproduce([[X:1
+K:G
+"Cm"y y "D"y !crescendo(!y !crescendo)!y]], 'y Spaces')
+
+check_reproduce([[X:1
+K:G
+"this is free"AB C "<text" A ">around" "@here" a b c]], 'Free text')
+
 
 check_reproduce([[X:1
 K:G

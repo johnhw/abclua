@@ -40,6 +40,20 @@ field_element <- ([A-Za-z])
 local tune_matcher = re.compile(tune_pattern)
 
 
+function parse_free_text(text)
+    -- split off an annotation symbol from free text, if it is there
+    local annotations = {'^', '_', '@', '<', '>'}
+    -- separate annotation symbols
+    local position, new_text
+    if string.len(text)>1 and is_in(string.sub(text,1,1), annotations) then
+        position = string.sub(text,1,1)
+        new_text = string.sub(text,2)
+    else
+        new_text = text
+    end
+    return position, new_text
+end
+
 function read_tune_segment(tune_data, song)
     -- read the next token in the note stream    
     local cross_ref = nil
@@ -59,15 +73,7 @@ function read_tune_segment(tune_data, song)
                 if is_chord(v.free_text.text) then
                     table.insert(song.token_stream, {token='chord', chord=v.free_text.text})
                 else
-                    local annotations = {'^', '_', '@', '<', '>'}
-                    -- separate annotation symbols
-                    local position, text
-                    if string.len(v.free_text.text)>1 and is_in(string.sub(v.free_text.text,1,1), annotations) then
-                        position = string.sub(v.free_text.text,1,1)
-                        text = string.sub(v.free_text.text,2)
-                    else
-                        text = v.free_text.text
-                    end
+                    local position, text = parse_free_text(v.free_text.text)                   
                     table.insert(song.token_stream, {token='text', text=text, position = position})
                 end
             end

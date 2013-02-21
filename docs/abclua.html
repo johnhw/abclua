@@ -62,10 +62,13 @@
 </ul>
 <p>Extended features include:</p>
 <ul>
-<li>Fractional accidentals for microtonal music <code>^/2C</code></li>
+<li>Fractional accidentals for microtonal music <code>^/2C</code> (also in key definitions: <code>K:C ^/4f</code>)</li>
 <li>Nested tuplets (e.g. <code>(7:5:7 A A (3 A A A A A</code>)</li>
+<li>Ratio for broken rhythm can be set with directive <code>%%set-broken-ratio</code></li>
+<li>Key relative chords (e.g. <code>I</code>, <code>ii</code>, <code>V7</code>, <code>bVII',</code>iiim7<code>,</code>ii/C<code>`iii6/2</code>) -- transformed to regular chords during parsing</li>
 </ul>
 <p>See <code>tests/test_abc.lua</code> for examples of these in use.</p>
+<p>ABCLua comes with a package which performs most of the operations of abc2midi (chords, drums, accentuation etc.)</p>
 <h3 id="requires"><a href="#requires">Requires:</a></h3>
 <ul>
 <li><a href="http://www.lua.org">Lua 5.2</a></li>
@@ -612,7 +615,7 @@ K:G
 <td align="left">text</td>
 <td align="left">Free quoted text (e.g. &quot;This is free&quot;)</td>
 <td align="left"><code>&quot;hello&quot;</code></td>
-<td align="left"><strong>text</strong> text inside the quotes</td>
+<td align="left"><strong>text</strong> text inside the quotes (without position annotation)<br /><strong>position</strong> position of the text:<br />can be <code>&lt;</code>, <code>&gt;</code>, <code>_</code>, <code>^</code> or <code>@</code></td>
 </tr>
 <tr class="even">
 <td align="left">overlay</td>
@@ -832,7 +835,7 @@ K:G
 </tr>
 <tr class="odd">
 <td align="left">timing_change</td>
-<td align="left">New timing information.</td>
+<td align="left">New timing information. There is always one of these at the start of a song.</td>
 <td align="left"><strong>base_note_length</strong> length of default note in microseconds<br /><strong>bar_length</strong> length of one measure in microseconds<br /><strong>beats_in_bar</strong> number of beats in each bar<br /><strong>note_length</strong> length of default note (8=1/8th, 4=1/4 etc.)<br /><strong>beat_length</strong> length of one beat in microseconds<br /></td>
 </tr>
 <tr class="even">

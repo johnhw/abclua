@@ -11,7 +11,7 @@ require "src/directives"
 require "src/bar"
 require "src/stream"
 require "src/compile"
-
+require "src/tools"
 require "src/emit_abc"
 abclua = require "src/parse_abc"
 require "src/register_directives"

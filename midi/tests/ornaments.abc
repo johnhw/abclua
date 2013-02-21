@@ -1,0 +1,10 @@
+X:437
+T:ornaments test
+Q:1/4=140 
+M:3/4
+L:1/4
+K:G
+%%MIDI nobeataccents
+D D D | ~D !roll!D ~D | !trill!D TD !trill!D | MD !lowermordent!D !mordent!D | PD !uppermordent!D !pralltriller!D | !turn!D !turnx!D !turn!D |
+| !slide!D !slide!D !slide!D | !bend!D !bend!D !bend!D | D D D |
+D !slide!G A | a a D | !slide!F G A |
