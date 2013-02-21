@@ -22,8 +22,9 @@ triplet <- ('(' {[1-9]} (':' {[1-9] ?}  (':' {[1-9]} ? ) ?) ?) -> {}
 grace <- ('{' full_note + '}') -> {}
 tie <- ('-')
 chord <- (["] {([^"] *)} ["])
-full_note <-  (({:pitch: (note) :} / {:rest: (rest) :} / {:measure_rest: <measure_rest> :} ) {:duration: (duration ?)  :}  {:broken: (broken ?)  :})  -> {}
+full_note <-  (({:pitch: (note) :} / {:rest: (rest) :} / {:space: (space) :}/{:measure_rest: <measure_rest> :} ) {:duration: (duration ?)  :}  {:broken: (broken ?)  :})  -> {}
 rest <- ( 'z' / 'x' )
+space <- 'y'
 measure_rest <- (('Z' / 'X')  ) -> {}
 broken <- ( ('<' +) / ('>' +) )
 note <- (({:accidental: ({accidental} duration ? ) -> {}  :})? ({:note:  ([a-g]/[A-G]) :}) ({:octave: (octave)  :}) ? ) -> {}
@@ -37,6 +38,7 @@ field_element <- ([A-Za-z])
 
 ]]
 local tune_matcher = re.compile(tune_pattern)
+
 
 function read_tune_segment(tune_data, song)
     -- read the next token in the note stream    
@@ -57,7 +59,16 @@ function read_tune_segment(tune_data, song)
                 if is_chord(v.free_text.text) then
                     table.insert(song.token_stream, {token='chord', chord=v.free_text.text})
                 else
-                    table.insert(song.token_stream, {token='text', text=v.free_text.text})
+                    local annotations = {'^', '_', '@', '<', '>'}
+                    -- separate annotation symbols
+                    local position, text
+                    if string.len(v.free_text.text)>1 and is_in(string.sub(v.free_text.text,1,1), annotations) then
+                        position = string.sub(v.free_text.text,1,1)
+                        text = string.sub(v.free_text.text,2)
+                    else
+                        text = v.free_text.text
+                    end
+                    table.insert(song.token_stream, {token='text', text=text, position = position})
                 end
             end
             
@@ -446,6 +457,7 @@ return abclua
 -- Allow chords with key-relative values (e.g. "ii", "V", "V7", "I")
 -- Check text directives and add annotation field (up/down etc.)
 -- Text string encodings
+-- y space symbols -- allow decorators to pass through somehow
 
 -- ABCLint -> check abc files for problems
 

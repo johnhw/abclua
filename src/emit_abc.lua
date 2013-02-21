@@ -513,6 +513,11 @@ function abc_note_def(note)
         end
     end
     
+    -- space notes
+    if note.space then
+        return 'y'
+    end
+    
     -- pitch and duration
     if note.rest then
         note_str = 'z'
@@ -663,7 +668,7 @@ function abc_note_element(element)
     end
     
     if element.token=='text' then     
-        return '"' .. element.text .. '"'
+        return '"' .. (element.position or '').. element.text .. '"'
     end
     
     if element.token=='triplet' then

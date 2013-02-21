@@ -222,7 +222,7 @@ function compute_pitch(note, song)
     --  transpose and octave shift
     
     -- -1 indicates a rest note
-    if note.rest or note.measure_rest then
+    if note.rest or note.measure_rest or note.space then
         return nil
     end
     
@@ -273,6 +273,8 @@ function compute_duration(note, song)
     -- broken state
     -- duration field of the note itself
     -- bars for multi-measure rests  
+    
+    if note.space then return 0 end
     
     -- we are guaranteed to have filled out the num and den fields
     length = note.duration.num / note.duration.den
@@ -487,9 +489,11 @@ function insert_note(note, song)
       
         -- insert the note events
         if pitch==nil then
-            -- rest
-            table.insert(song.opus, {event='rest', duration=duration, bar_time = song.context.timing.bar_time,
-            note=note})        
+            -- rest            (strip out 0-duration y rests)
+            if duration>0 then
+                table.insert(song.opus, {event='rest', duration=duration, bar_time = song.context.timing.bar_time,
+                note=note})    
+            end            
         else       
             -- pitched note
             table.insert(song.opus, {event='note', pitch=pitch, bar_time = song.context.timing.bar_time, duration=duration, note = note})
