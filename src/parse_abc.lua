@@ -17,7 +17,7 @@ slurred_note <- ( ((<complete_note>) -> {}) / ( ({:chord: chord :} ) ? '(' ((<co
 
 
 chord_group <- ( ({:chord: chord :} ) ? ('[' ((<complete_note> %s*) +) ']' ) ) -> {} 
-complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: {(decoration +)}->{} :}) ?  {:note_def: full_note :}  (%s * {:tie: (tie)  :}) ? ) -> {} 
+complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: ({decoration} +)->{} :}) ?  {:note_def: full_note :}  (%s * {:tie: (tie)  :}) ? ) -> {} 
 triplet <- ('(' {[1-9]} (':' {[1-9] ?}  (':' {[1-9]} ? ) ?) ?) -> {}
 grace <- ('{' full_note + '}') -> {}
 tie <- ('-')
@@ -27,7 +27,7 @@ rest <- ( 'z' / 'x' )
 measure_rest <- (('Z' / 'X')  ) -> {}
 broken <- ( ('<' +) / ('>' +) )
 note <- (({:accidental: ({accidental} duration ? ) -> {}  :})? ({:note:  ([a-g]/[A-G]) :}) ({:octave: (octave)  :}) ? ) -> {}
-decoration <- ('.' / [~] / 'H' / 'L' / 'M' / 'O' / 'P' / 'S' / 'T' / 'u' / 'v' / ('!' ([^!] *) '!') / ('+' ([^+] *) '+'))
+decoration <- ( ('!' ([^!] *) '!') / ('+' ([^+] *) '+') / '.' / [~] / 'H' / 'L' / 'M' / 'O' / 'P' / 'S' / 'T' / 'u' / 'v' )
 octave <- (( ['] / ',') +)
 accidental <- ( ('^^' /  '__' /  '^' / '_' / '=')   ) 
 duration <- ( (({:num: ([1-9] +) :}) ? ({:slashes: ('/' +)  :})?  ({:den: ((  [1-9]+  ) ) :})?))  -> {}
@@ -91,9 +91,7 @@ function read_tune_segment(tune_data, song)
             if v.continue_line then
                 table.insert(song.token_stream, {token='continue_line'})
             end
-            
-                
-            
+                                        
             -- deal with bars and repeat symbols
             if v.bar then   
                 local bar = parse_bar(v.bar)
@@ -101,8 +99,7 @@ function read_tune_segment(tune_data, song)
                     song.parse.measure = song.parse.measure + 1 -- record the measures numbers as written
                 end
                 bar.measure = song.parse.measure
-                table.insert(song.token_stream, {token='bar', bar=bar})
-                
+                table.insert(song.token_stream, {token='bar', bar=bar})               
             end
             
             -- chord groups
@@ -261,14 +258,18 @@ function parse_abc_string(song, str)
 end
     
 
-function parse_abc(str, options)
+function parse_abc(str, options, in_header)
     -- parse and ABC file and return a song with a filled in token_stream field
     -- representing all of the tokens in the stream    
     local song = {}    
     
     song.token_stream = {}
     options = options or {}    
-    song.parse = {in_header=true, has_notes=false, macros={}, user_macros={}, measure = options.measure or 1, no_expand=options.no_expand or false, cross_ref=options.cross_ref or false}    
+    -- default to being in the header
+    if in_header==nil then
+        in_header = true
+    end
+    song.parse = {in_header=in_header, has_notes=false, macros={}, user_macros={}, measure = options.measure or 1, no_expand=options.no_expand or false, cross_ref=options.cross_ref or false}    
     parse_abc_string(song, str)
      
     return song 
@@ -380,8 +381,9 @@ function parse_abc_file(filename, options)
 end
 
 function parse_abc_fragment(str, options)
-    -- Parse a short abc fragment, and return the token stream table
-    local song = parse_abc(str, options)
+    -- Parse a short abc fragment, and return the token stream table    
+    options = options or {}
+    local song = parse_abc(str, options, false)
     return song.token_stream
 end
 
@@ -442,6 +444,8 @@ return abclua
 
 -- Multi-measure overlay with && &&& etc.
 -- Allow chords with key-relative values (e.g. "ii", "V", "V7", "I")
+-- Check text directives and add annotation field (up/down etc.)
+-- Text string encodings
 
 -- ABCLint -> check abc files for problems
 

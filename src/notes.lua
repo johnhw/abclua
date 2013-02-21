@@ -84,11 +84,9 @@ function canonicalise_note(note)
     -- Remove slashes from the duration
     -- Fills in full duration field
     -- Replaces broken with an integer representing the dotted value (e.g. 0 = plain, 1 = once dotted,
-    --  2 = twice, etc.)
-    
+    --  2 = twice, etc.)    
     canonicalise_duration(note.duration)
-    
-    
+        
     if note.broken then
         local shift = 0
         -- get the overall shift: negative means this note gets shortened
@@ -120,17 +118,13 @@ function canonicalise_note(note)
                     octave = octave - 1
                 end
             end
-        end
-        
+        end        
         -- +1 octave for lower case notes
         if note.pitch.note == string.lower(note.pitch.note) then
-            octave = octave + 1
-            
-        end
-        
+            octave = octave + 1           
+        end        
         note.pitch.note = string.lower(note.pitch.note)
-        note.pitch.octave = octave 
-       
+        note.pitch.octave = octave        
         if note.pitch.accidental then
             note.pitch.accidental  =  canonicalise_accidental(note.pitch.accidental)
         end
@@ -140,12 +134,18 @@ function canonicalise_note(note)
     if note.tie then
         note.tie = true
     end
-    
+        
+    if note.decoration then        
+        -- clean up decorations (replace +xxx+ with !xxx!)    
+        for i,v in ipairs(note.decoration) do            
+            if string.sub(v,1,1)=='+'  then
+                note.decoration[i] = '!'..string.sub(v,2,-2)..'!'
+            end
+        end        
+    end
     
     note.duration.slashes = nil
-    return note
-    
-    
+    return note        
 end
 
 function make_note(note)
@@ -179,13 +179,10 @@ function parse_note(note)
 end
 
 
-function midi_note_from_note(mapping, note, accidental)
-    -- Given a key, get the midi note of a given note    
-    local base_pitch = pitch_table[note.pitch.note]    
-       
-    accidental = note.pitch.accidental or accidental
-    
-   
+function get_semitone(key_mapping, pitch, accidental)
+    -- return the semitone of a note (0-11) in a given key, with the given accidental
+    local base_pitch = pitch_table[pitch]    
+           
     -- accidentals / keys
     if accidental then   
         if accidental.den==0 then 
@@ -196,80 +193,20 @@ function midi_note_from_note(mapping, note, accidental)
         base_pitch = base_pitch + accidental        
     else        
         -- apply key signature sharpening / flattening
-        if mapping then
-            accidental = mapping[string.lower(note.pitch.note)]
+        if key_mapping then
+            accidental = key_mapping[string.lower(pitch)]
             base_pitch = base_pitch + (accidental)
         end
-    end    
-    
-    return base_pitch + 60 + (note.pitch.octave or 0) * 12
+    end        
+    return base_pitch 
 end
 
-local pitch_table = {c=0, d=2, e=4, f=5, g=7, a=9, b=11}
-local pitches = {'c', 'd', 'e', 'f', 'g', 'a', 'b'}
-
-function diatonic_transpose(tokens, shift)
-    -- Transpose a whole token stream by a given number of semitones    
-    local current_key, original_key        
-    local mapping, key_struct
-    local inverse_mapping = {}
-    
-    shift = shift % 12
-        
-    for i,token in ipairs(tokens) do
-        if token.token=='key' then                               
-                        
-            -- get new root key
-            original_key = create_key_structure(token.key)
-            token.key.root = shift_root_key(token.key.root, shift)
-            current_key = token.key            
-            -- work out the semitones in this key
-            mapping = create_key_structure(current_key)                                               
-            for i,v in pairs(pitch_table) do                                           
-                local k = v+mapping[i]
-                k = k % 12
-                inverse_mapping[k] = i
-            end                       
-        end        
-        
-        if token.token=='note' and mapping then
-            -- if we have a pitched note
-            if token.note.pitch then                
-                local semi = (midi_note_from_note(original_key, token.note) % 12) + shift
-                
-                -- wrap semitone to 0-11
-                semi = semi % 12
-                                
-                -- if we don't need an accidental
-                if inverse_mapping[semi] then
-                    token.note.pitch.note = inverse_mapping[semi]       
-                    token.note.pitch.accidental = nil
-                else
-                    -- check the next note
-                    token.note.pitch.note = inverse_mapping[(semi+1)%12]                     
-                    t = mapping[token.note.pitch.note]
-                    
-                    if not t or t==-1 then 
-                        -- check the note lower and sharpen it
-                        token.note.pitch.note = inverse_mapping[(semi-1)%12] 
-                        t = mapping[token.note.pitch.note]
-                        if t==0 then token.note.pitch.accidental={num=1, den=1} end
-                        if t==-1 then token.note.pitch.accidental={num=0, den=0} end
-                        if t==1 then token.note.pitch.accidental={num=2, den=1} end
-                    else
-                        -- if we can just flatten that one, use that
-                        if t==0 then token.note.pitch.accidental={num=-1, den=1} end
-                        if t==1 then token.note.pitch.accidental={num=0, den=0} end
-                    
-                    end
-                
-                    
-                end                                
-            end
-        end
-        
-    end
-    
+function midi_note_from_note(mapping, note, accidental)
+    -- Given a key mapping, get the midi note of a given note        
+    -- optionally applying a forced accidental
+    accidental = note.pitch.accidental or accidental    
+    local base_pitch = get_semitone(mapping, note.pitch.note, accidental)    
+    return base_pitch + 60 + (note.pitch.octave or 0) * 12
 end
 
 

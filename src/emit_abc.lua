@@ -544,8 +544,8 @@ function abc_note(note)
     end
     
     -- decorations (e.g. . for legato)
-    if note.decoration then
-        note_str = note_str ..  table.concat(note.decoration)
+    if note.decoration then        
+        note_str = note_str ..  table.concat(note.decoration)        
     end
     
     -- pitch and duration

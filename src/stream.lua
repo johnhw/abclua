@@ -150,6 +150,7 @@ function print_lyrics_notes(stream)
 end
 
 
+
 function filter_event_stream(stream, includes)
     -- return a copy of the stream, keeping only those specified events in the stream
     local filtered = {}
@@ -215,7 +216,6 @@ function zero_time_stream(stream)
         stream.t = stream.t - t
     end    
 end
-
 
 
 
@@ -347,11 +347,13 @@ end
 
 function time_stretch_stream(stream, factor)
     -- Change the playback rate of the stream (only changes the numerical duration field)
+    -- and then retimes
     for i,v in ipairs(stream) do    
         if v.event.duration  then 
             v.duration = v.duration * factor
         end
     end    
+    time_stream(stream)
 end
 
 function note_stream_to_opus(note_stream)
