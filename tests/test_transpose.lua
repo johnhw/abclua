@@ -1,10 +1,15 @@
 require "abclua"
 
 
+scale = abclua.parse_abc_fragment([[[K:C]CDEFGab]])
+abclua.diatonic_transpose(scale,-13)    
+print(emit_abc(scale))
+print()
 function print_transposed_scales(scale)
     print(emit_abc(scale))
     for i=1,12 do
         diatonic_transpose(scale,1)    
+        --table_print(scale[2])
         print(emit_abc(scale))
     end
     

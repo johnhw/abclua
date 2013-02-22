@@ -328,12 +328,12 @@ function compile_token_stream(song, context, metadata)
     
     -- copy any inherited data from the file header
     
-    song.default_context = context
+    song.default_context = context or get_default_context()
     song.context = deepcopy(song.default_context)
    
     song.voices = {}
     song.voice_specifiers = {}
-    song.metadata = metadata    
+    song.metadata = metadata or {}
     start_new_voice(song, 'default')
     expand_token_stream(song)
     
