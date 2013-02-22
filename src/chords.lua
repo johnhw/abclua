@@ -206,6 +206,7 @@ function match_chord(chord, custom_table)
         
     match.type = match.type or 'maj' -- default to major chord    
     local chord_offsets    
+        
     local chord_form = custom_table[match.type] or chords[match.type]
     if chord_form  then
         chord_offsets = chord_form
@@ -258,9 +259,9 @@ function is_chord(str)
 end
 
 
-function parse_chord(chord)
+function parse_chord(chord, custom)
     -- parse a chord, returning a chord structure
-    return match_chord(chord)    
+    return match_chord(chord, custom)    
 end
 
 function invert_chord(chord)

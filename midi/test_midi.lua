@@ -1,2 +1,2 @@
-require "generate_midi.lua"
+require "midi/generate_midi"
 test_midi_generation()

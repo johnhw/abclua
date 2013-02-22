@@ -54,7 +54,7 @@ function parse_free_text(text)
     return position, new_text
 end
 
-function add_note(token_stream, note)
+function add_note_to_stream(token_stream, note)
     -- add a note to the token stream
     local cnote = parse_note(note)    
     if cnote.free_text then
@@ -142,7 +142,7 @@ function read_tune_segment(tune_data, song)
                     table.insert(song.token_stream, {token='chord_begin'})                                
                     -- insert the individual notes
                     for i,note in ipairs(v.chord_group) do                
-                        add_note(song.token_stream, note)                        
+                        add_note_to_stream(song.token_stream, note)                        
                     end
                     table.insert(song.token_stream, {token='chord_end'})                                
                 end                               
@@ -164,7 +164,7 @@ function read_tune_segment(tune_data, song)
                 
                 -- insert the individual notes
                 for i,note in ipairs(v.slur) do                                    
-                    add_note(song.token_stream, note)
+                    add_note_to_stream(song.token_stream, note)
                 end
                     
                 if #v.slur>1 then
@@ -275,6 +275,7 @@ function parse_abc_string(song, str)
     local lines = split(str, "[\r\n]")
     for i,line in pairs(lines) do        
         song.parse.line = i
+        --parse_abc_line( line, song)
         local success, err = pcall(parse_abc_line, line, song)
         if not success then
             warn('Parse error reading line '  .. line.. '\n'.. err)

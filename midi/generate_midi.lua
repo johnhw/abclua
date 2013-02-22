@@ -347,6 +347,7 @@ function test_midi_generation()
     'dynamics', 'grace', 'ornaments', 'portamento', 'cc'}
 
     for i,v in ipairs(tests) do
+        print("Testing: "..v)
         convert_file('midi/tests/'..v..'.abc','midi/tests/'..v..'.mid')
     end
 end
