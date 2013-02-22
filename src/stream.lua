@@ -396,7 +396,7 @@ function get_chord_stream(stream, octave)
             end
             
             -- get the notes for this chord and put them in the sequence
-            notes = voice_chord(create_chord(chord), octave)
+            notes = voice_chord(chord.notes, octave)
             for j, n in ipairs(notes) do
                  table.insert(out, {event='note_on', t=t, pitch=n, channel})                           
                  notes_on[n] = true

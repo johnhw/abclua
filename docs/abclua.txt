@@ -36,7 +36,6 @@ Extended features include:
 * Fractional accidentals for microtonal music `^/2C` (also in key definitions: `K:C ^/4f`) 
 * Nested tuplets (e.g. `(7:5:7 A A (3 A A A A A`)
 * Ratio for broken rhythm can be set with directive `%%set-broken-ratio`
-* Key relative chords (e.g. `I`, `ii`, `V7`, `bVII', `iiim7`, `ii/C` `iii6/2`) -- transformed to regular chords during parsing 
 
 See `tests/test_abc.lua` for examples of these in use.
 
@@ -200,7 +199,10 @@ token           description                                ABC Notation fields
 --------------- ------------------------------------------ ------------ -------------------------------------------
 measure_rest    Measure rest.                              `Z4`          **bars** number of bars to rest
 
-chord           Written chord (e.g. "Cm7")                 `"Cm7"`       **chord** text inside the quotes
+chord           Written chord (e.g. "Cm7")                 `"Cm7"`       **base_pitch** root note, as a lower case letter (e.g. 'b')\
+                                                                         **chord_type** string (e.g. 'min' or 'maj')\
+                                                                         **notes** notes in this chord (e.g. [0,3,7])\
+                                                                         **inversion** if present, inversion as a lower case letter\
 
 text            Free quoted text (e.g. "This is free")     `"hello"`     **text** text inside the quotes (without position annotation)\
                                                                          **position** position of the text:\
@@ -334,7 +336,7 @@ duration        Duration of the note.                      **num** numerator of 
 
 [measure_rest]  If this "note" is actually a measure rest. **duration** should be interpreted as a fraction of the measure length (instead of note length)
 
-[chord]         Chord written before note ("Dmaj")         
+[chord]         Chord written before note ("Dmaj")         See chord token.
 
 [grace]         Grace notes before this note               List of grace notes; each has a pitch and duration, just as a regular note.
 

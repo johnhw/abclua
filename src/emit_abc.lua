@@ -528,6 +528,21 @@ function abc_note_def(note)
     return note_str
 end
 
+function abc_chord(chord)  
+    
+    -- return the represenation of a chord
+   local chord_str = chord_case(chord.base_pitch)
+   -- omit maj for major chords
+   if chord.chord_type~='maj' then
+      chord_str = chord_str..string.lower(chord.chord_type)
+   end
+   
+   if chord.inversion then
+        chord_str = chord_str .. '/' .. chord_case(chord.inversion)
+    end    
+    return chord_str
+end
+
 function abc_note(note)
     -- abc a note out
     -- Return the string version of the note definition
@@ -545,7 +560,7 @@ function abc_note(note)
     
     -- chords (e.g. "Cm")
     if note.chord then
-        note_str = note_str .. '"' .. note.chord .. '"'
+        note_str = note_str .. '"' .. abc_chord(note.chord) .. '"'
     end
     
     -- decorations (e.g. . for legato)
@@ -644,7 +659,7 @@ function abc_note_element(element)
     
     
     if element.token=='chord' then
-            return '"' .. element.chord .. '"'
+            return '"' .. abc_chord(element.chord) .. '"'
     end
     
     if element.token=='overlay' then
@@ -720,5 +735,6 @@ function abc_from_songs(songs, creator)
         table.insert(out, emit_abc(v.token_stream))
         table.insert(out, '\n\n')
     end
+    return table.concat(out)
 end
 

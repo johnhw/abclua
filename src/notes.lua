@@ -134,6 +134,18 @@ function canonicalise_note(note)
     if note.tie then
         note.tie = true
     end
+    
+    -- parse chords
+    if note.chord then        
+        local chord = parse_chord(note.chord) 
+        if chord then
+            note.chord = chord
+        else
+            -- store free text annotations
+            note.free_text = note.chord
+            note.chord = nil
+        end
+    end
         
     if note.decoration then        
         -- clean up decorations (replace +xxx+ with !xxx!)    

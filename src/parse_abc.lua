@@ -54,6 +54,17 @@ function parse_free_text(text)
     return position, new_text
 end
 
+function add_note(token_stream, note)
+    -- add a note to the token stream
+    local cnote = parse_note(note)    
+    if cnote.free_text then
+            local position, text = parse_free_text(cnote.free_text)                   
+            table.insert(token_stream, {token='text', text=text, position = position})                            
+            cnote.free_text = nil
+    end
+    table.insert(token_stream, {token='note', note=cnote})          
+ end
+
 function read_tune_segment(tune_data, song)
     -- read the next token in the note stream    
     local cross_ref = nil
@@ -65,13 +76,13 @@ function read_tune_segment(tune_data, song)
                  table.insert(song.token_stream, {token='cross_ref', at=v, line=song.parse.line})
             end
         else
-        
-            
+                    
             -- store annotations
             if v.free_text then
                 -- could be a standalone chord
-                if is_chord(v.free_text.text) then
-                    table.insert(song.token_stream, {token='chord', chord=v.free_text.text})
+                local chord = parse_chord(v.free_text.text)                                                
+                if chord then
+                    table.insert(song.token_stream, {token='chord', chord=chord})
                 else
                     local position, text = parse_free_text(v.free_text.text)                   
                     table.insert(song.token_stream, {token='text', text=text, position = position})
@@ -124,15 +135,14 @@ function read_tune_segment(tune_data, song)
             
                 -- textual chords
                 if v.chord_group.chord then
-                    table.insert(song.token_stream, {token='chord', chord=v.chord_group.chord})                                
+                    table.insert(song.token_stream, {token='chord', chord=parse_chord(v.chord_group.chord)})                                
                 end
                 
                 if v.chord_group[1] then
                     table.insert(song.token_stream, {token='chord_begin'})                                
                     -- insert the individual notes
                     for i,note in ipairs(v.chord_group) do                
-                        local cnote = parse_note(note)
-                        table.insert(song.token_stream, {token='note', note=cnote})                        
+                        add_note(song.token_stream, note)                        
                     end
                     table.insert(song.token_stream, {token='chord_end'})                                
                 end                               
@@ -142,7 +152,7 @@ function read_tune_segment(tune_data, song)
             -- if we have slur groups then there are some notes to parse...
             if v.slur then            
                 if v.slur.chord then
-                    table.insert(song.token_stream, {token='chord', chord=v.slur.chord})                                
+                    table.insert(song.token_stream, {token='chord', chord=parse_chord(v.slur.chord)})                                
                 end
                 
                 -- slur groups (only put the group in if there
@@ -153,10 +163,8 @@ function read_tune_segment(tune_data, song)
                 end
                 
                 -- insert the individual notes
-                for i,note in ipairs(v.slur) do                
-                    
-                    local cnote = parse_note(note)                
-                    table.insert(song.token_stream, {token='note', note=cnote})
+                for i,note in ipairs(v.slur) do                                    
+                    add_note(song.token_stream, note)
                 end
                     
                 if #v.slur>1 then
@@ -453,6 +461,7 @@ get_chord_stream = get_chord_stream,
 abc_element = abc_element,
 validate_token_stream = validate_token_stream,
 filter_event_stream = filter_event_stream,
+get_note_number = get_note_number,
 version=0.2,
 }
 
@@ -460,22 +469,15 @@ version=0.2,
 return abclua
 -- TODO:
 
--- Multi-measure overlay with && &&& etc.
 -- Allow chords with key-relative values (e.g. "ii", "V", "V7", "I")
--- Check text directives and add annotation field (up/down etc.)
+-- Make chords into full fields (root, type, inversion separately)
 -- Text string encodings
--- y space symbols -- allow decorators to pass through somehow
 
 -- ABCLint -> check abc files for problems
 
 -- Midi processing routines.
 
 -- transposing macros don't work when octave modifiers and ties are applied
--- tidy up stream rendering
--- voice transpose/octave/+8-8
-
--- styling for playback
--- decorators with extended effect (e.g. crescendo, accelerando)
 
 
 

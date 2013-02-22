@@ -159,9 +159,32 @@ bs=12
 
 local inverse_note_table = invert_table(note_table)
 local chord_matcher = re.compile([[
-        chord <- ({:root: root :} ({:type: [^/%s] +:}) ? ('/' {:inversion: <root> :}) ?) -> {}
+        chord <- ({:root: root :} ({:type: [^/%s] +:}) ? ('/' {:inversion: (<root>/[1-3]) :}) ?) -> {}
         root <- ([a-g] ('b' / 's') ?)
     ]])
+    
+    
+function apply_inversion(inversion, base_pitch, chord_offsets)
+    -- apply the inversion
+    local notes = {}    
+    
+    for i,v in ipairs(chord_offsets) do
+        -- if inversion, shift the note to the octave below
+        if inversion and inversion==(v+base_pitch) % 12 then
+             table.insert(notes, v+base_pitch-12)
+             inversion = nil -- clear the inversion field so we don't re-add the note
+        else               
+            table.insert(notes, v+base_pitch)
+        end        
+    end
+    
+    -- an inversion which was not in the chord itself
+    -- (e.g. Cmaj/F)
+    if inversion then
+        table.insert(notes, inversion-12)
+    end
+    return notes
+end
 
 function match_chord(chord, custom_table)
     -- Matches chord definitions, returning the root note
@@ -179,10 +202,7 @@ function match_chord(chord, custom_table)
     
     local base_pitch = note_table[match.root]
     local inversion
-    -- get inversion pitch
-    if match.inversion then 
-        inversion = note_table[match.inversion]
-    end
+        
         
     match.type = match.type or 'maj' -- default to major chord    
     local chord_offsets    
@@ -192,25 +212,38 @@ function match_chord(chord, custom_table)
     else    
         return nil -- not a valid chord
     end    
-    return {chord_type=match.type, base_pitch=base_pitch, notes=chord_offsets, inversion=inversion}   
+    
+    -- get inversion pitch
+    if match.inversion then 
+        if tonumber(match.inversion) then
+            local note = (chord_form[tonumber(match.inversion)] + note_table[base_pitch]) % 12
+        else
+            inversion = note_table[match.inversion]
+        end       
+    end
+    
+    local notes = apply_inversion(inversion, base_pitch, chord_offsets)       
+    return {chord_type=match.type, base_pitch=match.root, offsets=chord_offsets, notes=notes, inversion=inverse_note_table[inversion]}   
 end
 
 function chord_case(str)
     return string.upper(string.sub(str,1,1))..string.sub(str,2,-1):gsub('s', '#')
 end
 
+function chord_number(n)
+    -- convert a note number to a chord root (e.g. 1 becomes 'C#')
+    local str = inverse_note_table[n%12]
+    return chord_case(str)
+end
+
+
 function transpose_chord(chord, shift)
     -- return a transposed chord name given a string and an integer offset
-    -- e.g. transpose_chord('Cm', 4) returns 'Em'
-      local match = match_chord(chord)
-      local new_base = inverse_note_table[(match.base_pitch+shift)%12]
-      local new_inversion      
-      new_base = chord_case(new_base)
-      local chord = new_base..match.chord_type
+    -- e.g. transpose_chord('Cm', 4) returns 'Em'     
+      chord.base_pitch = inverse_note_table[(note_table[chord.base_pitch]+shift)%12]
       -- need to transpose inversions as well
-      if match.inversion then
-           new_inversion = inverse_note_table[(match.inversion+shift)%12]
-           chord = chord .. '/'..chord_case(new_inversion)
+      if chord.inversion then
+           chord.inversion = inverse_note_table[(note_table[chord.inversion]+shift)%12]
       end 
       return chord            
 end
@@ -225,12 +258,17 @@ function is_chord(str)
 end
 
 
-function create_chord(chord, custom_table)
+function parse_chord(chord)
+    -- parse a chord, returning a chord structure
+    return match_chord(chord)    
+end
+
+function invert_chord(chord)
 -- takes a chord defintion string (e.g. "Gm" or "Fm7" or "Asus2") and returns the notes in it
 -- as a table of pitches (with C=0)
 
     
-    local match = match_chord(chord, custom_table)
+    local match = chord
     local notes = {}
     local inversion
     if match then  

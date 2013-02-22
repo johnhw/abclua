@@ -83,7 +83,7 @@ G]],[[X:1
 K:G
 C D ~F T~.G !fermata!D !legato!G
 {cg}D {ab}C {f2fe}G
-"Cm7"C G "Dmaj"D A D
+"Cm7"C G "D"D A D
 {cg}"Cm7"!fermata!~=D
 G]], 'Decorations and chord names')
 
@@ -189,7 +189,7 @@ K:G
 
 check_reproduce([[X:1
 K:G
-"Cm"F "D"(def) "Fmin/G"[CEg] "G7"]], 'Chord names')
+"Cm"F "D"(def) "Amin/G"[CEg] "G7"]], 'Chord names')
 
 check_reproduce([[X:1
 K:G
@@ -335,7 +335,7 @@ DED | ABA | DED |
 check_reproduce([[
 X:1
 K:G
-"Cm7"B | "DMaj"[abc] | "F7"(def) | "Gm"]], 'Chord names')
+"Cm7"B | "D"[abc] | "F7"(def) | "Gm"]], 'Chord names')
 
 check_reproduce([[
 X:1
