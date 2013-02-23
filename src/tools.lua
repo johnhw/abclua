@@ -57,7 +57,7 @@ function diatonic_transpose(tokens, shift)
                         
             -- get new root key
             original_key = create_key_structure(token.key)
-            token.key.root = shift_root_key(token.key.root, shift % 12)
+            token.key.root = transpose_note_name(token.key.root, shift)
             current_key = token.key            
             -- work out the semitones in this key
             mapping = create_key_structure(current_key)                                               

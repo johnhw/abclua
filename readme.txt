@@ -1,4 +1,24 @@
-LICENSE    
+## Description
+Simple ABC parsing for Lua. This library can read a reasonable
+subset of ABC 2.1 and generate Lua tables representing the song structure.
+
+It can transform ABC source into a token stream, transform a token 
+stream into an ABC string, transform a token stream into an event stream
+(with timing, repeats expanded etc.), and transform these event streams into MIDI.
+
+### Requires: 
+* [Lua 5.1+](http://www.lua.org)
+* [LPeg](http://www.inf.puc-rio.br/~roberto/lpeg)
+
+### Optional:    
+* [MIDI.lua](http://www.pjb.com.au/comp/lua/MIDI.html)
+
+### Demo
+    lua abc_to_midi.lua <file.abc>
+
+See docs/abclua.txt for full documentation.
+
+## LICENSE    
     Licensened under the BSD 3 clause license.
         
     * Copyright (c) 2013, John Williamson

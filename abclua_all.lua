@@ -44,6 +44,15 @@ local directive_propagate_accidentals
 local directive_broken_ratio
 local directive_abc_include
 local directive_set_grace_note_length
+local parse_meter
+local get_simplified_meter
+local parse_length
+local parse_tempo
+local parse_note
+local make_note
+local canonicalise_note
+local canonicalise_accidental
+local canonicalise_duration
 local compile_tokens
 local parse_abc_fragment
 local parse_abc_file
@@ -55,6 +64,7 @@ local parse_abc_string
 local parse_abc_line
 local expand_macros
 local read_tune_segment
+local add_note_to_stream
 local parse_free_text
 local compile_token_stream
 local expand_token_stream
@@ -67,6 +77,22 @@ local apply_key
 local apply_repeats
 local is_compound_time
 local update_timing
+local get_bpm_from_tempo
+local printable_note_name
+local chord_case
+local canonical_note_name
+local get_note_number
+local transpose_note_name
+local midi_to_frequency
+local all_note_table
+local midi_note_from_note
+local get_semitone
+local parse_triplet
+local apply_triplet
+local update_tuplet_state
+local reset_triplet_state
+local push_triplet
+local update_triplet_ratio
 local validate_token_stream
 local swap_or_insert
 local diatonic_transpose
@@ -77,6 +103,7 @@ local abc_element
 local abc_note_element
 local abc_bar
 local abc_note
+local abc_chord
 local abc_note_def
 local abc_duration
 local abc_pitch
@@ -95,30 +122,14 @@ local abc_tempo
 local abc_meter
 local insert_note
 local expand_grace
-local parse_triplet
-local apply_triplet
-local update_tuplet_state
-local push_triplet
-local update_triplet_ratio
 local compute_duration
 local compute_bar_length
 local compute_pitch
-local midi_note_from_note
-local get_semitone
-local parse_note
-local make_note
-local canonicalise_note
-local canonicalise_accidental
-local canonicalise_duration
 local default_note_length
 local parse_bar
 local parse_range_list
 local parse_field
 local expand_parts
-local parse_meter
-local get_simplified_meter
-local parse_length
-local parse_tempo
 local parse_voice
 local parse_parts
 local parse_directive
@@ -151,11 +162,12 @@ local get_note_stream
 local time_stream
 local test_chords
 local voice_chord
-local create_chord
+local invert_chord
+local parse_chord
 local is_chord
 local transpose_chord
-local chord_case
 local match_chord
+local apply_inversion
 local test_lyric_parsing
 local insert_lyrics
 local insert_lyrics_stream
@@ -171,9 +183,6 @@ local compute_mode
 local get_major_keys
 local get_major_key
 local nth_note_of_key
-local shift_root_key
-local get_note_number
-local midi_to_frequency
 local swap
 local find_first_match
 local warn
@@ -404,78 +413,6 @@ end
 -- Functions for handling key signatures and modes
 -- and working out sharps and flats in keys.
 
-function midi_to_frequency(midi, reference)
-    -- transform a midi note to a frequency (in Hz)
-    -- optionally use a different tuning than concert A
-    -- specify frequency of A in Hz as the second parameter if required
-    reference = reference or 440.0    
-    return reference * math.pow(2.0, (midi-69)/12.0)
-end
-
--- Table mapping notes to semitones
-local note_table = {
-c=0,
-cb=11,
-cs=1,
-d=2,
-db=1,
-ds=3,
-e=4,
-eb=3,
-es=5,
-f=5,
-fb=4,
-fs=6,
-g=7,
-gb=6,
-gs=8,
-a=9,
-ab=8,
-as=10,
-b=11,
-bb=10,
-bs=12
-}
-
-function get_note_number(note)
-    return note_table[string.lower(note:gsub('#','s'))]
-end
-
-local key_note_table = {
-c=0,
-cb=11,
-cs=1,
-d=2,
-db=1,
-e=4,
-eb=3,
-f=5,
-fs=6,
-g=7,
-gb=6,
-a=9,
-ab=8,
-b=11,
-bb=10
-}
-
-
-function shift_root_key(key, semis)
-    -- given a root note and a shift (in semitones)
-    -- work out the new root key. Examples
-    -- C,+2  = D
-    -- C,-1 = B
-    -- E,-1 = Eb
-    local k = string.lower(key:gsub('#','s'))
-    local inv_note_table = invert_table(key_note_table)
-    local semi = (key_note_table[k]+semis)
-    if semi<0 then
-        semi = semi + 12
-    end
-    return inv_note_table[semi % 12]
-end
-
-
 -- semitones in the major scale
 local major = {'c','d','e','f','g','a','b'}
 local key_table = 
@@ -515,12 +452,9 @@ function nth_note_of_key(key, n)
     return diatonic_scale[(base+n) % 7]
 end
 
-local inverse_note_table = invert_table(note_table)
-local inverse_key_note_table = invert_table(key_note_table)
 
 -- offsets for the common modes
 local mode_offsets = {maj=0, min=3, mix=5, dor=10, phr=8, lyd=7, loc=1}
-
 
 function get_major_key(key)
     -- return the semitones in a given major key
@@ -558,9 +492,10 @@ function compute_mode(offset)
     -- return value is a table mapping from the modal key (e.g. E min) to the 
     -- corresponding major key (e.g. G)
     local notes = {}
-    for note, semi in pairs(note_table) do
-        semi = (semi + offset) % 12        
-        notes[note] = inverse_key_note_table[semi]
+    local all_notes = all_note_table()
+    for i,v in pairs(all_notes) do
+        local new_pitch = canonical_note_name((v+offset)%12)
+        notes[i] = new_pitch
     end
     return notes
 end
@@ -573,9 +508,7 @@ local key_matcher = re.compile([[
         (%s * {:accidentals: (accidentals):}) ?         
          ({:clef:  ((%s + <clef>) +) -> {}   :})  ?           
         )) -> {} 
-        
     clef <-  (({:clef: clefs :}  / clef_def /  middle  / transpose / octave / stafflines / custom )  ) 
-    
     custom <- ([^:] + ':' [^=] + '=' [%S] +)
     clef_def <- ('clef=' {:clef: <clefs> :} [0-9] ? ({:plus8: (  '+8' / '-8' ) :})  ? ) 
     clefs <- ('alto' / 'bass' / 'none' / 'perc' / 'tenor' / 'treble' )
@@ -583,10 +516,7 @@ local key_matcher = re.compile([[
     transpose <- (('transpose='/'t=')  {:transpose: <number> :}) 
     octave <- ('octave=' {:octave: <number> :}) 
     stafflines <- ('stafflines=' {:stafflines: <number> :})
-    
-    
     number <- ( ('+' / '-') ? [0-9]+)
-    
     mode <- ( ({'maj'}) / ({'aeo'}) / ({'ion'}) / ({'mix'}) / ({'dor'}) / ({'phr'}) / ({'lyd'}) /
           ({'loc'}) /  ({'exp'}) / ({'min'}) / {'m'}) 
     accidentals <- ( accidental (%s+ accidental) * ) -> {} 
@@ -650,7 +580,6 @@ function create_key_structure(k)
         return key_mapping
     end
     
-    
     -- Pipe notation (Hp or HP): F sharp and G sharp
     if k.pipe then
         for i,v in pairs(key_table['c']) do                        
@@ -667,10 +596,12 @@ function create_key_structure(k)
         
         -- offset according to mode
         if k.mode then
+            -- convert 'm' or 'aeolian' to 'min'
             if k.mode=='aeo'  or k.mode=='m' then
                 k.mode = 'min'
             end
             
+            -- convert 'ionian' to 'maj'
             if k.mode=='ion' then
                 k.mode = 'maj'
             end            
@@ -678,23 +609,27 @@ function create_key_structure(k)
             -- get the modal offset
             local modal_root = root            
             
+            -- find relative major key -- use sharps and flats from that key
             if mode_offsets[k.mode] then
                 local major_mapping = compute_mode(mode_offsets[k.mode])
                 root = major_mapping[root] -- get relative major key                        
             end            
         end
-                
-      
+
+        -- map each element of the major scale to the accidental value
+        -- (0, 1, or -1)
         for i,v in pairs(key_table[root]) do                        
             key_mapping[major[i]] = v
         end
         
-        -- add accidentals
+        -- add accidentals to the mapping
+        -- these overwrite the key-set values
         if k.accidentals then
             for i,v in pairs(k.accidentals) do
                 if v.accidental.num == 0 then
                     key_mapping[v.note] = 0
                 else
+                    -- we can use fractional accidentals in the key
                     key_mapping[v.note] = v.accidental.num / v.accidental.den
                 end
             end
@@ -846,7 +781,7 @@ function compose_parts(song)
         
     else
         -- no parts indicator
-        song.stream = deepcopy(expand_patterns(song.context.part_map['default']))
+        song.stream = expand_patterns(song.context.part_map['default'])
     end
     
 end
@@ -1180,37 +1115,33 @@ local common_chords =
 }
 
 
-
--- Table mapping notes to semitones
-local note_table = {
-c=0,
-cb=11,
-cs=1,
-d=2,
-db=1,
-ds=3,
-e=4,
-eb=3,
-es=5,
-f=5,
-fb=4,
-fs=6,
-g=7,
-gb=6,
-gs=8,
-a=9,
-ab=8,
-as=10,
-b=11,
-bb=10,
-bs=12
-}
-
-local inverse_note_table = invert_table(note_table)
 local chord_matcher = re.compile([[
-        chord <- ({:root: root :} ({:type: [^/%s] +:}) ? ('/' {:inversion: <root> :}) ?) -> {}
+        chord <- ({:root: root :} ({:type: [^/%s] +:}) ? ('/' {:inversion: (<root>/[1-3]) :}) ?) -> {}
         root <- ([a-g] ('b' / 's') ?)
     ]])
+    
+    
+function apply_inversion(inversion, base_pitch, chord_offsets)
+    -- apply the inversion
+    local notes = {}    
+    
+    for i,v in ipairs(chord_offsets) do
+        -- if inversion, shift the note to the octave below
+        if inversion and inversion==(v+base_pitch) % 12 then
+             table.insert(notes, v+base_pitch-12)
+             inversion = nil -- clear the inversion field so we don't re-add the note
+        else               
+            table.insert(notes, v+base_pitch)
+        end        
+    end
+    
+    -- an inversion which was not in the chord itself
+    -- (e.g. Cmaj/F)
+    if inversion then
+        table.insert(notes, inversion-12)
+    end
+    return notes
+end
 
 function match_chord(chord, custom_table)
     -- Matches chord definitions, returning the root note
@@ -1226,40 +1157,43 @@ function match_chord(chord, custom_table)
         return nil
     end
     
-    local base_pitch = note_table[match.root]
+    local base_pitch = get_note_number(match.root)
     local inversion
-    -- get inversion pitch
-    if match.inversion then 
-        inversion = note_table[match.inversion]
-    end
+        
         
     match.type = match.type or 'maj' -- default to major chord    
     local chord_offsets    
+        
     local chord_form = custom_table[match.type] or chords[match.type]
     if chord_form  then
         chord_offsets = chord_form
     else    
         return nil -- not a valid chord
     end    
-    return {chord_type=match.type, base_pitch=base_pitch, notes=chord_offsets, inversion=inversion}   
+    
+    -- get inversion pitch
+    if match.inversion then 
+        if tonumber(match.inversion) then
+            local note = (chord_form[tonumber(match.inversion)] + get_note_number(base_pitch)) % 12
+        else
+            inversion = get_note_number(match.inversion)
+        end       
+    end
+    
+    local notes = apply_inversion(inversion, base_pitch, chord_offsets)       
+    return {chord_type=match.type, base_pitch=match.root, offsets=chord_offsets, notes=notes, inversion=canonical_note_name(inversion)}   
 end
 
-function chord_case(str)
-    return string.upper(string.sub(str,1,1))..string.sub(str,2,-1):gsub('s', '#')
-end
+
 
 function transpose_chord(chord, shift)
     -- return a transposed chord name given a string and an integer offset
-    -- e.g. transpose_chord('Cm', 4) returns 'Em'
-      local match = match_chord(chord)
-      local new_base = inverse_note_table[(match.base_pitch+shift)%12]
-      local new_inversion      
-      new_base = chord_case(new_base)
-      local chord = new_base..match.chord_type
+    -- e.g. transpose_chord('Cm', 4) returns 'Em'     
+    
+      chord.base_pitch = transpose_note_name(chord.base_pitch, shift)
       -- need to transpose inversions as well
-      if match.inversion then
-           new_inversion = inverse_note_table[(match.inversion+shift)%12]
-           chord = chord .. '/'..chord_case(new_inversion)
+      if chord.inversion then
+            chord.inversion = transpose_note_name(chord.inversion, shift)   
       end 
       return chord            
 end
@@ -1274,12 +1208,17 @@ function is_chord(str)
 end
 
 
-function create_chord(chord, custom_table)
+function parse_chord(chord, custom)
+    -- parse a chord, returning a chord structure
+    return match_chord(chord, custom)    
+end
+
+function invert_chord(chord)
 -- takes a chord defintion string (e.g. "Gm" or "Fm7" or "Asus2") and returns the notes in it
 -- as a table of pitches (with C=0)
 
     
-    local match = match_chord(chord, custom_table)
+    local match = chord
     local notes = {}
     local inversion
     if match then  
@@ -1753,7 +1692,7 @@ function get_chord_stream(stream, octave)
             end
             
             -- get the notes for this chord and put them in the sequence
-            notes = voice_chord(create_chord(chord), octave)
+            notes = voice_chord(chord.notes, octave)
             for j, n in ipairs(notes) do
                  table.insert(out, {event='note_on', t=t, pitch=n, channel})                           
                  notes_on[n] = true
@@ -2004,7 +1943,6 @@ end
 --
 -- Routines for parsing metadata in headers and inline inside songs
 
-
 -- create the various pattern matchers
 
 local fields = {}
@@ -2077,127 +2015,6 @@ function parse_voice(voice)
     return parsed_voice
 end
 
-
-
-
-
-local tempo_matcher = re.compile([[
-tempo <- (
-
-    (["] {:name: [^"]* :} ["] %s *) ?
-    ( 
-    (  (  (div (%s + div) *)  )  %s * '=' %s * {:tempo_rate: number:} )  /
-    (  'C=' {:tempo_rate: number:} ) /
-    (  {:tempo_rate: number :} ) 
-    ) ?
-    (%s + ["] {:name: [^"]* :} ["] %s *) ?
-) -> {}
-
-div <- ({:num: number:} %s * '/' %s * {:den: number:}) -> {}
-number <- ( [0-9] + )
-]])
-
--- standard tempo names
-local tempo_names = {
-larghissimo=40,
-moderato=104,
-adagissimo= 44,
-allegro= 120,
-allegretto= 112,
-lentissimo= 48,
-largo=        56,
-vivace =168,
-adagio=59,
-vivo=180,
-lento=62,
-presto=192,
-larghetto=66,
-allegrissimo=208,
-adagietto=76,
-vivacissimo=220,
-andante=88,
-prestissimo=240,
-andantino=96
-}
-
-function parse_tempo(l)
-    -- Parse a tempo string
-    -- Returns a tempo table, with an (optional) name and tempo_rate field
-    -- tempo_rate is in units per second
-    -- the numbered elements specify the unit lengths to be played up to that point
-    -- each element has a "num" and "den" field to specify the numerator and denominator
-    local captures = tempo_matcher:match(l)        
-    if captures and captures.name and not captures.tempo_rate then    
-        -- fill in rate / division if we just have a name        
-        if tempo_names[captures.name] then
-           captures.tempo_rate = tempo_names[captures.name]
-           captures[1] = {num=1, den=4}
-        end
-    end
-    
-    return captures
-end
-
-local length_matcher = re.compile("('1' ('/' {[0-9] +}) ?) -> {}")
-function parse_length(l)
-    -- Parse a string giving note length, as a fraction "1/n" (or plain "1")
-    -- Returns integer representing denominator.
-    local captures = length_matcher:match(l)             
-    if captures[1] then
-        return captures[1]+0
-    else
-        return 1    
-    end
-end
-
-
-
-function get_simplified_meter(meter)
-    -- return meter as a simple num/den form
-    -- with the beat emphasis separate
-    -- by summing up all num elements
-    -- (e.g. (2+3+2)/8 becomes 7/8)
-    -- the beat emphasis is stored as
-    -- emphasis = {1,3,5}
-
-    if meter.common then
-        return {num=4, den=4, emphasis={0}}
-    end
-    
-    if meter.cut then
-        return {num=2, den=2, emphasis={0}}
-    end
-    
-    if meter.none then
-        return {num=0, den=0, emphasis={0}}
-    end
-    
-    local total_num = 0
-    local emphasis = {}
-    for i,v in ipairs(meter.num) do
-        table.insert(emphasis, total_num)
-        total_num = total_num + v
-    end
-    return {num=total_num, den=meter.den, emphasis=emphasis}
-end
-
-local meter_matcher = re.compile([[
-    meter <- (fraction / cut / common / none) 
-    common <- ({:common: 'C' :}) -> {}
-    cut <- ({:cut: 'C|' :}) -> {}
-    none <- ({:none: 'none' / '' :})  -> {}    
-    fraction <- ({:num: complex :} %s * '/' %s * {:den: [0-9]+ :}) -> {}    
-    complex <- ( '(' ? ((number + '+') * number) ->{} ')' ? )
-    number <- {([0-9]+)}     
-    ]])
-
-function parse_meter(m)
-    -- Parse a string giving the meter definition
-    -- Returns fraction as a two element table
-    local captures = meter_matcher:match(m)    
-    return get_simplified_meter(captures)
-    
-end
 
 
 function expand_parts(parts)
@@ -2536,8 +2353,7 @@ end
 --
 -- From source file: notes.lua
 --
-local pitch_table = {c=0, d=2, e=4, f=5, g=7, a=9, b=11}
-
+-- Functions for compiling notes in context (e.g. computing duration and pitch)
 
 function default_note_length(song)
     -- return the default note length
@@ -2553,201 +2369,6 @@ function default_note_length(song)
     end
     return 8
 end
-
-
-function canonicalise_duration(duration)
-    -- fill in duration field; remove slashes
-    -- and fill in numerator and denominator
-    
-    if duration.slashes and not duration.den then
-         local den = 1
-         local l = string.len(duration.slashes)
-         for i = 1,l do
-            den = den * 2
-         end
-         duration.den = den
-    end
-    
-    if not duration.num then
-        duration.num = 1
-    end
-    
-    if not duration.den then
-        duration.den = 1
-    end
-    duration.slashes = nil
-
-end
-
-function canonicalise_accidental(accidental)
-    -- Transform string indicator to integer and record any fractional part
-    -- (for microtonal tuning)
-    local acc = accidental[1]
-    local value
-    local fraction = {num=1, den=1}
-
-    -- fractional accidentals
-    if accidental[2] and (accidental[2].num or accidental[2].slashes) then
-        canonicalise_duration(accidental[2])
-        fraction = accidental[2] 
-    end
-        
-    -- accidentals
-    if acc == '^' then
-       value = {num=fraction.num, den=fraction.den}
-    end
-    
-    if acc == '^^' then
-       value = {num=2*fraction.num, den=fraction.den}
-    end
-    
-    if acc == '_' then
-        value = {num=-fraction.num, den=fraction.den}
-    end
-    
-    if acc == '__' then
-        value = {num=-2*fraction.num, den=fraction.den}
-    end
-    
-    if acc == '=' then
-        value = {num=0, den=0}
-    end
-    
-    return value
-
-end
-
-function canonicalise_note(note)
-    -- Canonicalise a note, filling in the full duration field. 
-    -- Remove slashes from the duration
-    -- Fills in full duration field
-    -- Replaces broken with an integer representing the dotted value (e.g. 0 = plain, 1 = once dotted,
-    --  2 = twice, etc.)    
-    canonicalise_duration(note.duration)
-        
-    if note.broken then
-        local shift = 0
-        -- get the overall shift: negative means this note gets shortened
-        for c in note.broken:gmatch"." do
-            
-            if c == '>' then
-                shift = shift + 1
-            end
-            if c == '<' then
-                shift = shift - 1
-            end
-        end
-        note.broken = nil
-        note.duration.broken = shift
-    else
-        note.duration.broken = 0
-    end
-  
-  if note.pitch then
-      -- add octave shifts  
-      
-        local octave = 0
-        if note.pitch.octave then
-            for c in note.pitch.octave:gmatch"." do
-                if c == "'" then
-                    octave = octave + 1
-                end
-                if c==',' then 
-                    octave = octave - 1
-                end
-            end
-        end        
-        -- +1 octave for lower case notes
-        if note.pitch.note == string.lower(note.pitch.note) then
-            octave = octave + 1           
-        end        
-        note.pitch.note = string.lower(note.pitch.note)
-        note.pitch.octave = octave        
-        if note.pitch.accidental then
-            note.pitch.accidental  =  canonicalise_accidental(note.pitch.accidental)
-        end
-    end
-    
-    -- tied notes
-    if note.tie then
-        note.tie = true
-    end
-        
-    if note.decoration then        
-        -- clean up decorations (replace +xxx+ with !xxx!)    
-        for i,v in ipairs(note.decoration) do            
-            if string.sub(v,1,1)=='+'  then
-                note.decoration[i] = '!'..string.sub(v,2,-2)..'!'
-            end
-        end        
-    end
-    
-    note.duration.slashes = nil
-    return note        
-end
-
-function make_note(note)
-    -- Clean up a note structure. 
-    -- Clean up the duration and pitch of notes and any grace notes
-    -- Replace the decoration string with a sequence of decorators
-    -- fix the note itself
-    canonicalise_note(note)
-    
-    -- and the grace notes
-    if note.grace then
-        for i,v in ipairs(note.grace) do
-            canonicalise_note(v)
-        end
-    end
-    
-    
-    return note
-    
-end
-
-function parse_note(note)
-    -- move note def into the note itself
-    
-    for i,v in pairs(note.note_def) do
-        note[i] = v
-    end
-    note.note_def = nil
-    return make_note(note)
-    
-end
-
-
-function get_semitone(key_mapping, pitch, accidental)
-    -- return the semitone of a note (0-11) in a given key, with the given accidental
-    local base_pitch = pitch_table[pitch]    
-           
-    -- accidentals / keys
-    if accidental then   
-        if accidental.den==0 then 
-            accidental =  0 
-        else
-            accidental = accidental.num / accidental.den
-        end
-        base_pitch = base_pitch + accidental        
-    else        
-        -- apply key signature sharpening / flattening
-        if key_mapping then
-            accidental = key_mapping[string.lower(pitch)]
-            base_pitch = base_pitch + (accidental)
-        end
-    end        
-    return base_pitch 
-end
-
-function midi_note_from_note(mapping, note, accidental)
-    -- Given a key mapping, get the midi note of a given note        
-    -- optionally applying a forced accidental
-    accidental = note.pitch.accidental or accidental    
-    local base_pitch = get_semitone(mapping, note.pitch.note, accidental)    
-    return base_pitch + 60 + (note.pitch.octave or 0) * 12
-end
-
-
 
 function compute_pitch(note, song)
     -- compute the real pitch (in MIDI notes) of a note event
@@ -2862,122 +2483,12 @@ function compute_duration(note, song)
     length = length * song.context.timing.base_note_length * this_note * prev_note * 1e6 * song.context.timing.triplet_compress
    
   
-    return length
-   
+    return length   
 end
 
-
-function update_triplet_ratio(song)
-    -- compute the current compression ratio
-    -- The product of all active triplets
-    local ratio = 1
-    for i,v in ipairs(song.context.timing.triplet_state) do
-        ratio = ratio / v.ratio
-    end
-    song.context.timing.triplet_compress = ratio
-end
-
-function push_triplet(song, p, q, r)
-    -- push a new triplet onto the stack
-    table.insert(song.context.timing.triplet_state, {count=r, ratio=p/q})
-    update_triplet_ratio(song)
-end
-
-function update_tuplet_state(song)
-    -- a note has occured; change tuplet state
-    -- update tuplet counters; if back to zero, remove that triplet
-    
-    local actives = {}
-    for i,v in ipairs(song.context.timing.triplet_state) do
-        v.count = v.count-1
-        -- keep only triplets with counters > 0
-        if v.count > 0 then
-            table.insert(actives, v)
-        end
-    end    
-    song.context.timing.triplet_state = actives
-        
-    -- update the time compression
-    update_triplet_ratio(song)
-
-end
-
-function apply_triplet(song, triplet)
-    -- set the triplet fields in the song
-    local p,q,r
-    
-    if triplet.q == 'n' then
-        -- check if compound time -- if so
-        -- the default timing for (5 (7 and (9 changes
-        if is_compound_time(song) then
-            q = 3
-        else    
-            q = 2
-        end
-    else
-        q = triplet.q
-    end
-    p = triplet.p
-    r = triplet.r 
-    
-    -- set compression and number of notes to apply this to    
-    push_triplet(song, triplet.p, triplet.q, triplet.r)
-    
-end
-
-
-
-function parse_triplet(triplet, song)
--- parse a triplet/tuplet definition, which specifies the contraction of the following
--- n notes. General form of p notes in the time of q for the next r notes
-
-    local n, p, q, r
-    q=-1
-    r=-1
-            
-    -- simple triplet of form (3:
-    if #triplet==1 then
-        p = triplet[1]+0                
-    end
-    
-    -- triplet of form (3:2
-    if #triplet==2 then
-        p = triplet[1]+0                
-        q = triplet[2]+0
-    end
-    
-    -- triplet of form (3:2:3 or (3::2 or (3::
-    if #triplet==3 then
-        p = triplet[1]+0
-        if triplet[2] and string.len(triplet[2])>0 then
-            q = triplet[2]+0
-        end
-        if triplet[3] and string.len(triplet[3])>0 then
-            r = triplet[3]+0
-        end
-    end
-       
-    -- default: r is equal to p
-    if r==-1 then
-        r = p
-    end
-
-    -- allow long triplets
-    -- if p>9 then
-        -- warn("Bad triplet length (p>9)")
-    -- end
-    
-    -- default to choosing q from the table
-    local q_table = {-1,3,2,3,'n',2,'n',3,'n'}
-    if q==-1 then
-        q = q_table[p]
-    end
-        
-    return {p=p, q=q, r=r}
-end
 
 function expand_grace(song, grace_note)
-    -- insert a grace note sequence into a song
+    -- Expand a grace note sequence 
     -- grace notes have their own separate timing (i.e. no carryover of
     -- broken note state or of triplet state)
     
@@ -2985,8 +2496,7 @@ function expand_grace(song, grace_note)
     local preserved_state = deepcopy(song.context.timing)
     
     song.context.timing.prev_broken_note = 1
-    song.context.timing.triplet_compress = 1
-    song.context.timing.base_note_length = song.context.timing.grace_note_length -- switch to grace note timing
+    reset_triplet_state(song)
        
     local grace = {}
     
@@ -3580,6 +3090,21 @@ function abc_note_def(note)
     return note_str
 end
 
+function abc_chord(chord)  
+    
+    -- return the represenation of a chord
+   local chord_str = chord_case(chord.base_pitch)
+   -- omit maj for major chords
+   if chord.chord_type~='maj' then
+      chord_str = chord_str..string.lower(chord.chord_type)
+   end
+   
+   if chord.inversion then
+        chord_str = chord_str .. '/' .. chord_case(chord.inversion)
+    end    
+    return chord_str
+end
+
 function abc_note(note)
     -- abc a note out
     -- Return the string version of the note definition
@@ -3597,7 +3122,7 @@ function abc_note(note)
     
     -- chords (e.g. "Cm")
     if note.chord then
-        note_str = note_str .. '"' .. note.chord .. '"'
+        note_str = note_str .. '"' .. abc_chord(note.chord) .. '"'
     end
     
     -- decorations (e.g. . for legato)
@@ -3696,7 +3221,7 @@ function abc_note_element(element)
     
     
     if element.token=='chord' then
-            return '"' .. element.chord .. '"'
+            return '"' .. abc_chord(element.chord) .. '"'
     end
     
     if element.token=='overlay' then
@@ -3772,6 +3297,7 @@ function abc_from_songs(songs, creator)
         table.insert(out, emit_abc(v.token_stream))
         table.insert(out, '\n\n')
     end
+    return table.concat(out)
 end
 
 
@@ -3788,7 +3314,19 @@ local pitches = {'c', 'd', 'e', 'f', 'g', 'a', 'b'}
 function diatonic_transpose_note(original_mapping, shift, new_mapping, inverse_mapping, pitch, accidental)
     -- Transpose a note name (+ accidental) in an original key mapping to a new key mapping which is
     -- shift semitones away    
-        local semi = (get_semitone(original_mapping, pitch, accidental) + shift) % 12             
+        local semi = (get_semitone(original_mapping, pitch, accidental)%12 + shift)
+        
+        -- test for octave shift
+        local octave = 0
+        if semi<0 then
+            octave = math.floor((semi/12))
+         end
+               
+        if semi>11 then
+            octave = math.floor(((semi)/12))            
+        end        
+        
+        semi = semi % 12             
         local new_accidental, new_pitch                       
         -- if we don't need an accidental
         if inverse_mapping[semi] then
@@ -3811,7 +3349,7 @@ function diatonic_transpose_note(original_mapping, shift, new_mapping, inverse_m
                 if t==1 then new_accidental={num=0, den=0} end            
             end            
         end        
-        return new_pitch, new_accidental
+        return new_pitch, new_accidental, octave
 end
 
 
@@ -3821,13 +3359,13 @@ function diatonic_transpose(tokens, shift)
     local mapping, key_struct
     local inverse_mapping = {}
     
-    shift = shift % 12      
+    
     for i,token in ipairs(tokens) do
         if token.token=='key' then                               
                         
             -- get new root key
             original_key = create_key_structure(token.key)
-            token.key.root = shift_root_key(token.key.root, shift)
+            token.key.root = transpose_note_name(token.key.root, shift)
             current_key = token.key            
             -- work out the semitones in this key
             mapping = create_key_structure(current_key)                                               
@@ -3844,27 +3382,29 @@ function diatonic_transpose(tokens, shift)
         end
         
         if token.token=='note' and mapping then
-            local pitch,accidental 
+            local pitch,accidental,octave
             
             -- transpose embedded chords
             if token.note.chord then
-                token.note.chord = transpose_chord(token.note.chord, shift)                        
+                token.note.chord = transpose_chord(token.note.chord, shift % 12)                        
             end
         
             -- if we have a pitched note
             if token.note.pitch then        
                 -- transpose the note                
-                pitch,accidental = diatonic_transpose_note(original_key, shift, mapping, inverse_mapping, token.note.pitch.note, token.note.pitch.accidental)                
+                pitch,accidental,octave = diatonic_transpose_note(original_key, shift, mapping, inverse_mapping, token.note.pitch.note, token.note.pitch.accidental)                
                 token.note.pitch.note = pitch
                 token.note.pitch.accidental = accidental                    
+                token.note.pitch.octave = token.note.pitch.octave + octave
             end
             
             -- apply to grace notes
             if token.note.grace then
                 for i,v in ipairs(token.note.grace) do
-                    pitch,accidental = diatonic_transpose_note(original_key, shift, mapping, inverse_mapping, v.pitch.note, v.pitch.accidental)
+                    pitch,accidental,octave = diatonic_transpose_note(original_key, shift, mapping, inverse_mapping, v.pitch.note, v.pitch.accidental)
                     v.pitch.note = pitch
                     v.pitch.accidental = accidental                
+                    v.pitch.octave = v.pitch.octave + octave
                 end
             end
             
@@ -3918,22 +3458,278 @@ end
 
 
 --
+-- From source file: tuplets.lua
+--
+-- Functions for dealing with tuplets
+
+function update_triplet_ratio(song)
+    -- compute the current compression ratio
+    -- The product of all active triplets
+    local ratio = 1
+    for i,v in ipairs(song.context.timing.triplet_state) do
+        ratio = ratio / v.ratio
+    end
+    song.context.timing.triplet_compress = ratio
+end
+
+function push_triplet(song, p, q, r)
+    -- push a new triplet onto the stack
+    table.insert(song.context.timing.triplet_state, {count=r, ratio=p/q})
+    update_triplet_ratio(song)
+end
+
+function reset_triplet_state(song)
+    -- reset the triplet state, cancelling all triplets
+    song.context.timing.triplet_state = {}
+    update_triplet_ratio(song)
+end
+
+function update_tuplet_state(song)
+    -- a note has occured; change tuplet state
+    -- update tuplet counters; if back to zero, remove that triplet
+    
+    local actives = {}
+    for i,v in ipairs(song.context.timing.triplet_state) do
+        v.count = v.count-1
+        -- keep only triplets with counters > 0
+        if v.count > 0 then
+            table.insert(actives, v)
+        end
+    end    
+    song.context.timing.triplet_state = actives
+        
+    -- update the time compression
+    update_triplet_ratio(song)
+
+end
+
+function apply_triplet(song, triplet)
+    -- set the triplet fields in the song
+    local p,q,r
+    
+    if triplet.q == 'n' then
+        -- check if compound time -- if so
+        -- the default timing for (5 (7 and (9 changes
+        if is_compound_time(song) then
+            q = 3
+        else    
+            q = 2
+        end
+    else
+        q = triplet.q
+    end
+    p = triplet.p
+    r = triplet.r 
+    
+    -- set compression and number of notes to apply this to    
+    push_triplet(song, triplet.p, triplet.q, triplet.r)
+    
+end
+
+
+
+function parse_triplet(triplet, song)
+-- parse a triplet/tuplet definition, which specifies the contraction of the following
+-- n notes. General form of p notes in the time of q for the next r notes
+
+    local n, p, q, r
+    q=-1
+    r=-1
+            
+    -- simple triplet of form (3:
+    if #triplet==1 then
+        p = triplet[1]+0                
+    end
+    
+    -- triplet of form (3:2
+    if #triplet==2 then
+        p = triplet[1]+0                
+        q = triplet[2]+0
+    end
+    
+    -- triplet of form (3:2:3 or (3::2 or (3::
+    if #triplet==3 then
+        p = triplet[1]+0
+        if triplet[2] and string.len(triplet[2])>0 then
+            q = triplet[2]+0
+        end
+        if triplet[3] and string.len(triplet[3])>0 then
+            r = triplet[3]+0
+        end
+    end
+       
+    -- default: r is equal to p
+    if r==-1 then
+        r = p
+    end
+
+    -- allow long triplets
+    -- if p>9 then
+        -- warn("Bad triplet length (p>9)")
+    -- end
+    
+    -- default to choosing q from the table
+    local q_table = {-1,3,2,3,'n',2,'n',3,'n'}
+    if q==-1 then
+        q = q_table[p]
+    end
+        
+    return {p=p, q=q, r=r}
+end
+
+
+--
+-- From source file: pitches.lua
+--
+-- pitch arithmetic functions
+
+
+local natural_pitch_table = {c=0, d=2, e=4, f=5, g=7, a=9, b=11}
+
+function get_semitone(key_mapping, pitch, accidental)
+    -- return the semitone of a note (0-11) in a given key, with the given accidental
+    local base_pitch = natural_pitch_table[pitch]    
+           
+    -- accidentals / keys
+    if accidental then   
+        if accidental.den==0 then 
+            accidental =  0 
+        else
+            accidental = accidental.num / accidental.den
+        end
+        base_pitch = base_pitch + accidental        
+    else        
+        -- apply key signature sharpening / flattening
+        if key_mapping then
+            accidental = key_mapping[string.lower(pitch)]
+            base_pitch = base_pitch + (accidental)
+        end
+    end        
+    return base_pitch 
+end
+
+function midi_note_from_note(mapping, note, accidental)
+    -- Given a key mapping, get the midi note of a given note        
+    -- optionally applying a forced accidental
+    accidental = note.pitch.accidental or accidental    
+    local base_pitch = get_semitone(mapping, note.pitch.note, accidental)    
+    return base_pitch + 60 + (note.pitch.octave or 0) * 12
+end
+
+local note_table = {
+c=0,
+cb=11,
+cs=1,
+d=2,
+db=1,
+ds=3,
+e=4,
+eb=3,
+es=5,
+f=5,
+fb=4,
+fs=6,
+g=7,
+gb=6,
+gs=8,
+a=9,
+ab=8,
+as=10,
+b=11,
+bb=10,
+bs=12
+}
+
+function all_note_table()
+    -- return a list of all notes and their semitone numbers
+    return note_table
+end
+
+local key_note_table = {
+c=0,
+cb=11,
+cs=1,
+d=2,
+db=1,
+e=4,
+eb=3,
+f=5,
+fs=6,
+g=7,
+gb=6,
+a=9,
+ab=8,
+b=11,
+bb=10
+}
+
+local inverse_key_note_table = invert_table(key_note_table)
+
+function midi_to_frequency(midi, reference)
+    -- transform a midi note to a frequency (in Hz)
+    -- optionally use a different tuning than concert A
+    -- specify frequency of A in Hz as the second parameter if required
+    reference = reference or 440.0    
+    return reference * math.pow(2.0, (midi-69)/12.0)
+end
+
+
+function transpose_note_name(name, shift)
+    -- convert a note string into a canonical note string shifted by shift 
+    -- semitones. Wraps around at octave boundaries
+    return canonical_note_name((get_note_number(name)+shift)%12)
+end
+
+function get_note_number(note)
+    -- Convert a note string to a note number (0-11)
+    -- e.g. get_note_number('C#') returns 1
+    return note_table[string.lower(note:gsub('#','s'))]
+end
+
+function canonical_note_name(num)
+    -- change a semitone number (0-11) to a note name.
+    -- only returns one of the canonical names (so there is no
+    -- enharmonic ambiguity). 
+    -- This means that canonical_note_name(get_note_number(note)) is not necessarily equal to note 
+    return inverse_key_note_table[num]
+end
+
+function chord_case(str)
+    -- Convert a note name to upper case, with proper # symbol
+    return string.upper(string.sub(str,1,1))..string.sub(str,2,-1):gsub('s', '#')
+end
+
+function printable_note_name(n)
+    -- convert a note number to a note symbol, and then return it as
+    -- a printable note (uppercase, with #)
+    local str = inverse_key_note_table[n%12]
+    return chord_case(str)
+end
+
+
+--
 -- From source file: compile.lua
 --
 -- Functions from transforming a parsed token stream into a song structure and then an event stream
 
 
+function get_bpm_from_tempo(tempo)
+    -- return the real bpm of a tempo 
+    local total_note = 0
+    for i,v in ipairs(tempo) do
+        total_note = total_note + (v.num / v.den)
+    end                    
+    
+    local rate = 60.0 / (total_note * tempo.tempo_rate)
+    return rate
+end
+
 function update_timing(song)
     -- Update the base note length (in seconds), given the current L and Q settings
-    local total_note = 0
     local rate = 0    
     local note_length = song.context.note_length or default_note_length(song)
     
-    for i,v in ipairs(song.context.tempo) do
-        total_note = total_note + (v.num / v.den)
-    
-    end                    
-    rate = 60.0 / (total_note * song.context.tempo.tempo_rate)
+    rate = get_bpm_from_tempo(song.context.tempo)
     song.context.timing.base_note_length = rate / note_length
     
     song.context.timing.grace_note_length = rate / (song.context.grace_length.den/song.context.grace_length.num)
@@ -4246,16 +4042,14 @@ function compile_token_stream(song, context, metadata)
     -- voice.stream: a series of events (e.g. note on, note off)
     --  indexed by microseconds,
     -- voice.context contains all of the parsed song data
-   
-    
     -- copy any inherited data from the file header
     
-    song.default_context = context
-    song.context = deepcopy(song.default_context)
+    song.default_context = context or get_default_context()
+    song.context = song.default_context
    
     song.voices = {}
     song.voice_specifiers = {}
-    song.metadata = metadata    
+    song.metadata = metadata or {}
     start_new_voice(song, 'default')
     expand_token_stream(song)
     
@@ -4327,6 +4121,17 @@ function parse_free_text(text)
     return position, new_text
 end
 
+function add_note_to_stream(token_stream, note)
+    -- add a note to the token stream
+    local cnote = parse_note(note)    
+    if cnote.free_text then
+            local position, text = parse_free_text(cnote.free_text)                   
+            table.insert(token_stream, {token='text', text=text, position = position})                            
+            cnote.free_text = nil
+    end
+    table.insert(token_stream, {token='note', note=cnote})          
+ end
+
 function read_tune_segment(tune_data, song)
     -- read the next token in the note stream    
     local cross_ref = nil
@@ -4338,13 +4143,13 @@ function read_tune_segment(tune_data, song)
                  table.insert(song.token_stream, {token='cross_ref', at=v, line=song.parse.line})
             end
         else
-        
-            
+                    
             -- store annotations
             if v.free_text then
                 -- could be a standalone chord
-                if is_chord(v.free_text.text) then
-                    table.insert(song.token_stream, {token='chord', chord=v.free_text.text})
+                local chord = parse_chord(v.free_text.text)                                                
+                if chord then
+                    table.insert(song.token_stream, {token='chord', chord=chord})
                 else
                     local position, text = parse_free_text(v.free_text.text)                   
                     table.insert(song.token_stream, {token='text', text=text, position = position})
@@ -4397,15 +4202,14 @@ function read_tune_segment(tune_data, song)
             
                 -- textual chords
                 if v.chord_group.chord then
-                    table.insert(song.token_stream, {token='chord', chord=v.chord_group.chord})                                
+                    table.insert(song.token_stream, {token='chord', chord=parse_chord(v.chord_group.chord)})                                
                 end
                 
                 if v.chord_group[1] then
                     table.insert(song.token_stream, {token='chord_begin'})                                
                     -- insert the individual notes
                     for i,note in ipairs(v.chord_group) do                
-                        local cnote = parse_note(note)
-                        table.insert(song.token_stream, {token='note', note=cnote})                        
+                        add_note_to_stream(song.token_stream, note)                        
                     end
                     table.insert(song.token_stream, {token='chord_end'})                                
                 end                               
@@ -4415,7 +4219,7 @@ function read_tune_segment(tune_data, song)
             -- if we have slur groups then there are some notes to parse...
             if v.slur then            
                 if v.slur.chord then
-                    table.insert(song.token_stream, {token='chord', chord=v.slur.chord})                                
+                    table.insert(song.token_stream, {token='chord', chord=parse_chord(v.slur.chord)})                                
                 end
                 
                 -- slur groups (only put the group in if there
@@ -4426,10 +4230,8 @@ function read_tune_segment(tune_data, song)
                 end
                 
                 -- insert the individual notes
-                for i,note in ipairs(v.slur) do                
-                    
-                    local cnote = parse_note(note)                
-                    table.insert(song.token_stream, {token='note', note=cnote})
+                for i,note in ipairs(v.slur) do                                    
+                    add_note_to_stream(song.token_stream, note)
                 end
                     
                 if #v.slur>1 then
@@ -4540,6 +4342,7 @@ function parse_abc_string(song, str)
     local lines = split(str, "[\r\n]")
     for i,line in pairs(lines) do        
         song.parse.line = i
+        --parse_abc_line( line, song)
         local success, err = pcall(parse_abc_line, line, song)
         if not success then
             warn('Parse error reading line '  .. line.. '\n'.. err)
@@ -4573,7 +4376,7 @@ function compile_abc(str, options)
 end
     
 function get_default_context()
-    return   deepcopy({
+    return   {
     tempo = {tempo_rate=120, [1]={num=1, den=8}}, 
     use_parts = false,
     meter = {num=4, den=4},
@@ -4587,7 +4390,7 @@ function get_default_context()
     directives = {},
     broken_ratio=2,
     write_abc_events = false
-    })
+    }
 end
     
 local section_matcher = re.compile([[
@@ -4623,7 +4426,6 @@ function parse_abc_multisong(str, options)
         end
     end
         
-    
     -- set defaults for the whole tune
     local default_metadata = {}
     
@@ -4638,7 +4440,7 @@ function parse_abc_multisong(str, options)
     
     -- first tune might be a file header
     local first_tune = parse_abc(tunes[1], options) 
-    compile_token_stream(first_tune,  deepcopy(default_context), deepcopy(default_metadata))
+    compile_token_stream(first_tune,  default_context, default_metadata)
     table.insert(songs, first_tune)
     
     
@@ -4726,30 +4528,333 @@ get_chord_stream = get_chord_stream,
 abc_element = abc_element,
 validate_token_stream = validate_token_stream,
 filter_event_stream = filter_event_stream,
+get_note_number = get_note_number,
+get_bpm_from_tempo = get_bpm_from_tempo,
+printable_note_name = printable_note_name,
 version=0.2,
 }
 
 
 -- TODO:
 
--- Multi-measure overlay with && &&& etc.
 -- Allow chords with key-relative values (e.g. "ii", "V", "V7", "I")
--- Check text directives and add annotation field (up/down etc.)
+-- move to lua 5.1.5
+-- add sqlite example
+-- add tune matcher example
 -- Text string encodings
--- y space symbols -- allow decorators to pass through somehow
 
 -- ABCLint -> check abc files for problems
 
 -- Midi processing routines.
 
 -- transposing macros don't work when octave modifiers and ties are applied
--- tidy up stream rendering
--- voice transpose/octave/+8-8
-
--- styling for playback
--- decorators with extended effect (e.g. crescendo, accelerando)
 
 
+
+
+
+
+--
+-- From source file: parse_note.lua
+--
+-- Functions for parsing and canonicalising notes
+
+function canonicalise_duration(duration)
+    -- fill in duration field; remove slashes
+    -- and fill in numerator and denominator
+    
+    if duration.slashes and not duration.den then
+         local den = 1
+         local l = string.len(duration.slashes)
+         for i = 1,l do
+            den = den * 2
+         end
+         duration.den = den
+    end
+    
+    if not duration.num then
+        duration.num = 1
+    end
+    
+    if not duration.den then
+        duration.den = 1
+    end
+    duration.slashes = nil
+
+end
+
+function canonicalise_accidental(accidental)
+    -- Transform string indicator to integer and record any fractional part
+    -- (for microtonal tuning)
+    local acc = accidental[1]
+    local value
+    local fraction = {num=1, den=1}
+
+    -- fractional accidentals
+    if accidental[2] and (accidental[2].num or accidental[2].slashes) then
+        canonicalise_duration(accidental[2])
+        fraction = accidental[2] 
+    end
+        
+    -- accidentals
+    if acc == '^' then
+       value = {num=fraction.num, den=fraction.den}
+    end
+    
+    if acc == '^^' then
+       value = {num=2*fraction.num, den=fraction.den}
+    end
+    
+    if acc == '_' then
+        value = {num=-fraction.num, den=fraction.den}
+    end
+    
+    if acc == '__' then
+        value = {num=-2*fraction.num, den=fraction.den}
+    end
+    
+    if acc == '=' then
+        value = {num=0, den=0}
+    end
+    
+    return value
+
+end
+
+function canonicalise_note(note)
+    -- Canonicalise a note, filling in the full duration field. 
+    -- Remove slashes from the duration
+    -- Fills in full duration field
+    -- Replaces broken with an integer representing the dotted value (e.g. 0 = plain, 1 = once dotted,
+    --  2 = twice, etc.)    
+    canonicalise_duration(note.duration)
+        
+    if note.broken then
+        local shift = 0
+        -- get the overall shift: negative means this note gets shortened
+        for c in note.broken:gmatch"." do
+            
+            if c == '>' then
+                shift = shift + 1
+            end
+            if c == '<' then
+                shift = shift - 1
+            end
+        end
+        note.broken = nil
+        note.duration.broken = shift
+    else
+        note.duration.broken = 0
+    end
+  
+  if note.pitch then
+      -- add octave shifts  
+      
+        local octave = 0
+        if note.pitch.octave then
+            for c in note.pitch.octave:gmatch"." do
+                if c == "'" then
+                    octave = octave + 1
+                end
+                if c==',' then 
+                    octave = octave - 1
+                end
+            end
+        end        
+        -- +1 octave for lower case notes
+        if note.pitch.note == string.lower(note.pitch.note) then
+            octave = octave + 1           
+        end        
+        note.pitch.note = string.lower(note.pitch.note)
+        note.pitch.octave = octave        
+        if note.pitch.accidental then
+            note.pitch.accidental  =  canonicalise_accidental(note.pitch.accidental)
+        end
+    end
+    
+    -- tied notes
+    if note.tie then
+        note.tie = true
+    end
+    
+    -- parse chords
+    if note.chord then        
+        local chord = parse_chord(note.chord) 
+        if chord then
+            note.chord = chord
+        else
+            -- store free text annotations
+            note.free_text = note.chord
+            note.chord = nil
+        end
+    end
+        
+    if note.decoration then        
+        -- clean up decorations (replace +xxx+ with !xxx!)    
+        for i,v in ipairs(note.decoration) do            
+            if string.sub(v,1,1)=='+'  then
+                note.decoration[i] = '!'..string.sub(v,2,-2)..'!'
+            end
+        end        
+    end
+    
+    note.duration.slashes = nil
+    return note        
+end
+
+function make_note(note)
+    -- Clean up a note structure. 
+    -- Clean up the duration and pitch of notes and any grace notes
+    -- Replace the decoration string with a sequence of decorators
+    -- fix the note itself
+    canonicalise_note(note)
+    
+    -- and the grace notes
+    if note.grace then
+        for i,v in ipairs(note.grace) do
+            canonicalise_note(v)
+        end
+    end
+    return note    
+end
+
+function parse_note(note)
+    -- move note def into the note itself
+    
+    for i,v in pairs(note.note_def) do
+        note[i] = v
+    end
+    note.note_def = nil
+    return make_note(note)
+    
+end
+
+
+
+
+
+--
+-- From source file: meter_tempo.lua
+--
+
+
+local tempo_matcher = re.compile([[
+tempo <- (
+
+    (["] {:name: [^"]* :} ["] %s *) ?
+    ( 
+    (  (  (div (%s + div) *)  )  %s * '=' %s * {:tempo_rate: number:} )  /
+    (  'C=' {:tempo_rate: number:} ) /
+    (  {:tempo_rate: number :} ) 
+    ) ?
+    (%s + ["] {:name: [^"]* :} ["] %s *) ?
+) -> {}
+
+div <- ({:num: number:} %s * '/' %s * {:den: number:}) -> {}
+number <- ( [0-9] + )
+]])
+
+-- standard tempo names
+local tempo_names = {
+larghissimo=40,
+moderato=104,
+adagissimo= 44,
+allegro= 120,
+allegretto= 112,
+lentissimo= 48,
+largo=        56,
+vivace =168,
+adagio=59,
+vivo=180,
+lento=62,
+presto=192,
+larghetto=66,
+allegrissimo=208,
+adagietto=76,
+vivacissimo=220,
+andante=88,
+prestissimo=240,
+andantino=96
+}
+
+function parse_tempo(l)
+    -- Parse a tempo string
+    -- Returns a tempo table, with an (optional) name and tempo_rate field
+    -- tempo_rate is in units per second
+    -- the numbered elements specify the unit lengths to be played up to that point
+    -- each element has a "num" and "den" field to specify the numerator and denominator
+    local captures = tempo_matcher:match(l)        
+    if captures and captures.name and not captures.tempo_rate then    
+        -- fill in rate / division if we just have a name        
+        if tempo_names[captures.name] then
+           captures.tempo_rate = tempo_names[captures.name]
+           captures[1] = {num=1, den=4}
+        end
+    end
+    
+    return captures
+end
+
+local length_matcher = re.compile("('1' ('/' {[0-9] +}) ?) -> {}")
+function parse_length(l)
+    -- Parse a string giving note length, as a fraction "1/n" (or plain "1")
+    -- Returns integer representing denominator.
+    local captures = length_matcher:match(l)             
+    if captures[1] then
+        return captures[1]+0
+    else
+        return 1    
+    end
+end
+
+
+
+function get_simplified_meter(meter)
+    -- return meter as a simple num/den form
+    -- with the beat emphasis separate
+    -- by summing up all num elements
+    -- (e.g. (2+3+2)/8 becomes 7/8)
+    -- the beat emphasis is stored as
+    -- emphasis = {1,3,5}
+
+    if meter.common then
+        return {num=4, den=4, emphasis={0}}
+    end
+    
+    if meter.cut then
+        return {num=2, den=2, emphasis={0}}
+    end
+    
+    if meter.none then
+        return {num=0, den=0, emphasis={0}}
+    end
+    
+    local total_num = 0
+    local emphasis = {}
+    for i,v in ipairs(meter.num) do
+        table.insert(emphasis, total_num)
+        total_num = total_num + v
+    end
+    return {num=total_num, den=meter.den, emphasis=emphasis}
+end
+
+local meter_matcher = re.compile([[
+    meter <- (fraction / cut / common / none) 
+    common <- ({:common: 'C' :}) -> {}
+    cut <- ({:cut: 'C|' :}) -> {}
+    none <- ({:none: 'none' / '' :})  -> {}    
+    fraction <- ({:num: complex :} %s * '/' %s * {:den: [0-9]+ :}) -> {}    
+    complex <- ( '(' ? ((number + '+') * number) ->{} ')' ? )
+    number <- {([0-9]+)}     
+    ]])
+
+function parse_meter(m)
+    -- Parse a string giving the meter definition
+    -- Returns fraction as a two element table
+    local captures = meter_matcher:match(m)    
+    return get_simplified_meter(captures)
+    
+end
 
 
 

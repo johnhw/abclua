@@ -16,6 +16,12 @@ function push_triplet(song, p, q, r)
     update_triplet_ratio(song)
 end
 
+function reset_triplet_state(song)
+    -- reset the triplet state, cancelling all triplets
+    song.context.timing.triplet_state = {}
+    update_triplet_ratio(song)
+end
+
 function update_tuplet_state(song)
     -- a note has occured; change tuplet state
     -- update tuplet counters; if back to zero, remove that triplet

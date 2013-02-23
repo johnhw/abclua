@@ -348,7 +348,7 @@ function test_midi_generation()
 
     for i,v in ipairs(tests) do
         print("Testing: "..v)
-        convert_file('midi/tests/'..v..'.abc','midi/tests/'..v..'.mid')
+        convert_file('midi/tests/'..v..'.abc','midi/test_out/'..v..'.mid')
     end
 end
 

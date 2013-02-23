@@ -131,33 +131,6 @@ local common_chords =
 }
 
 
-
--- Table mapping notes to semitones
-local note_table = {
-c=0,
-cb=11,
-cs=1,
-d=2,
-db=1,
-ds=3,
-e=4,
-eb=3,
-es=5,
-f=5,
-fb=4,
-fs=6,
-g=7,
-gb=6,
-gs=8,
-a=9,
-ab=8,
-as=10,
-b=11,
-bb=10,
-bs=12
-}
-
-local inverse_note_table = invert_table(note_table)
 local chord_matcher = re.compile([[
         chord <- ({:root: root :} ({:type: [^/%s] +:}) ? ('/' {:inversion: (<root>/[1-3]) :}) ?) -> {}
         root <- ([a-g] ('b' / 's') ?)
@@ -200,7 +173,7 @@ function match_chord(chord, custom_table)
         return nil
     end
     
-    local base_pitch = note_table[match.root]
+    local base_pitch = get_note_number(match.root)
     local inversion
         
         
@@ -217,34 +190,26 @@ function match_chord(chord, custom_table)
     -- get inversion pitch
     if match.inversion then 
         if tonumber(match.inversion) then
-            local note = (chord_form[tonumber(match.inversion)] + note_table[base_pitch]) % 12
+            local note = (chord_form[tonumber(match.inversion)] + get_note_number(base_pitch)) % 12
         else
-            inversion = note_table[match.inversion]
+            inversion = get_note_number(match.inversion)
         end       
     end
     
     local notes = apply_inversion(inversion, base_pitch, chord_offsets)       
-    return {chord_type=match.type, base_pitch=match.root, offsets=chord_offsets, notes=notes, inversion=inverse_note_table[inversion]}   
+    return {chord_type=match.type, base_pitch=match.root, offsets=chord_offsets, notes=notes, inversion=canonical_note_name(inversion)}   
 end
 
-function chord_case(str)
-    return string.upper(string.sub(str,1,1))..string.sub(str,2,-1):gsub('s', '#')
-end
-
-function chord_number(n)
-    -- convert a note number to a chord root (e.g. 1 becomes 'C#')
-    local str = inverse_note_table[n%12]
-    return chord_case(str)
-end
 
 
 function transpose_chord(chord, shift)
     -- return a transposed chord name given a string and an integer offset
     -- e.g. transpose_chord('Cm', 4) returns 'Em'     
-      chord.base_pitch = inverse_note_table[(note_table[chord.base_pitch]+shift)%12]
+    
+      chord.base_pitch = transpose_note_name(chord.base_pitch, shift)
       -- need to transpose inversions as well
       if chord.inversion then
-           chord.inversion = inverse_note_table[(note_table[chord.inversion]+shift)%12]
+            chord.inversion = transpose_note_name(chord.inversion, shift)   
       end 
       return chord            
 end

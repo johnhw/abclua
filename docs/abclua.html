@@ -66,13 +66,12 @@
 <li>Fractional accidentals for microtonal music <code>^/2C</code> (also in key definitions: <code>K:C ^/4f</code>)</li>
 <li>Nested tuplets (e.g. <code>(7:5:7 A A (3 A A A A A</code>)</li>
 <li>Ratio for broken rhythm can be set with directive <code>%%set-broken-ratio</code></li>
-<li>Key relative chords (e.g. <code>I</code>, <code>ii</code>, <code>V7</code>, <code>bVII',</code>iiim7<code>,</code>ii/C<code>`iii6/2</code>) -- transformed to regular chords during parsing</li>
 </ul>
 <p>See <code>tests/test_abc.lua</code> for examples of these in use.</p>
 <p>ABCLua comes with a package which performs most of the operations of abc2midi (chords, drums, accentuation etc.)</p>
 <h3 id="requires"><a href="#requires">Requires:</a></h3>
 <ul>
-<li><a href="http://www.lua.org">Lua 5.2</a></li>
+<li><a href="http://www.lua.org">Lua 5.1+</a></li>
 <li><a href="http://www.inf.puc-rio.br/~roberto/lpeg">LPeg</a></li>
 </ul>
 <h3 id="optional"><a href="#optional">Optional:</a></h3>
@@ -193,7 +192,7 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 <td align="left">chord</td>
 <td align="left">Written chord (e.g. &quot;Cm7&quot;)</td>
 <td align="left"><code>&quot;Cm7&quot;</code></td>
-<td align="left"><strong>chord</strong> text inside the quotes</td>
+<td align="left"><strong>base_pitch</strong> root note, as a lower case letter (e.g. 'b')<br /><strong>chord_type</strong> string (e.g. 'min' or 'maj')<br /><strong>notes</strong> notes in this chord (e.g. [0,3,7])<br /><strong>inversion</strong> if present, inversion as a lower case letter<br /></td>
 </tr>
 <tr class="odd">
 <td align="left">text</td>
@@ -382,7 +381,7 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 <tr class="even">
 <td align="left">[chord]</td>
 <td align="left">Chord written before note (&quot;Dmaj&quot;)</td>
-<td align="left"></td>
+<td align="left">See chord token.</td>
 </tr>
 <tr class="odd">
 <td align="left">[grace]</td>

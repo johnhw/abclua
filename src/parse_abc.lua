@@ -463,6 +463,7 @@ validate_token_stream = validate_token_stream,
 filter_event_stream = filter_event_stream,
 get_note_number = get_note_number,
 get_bpm_from_tempo = get_bpm_from_tempo,
+printable_note_name = printable_note_name,
 version=0.2,
 }
 

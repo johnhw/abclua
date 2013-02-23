@@ -1,78 +1,6 @@
 -- Functions for handling key signatures and modes
 -- and working out sharps and flats in keys.
 
-function midi_to_frequency(midi, reference)
-    -- transform a midi note to a frequency (in Hz)
-    -- optionally use a different tuning than concert A
-    -- specify frequency of A in Hz as the second parameter if required
-    reference = reference or 440.0    
-    return reference * math.pow(2.0, (midi-69)/12.0)
-end
-
--- Table mapping notes to semitones
-local note_table = {
-c=0,
-cb=11,
-cs=1,
-d=2,
-db=1,
-ds=3,
-e=4,
-eb=3,
-es=5,
-f=5,
-fb=4,
-fs=6,
-g=7,
-gb=6,
-gs=8,
-a=9,
-ab=8,
-as=10,
-b=11,
-bb=10,
-bs=12
-}
-
-function get_note_number(note)
-    return note_table[string.lower(note:gsub('#','s'))]
-end
-
-local key_note_table = {
-c=0,
-cb=11,
-cs=1,
-d=2,
-db=1,
-e=4,
-eb=3,
-f=5,
-fs=6,
-g=7,
-gb=6,
-a=9,
-ab=8,
-b=11,
-bb=10
-}
-
-
-function shift_root_key(key, semis)
-    -- given a root note and a shift (in semitones)
-    -- work out the new root key. Examples
-    -- C,+2  = D
-    -- C,-1 = B
-    -- E,-1 = Eb
-    local k = string.lower(key:gsub('#','s'))
-    local inv_note_table = invert_table(key_note_table)
-    local semi = (key_note_table[k]+semis)
-    if semi<0 then
-        semi = semi + 12
-    end
-    return inv_note_table[semi % 12]
-end
-
-
 -- semitones in the major scale
 local major = {'c','d','e','f','g','a','b'}
 local key_table = 
@@ -112,12 +40,9 @@ function nth_note_of_key(key, n)
     return diatonic_scale[(base+n) % 7]
 end
 
-local inverse_note_table = invert_table(note_table)
-local inverse_key_note_table = invert_table(key_note_table)
 
 -- offsets for the common modes
 local mode_offsets = {maj=0, min=3, mix=5, dor=10, phr=8, lyd=7, loc=1}
-
 
 function get_major_key(key)
     -- return the semitones in a given major key
@@ -155,9 +80,10 @@ function compute_mode(offset)
     -- return value is a table mapping from the modal key (e.g. E min) to the 
     -- corresponding major key (e.g. G)
     local notes = {}
-    for note, semi in pairs(note_table) do
-        semi = (semi + offset) % 12        
-        notes[note] = inverse_key_note_table[semi]
+    local all_notes = all_note_table()
+    for i,v in pairs(all_notes) do
+        local new_pitch = canonical_note_name((v+offset)%12)
+        notes[i] = new_pitch
     end
     return notes
 end
@@ -170,9 +96,7 @@ local key_matcher = re.compile([[
         (%s * {:accidentals: (accidentals):}) ?         
          ({:clef:  ((%s + <clef>) +) -> {}   :})  ?           
         )) -> {} 
-        
     clef <-  (({:clef: clefs :}  / clef_def /  middle  / transpose / octave / stafflines / custom )  ) 
-    
     custom <- ([^:] + ':' [^=] + '=' [%S] +)
     clef_def <- ('clef=' {:clef: <clefs> :} [0-9] ? ({:plus8: (  '+8' / '-8' ) :})  ? ) 
     clefs <- ('alto' / 'bass' / 'none' / 'perc' / 'tenor' / 'treble' )
@@ -180,10 +104,7 @@ local key_matcher = re.compile([[
     transpose <- (('transpose='/'t=')  {:transpose: <number> :}) 
     octave <- ('octave=' {:octave: <number> :}) 
     stafflines <- ('stafflines=' {:stafflines: <number> :})
-    
-    
     number <- ( ('+' / '-') ? [0-9]+)
-    
     mode <- ( ({'maj'}) / ({'aeo'}) / ({'ion'}) / ({'mix'}) / ({'dor'}) / ({'phr'}) / ({'lyd'}) /
           ({'loc'}) /  ({'exp'}) / ({'min'}) / {'m'}) 
     accidentals <- ( accidental (%s+ accidental) * ) -> {} 
@@ -247,7 +168,6 @@ function create_key_structure(k)
         return key_mapping
     end
     
-    
     -- Pipe notation (Hp or HP): F sharp and G sharp
     if k.pipe then
         for i,v in pairs(key_table['c']) do                        
@@ -264,10 +184,12 @@ function create_key_structure(k)
         
         -- offset according to mode
         if k.mode then
+            -- convert 'm' or 'aeolian' to 'min'
             if k.mode=='aeo'  or k.mode=='m' then
                 k.mode = 'min'
             end
             
+            -- convert 'ionian' to 'maj'
             if k.mode=='ion' then
                 k.mode = 'maj'
             end            
@@ -275,23 +197,27 @@ function create_key_structure(k)
             -- get the modal offset
             local modal_root = root            
             
+            -- find relative major key -- use sharps and flats from that key
             if mode_offsets[k.mode] then
                 local major_mapping = compute_mode(mode_offsets[k.mode])
                 root = major_mapping[root] -- get relative major key                        
             end            
         end
-                
-      
+
+        -- map each element of the major scale to the accidental value
+        -- (0, 1, or -1)
         for i,v in pairs(key_table[root]) do                        
             key_mapping[major[i]] = v
         end
         
-        -- add accidentals
+        -- add accidentals to the mapping
+        -- these overwrite the key-set values
         if k.accidentals then
             for i,v in pairs(k.accidentals) do
                 if v.accidental.num == 0 then
                     key_mapping[v.note] = 0
                 else
+                    -- we can use fractional accidentals in the key
                     key_mapping[v.note] = v.accidental.num / v.accidental.den
                 end
             end

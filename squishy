@@ -1,0 +1,11 @@
+-- Set this option, same as if user specified
+-- '--executable' on the command-line. Can be 
+-- disabled by user with '--no-executable'
+Option "executable"
+
+-- Output filename
+Output "abclua_small.lua"
+
+-- This is normal/main script
+Main "abclua_all.lua"
+
