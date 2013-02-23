@@ -469,14 +469,12 @@ return abclua
 -- TODO:
 
 -- Allow chords with key-relative values (e.g. "ii", "V", "V7", "I")
--- move to lua 5.1.5
--- add sqlite example
 -- add tune matcher example
 -- Text string encodings
+-- Pre-compile phase (without parts/repeats/etc.) -- just fill in real durations and pitches
+-- More assertions / test cases
 
 -- ABCLint -> check abc files for problems
-
--- Midi processing routines.
 
 -- transposing macros don't work when octave modifiers and ties are applied
 

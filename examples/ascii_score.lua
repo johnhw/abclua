@@ -103,18 +103,18 @@ local demi_semi_quaver =
 
 local time_signature_key =
 [[
-N /
- / D
+ N /
+  / D
 
-  --||
- e  ||
- d--||
- c  ||
- b--||
- a  ||
- g--||
- f  ||
- e--||
+   ---||
+  e   ||
+  d---||
+  c   ||
+  b---||
+  a   ||
+  g---||
+  f   ||
+  e---||
 
 
 ]]
