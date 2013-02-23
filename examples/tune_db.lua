@@ -11,6 +11,8 @@ require "lfs"
 local field_order = {'title', 'abc', 'file', 'file_index', 'composer', 'key', 'meter', 'tempo', 'rhythm', 'area', 'book',  'discography', 
  'group', 'history', 'notes', 'origin', 'remark', 'source', 'transcriber', 'ref'}
 
+local tune_db
+
 
 function title(str)
     -- make a string start with a captial
@@ -105,14 +107,16 @@ end
 
 
 function insert_alternate_titles(tune_db, ref, titles)
-    -- store all titles for this song
+    -- store all titles for this song (a song can have several titles)
     local query 
+    table_print(titles)
     for i,v in ipairs(titles) do
         query = string.format("INSERT INTO titles (%s, %s) VALUES('%s', '%s');", 'ref', 'alt_title', ref, escape_quotes(v))
-        tune_db:exec(query)
+          tune_db:exec(query)
     end
     
 end
+
 
 function insert_db_row(tune_db, meta) 
     -- Insert a new row into the database representing a tune
@@ -152,21 +156,13 @@ function insert_db_row(tune_db, meta)
 function tune_db_add(dir)
 
     local tunes = get_tunes(dir)
-    local tune_db = sqlite3.open('tunes.sqlite')
-
-    -- make sure the tables exist
-    tune_db:exec([[CREATE TABLE IF NOT EXISTS abctunes (title,
-    file, abc, file_index, composer, key, meter, real_tempo, tempo, rhythm, area, book, discography, abc_group, history, notes, origin, remark, 
-    source, transcriber, ref UNIQUE PRIMARY KEY);]])
-
-    tune_db:exec([[CREATE TABLE IF NOT EXISTS titles (ref, alt_title);]])
-     
+    recreate_db()
+    
     tune_db:exec('BEGIN TRANSACTION;')
     for i,v in ipairs(tunes) do
         insert_db_row(tune_db, v)
     end
     tune_db:exec('COMMIT TRANSACTION;')  
-    tune_db:close()
 
 end
 
@@ -181,43 +177,66 @@ end
 
 function tune_db_list()
     -- list all entries in the database
-    local tune_db = sqlite3.open('tunes.sqlite')
     for row in tune_db:rows('SELECT ref,alt_title FROM titles;') do
        print(string.format("%s %s", pad(row[1],7), row[2]))
    end
-    tune_db:close()
 end
 
 function tune_db_show(ref)
-    -- show a given entry
- local tune_db = sqlite3.open('tunes.sqlite')
+    -- show a given entry, indexed by reference number
  local query = string.format("SELECT abc FROM abctunes WHERE ref='%s';", ref)
  for row in tune_db:rows(query) do
        print(row[1])
   end
-  tune_db:close()
 end
 
+function tune_db_search(text)
+    -- search for the given text, and find matching titles
+ local query = string.format("SELECT ref, alt_title FROM titles WHERE alt_title LIKE'%%%s%%';",text)
+ for row in tune_db:rows(query) do
+       print(pad(row[1],7).." "..row[2])
+  end
+end
 
 function tune_db_remove(ref)
-     local tune_db = sqlite3.open('tunes.sqlite')
+    -- remove a row (indexed by ref) from the tunes
      local query = string.format("DELETE FROM abctunes WHERE ref='%s';", ref)
      local result = tune_db:exec(query)
+     local query = string.format("DELETE FROM titles WHERE ref='%s';", ref)
+     local result = tune_db:exec(query)
+    
      if result==0 then
         print("Could not remove " .. ref..".")
      else
         print("Removed "..ref..".")
      end
-    tune_db:close()
 end
 
+function recreate_db()
+    -- Make sure the tables exist, recreating them if necessary
+    tune_db:exec([[CREATE TABLE IF NOT EXISTS abctunes (title,
+    file, abc, file_index, composer, key, meter, real_tempo, tempo, rhythm, area, book, discography, abc_group, history, notes, origin, remark, 
+    source, transcriber, ref UNIQUE PRIMARY KEY);]])
+
+    tune_db:exec([[CREATE TABLE IF NOT EXISTS titles (ref, alt_title);]])
+end
+
+function open_db()
+    -- open the database
+ tune_db = sqlite3.open('tunes.sqlite')
+end
+
+function close_db()
+    -- close and sync the database
+ tune_db:close()
+end
+   
 function tune_db_clear()
     -- clear the database
-     local tune_db = sqlite3.open('tunes.sqlite')
     tune_db:exec('DROP TABLE abctunes;')
     tune_db:exec('DROP TABLE titles;')
+    recreate_db()
     print("Database cleared.")
-    tune_db:close()
 end
 
 function print_usage()
@@ -228,6 +247,7 @@ function print_usage()
     print "     add     <file|dir>      Adds a tune or directory of tunes"
     print "     show    <ref>           Show a tune with given reference number"
     print "     remove  <ref>           Remove a tune with the given reference number"
+    print "     search  <text>          Search for a tune matching the title"  
     print "     clear                   Clear the database"    
 end
 
@@ -238,6 +258,7 @@ if #arg<1 then
 else
     local action, argument = arg[1], arg[2]
     
+    open_db()
     -- determine what to do:
     if action=='add' then
         tune_db_add(argument)
@@ -247,12 +268,17 @@ else
         tune_db_remove(argument)
     elseif action=='clear' then 
         tune_db_clear()
+    elseif action=='search' then
+        tune_db_search(argument)
     elseif action=='show' then
         tune_db_show(argument)
+    elseif action=='search' then
+        tune_db_search(argument)
+        
     else
         print_usage() -- not a recognised command
     end
-    
+    close_db()
 end
 
 

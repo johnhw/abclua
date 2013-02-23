@@ -185,7 +185,7 @@ function expand_macros(song, line)
     
     expanded_line = apply_macros(song.parse.macros, line)
     expanded_line = apply_macros(song.parse.user_macros, expanded_line)
-        
+     
     -- macros changed this line; must now re-parse the line
     match = tune_matcher:match(expanded_line)
     if not match then
@@ -232,21 +232,18 @@ function parse_abc_line(line, song)
     -- read tune
     --
     if not field_parsed and not song.parse.in_header then
-        
-        -- try and match notes
-        local match = tune_matcher:match(line)
+        local match
+        if not song.parse.no_expand and (#song.parse.macros>0 or #song.parse.user_macros>0)  then               
+                match = expand_macros(song, line)                
+        else
+            match = tune_matcher:match(line)
+        end
                 
         -- if it was a tune line, then parse it
         -- (if not, it should be a metadata field)
         if match then            
         
-            -- check for macros
-            if not song.parse.no_expand and (#song.parse.macros>0 or #song.parse.user_macros>0)  then               
-                match = expand_macros(song, line)
-                if not match then 
-                    return nil -- bad macro messed this line up
-                end
-            end
+            -- check for macros           
             
             -- we found tune notes; this isn't a file header
             song.parse.has_notes = true

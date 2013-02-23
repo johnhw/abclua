@@ -124,11 +124,12 @@ function compute_duration(note, song)
     else
         song.context.timing.prev_broken_note = 1
     end
-        
-    length = length * song.context.timing.base_note_length * this_note * prev_note * 1e6 * song.context.timing.triplet_compress
-   
+    
+    local beats = length * this_note * prev_note * song.context.timing.triplet_compress    
+    length = beats * song.context.timing.base_note_length * 1e6
+    
   
-    return length   
+    return length, beats
 end
 
 
@@ -148,8 +149,8 @@ function expand_grace(song, grace_note)
     for i,v in ipairs(grace_note) do
         local note_def = v
         local pitch = compute_pitch(note_def, song)
-        local duration = compute_duration(note_def, song)
-        table.insert(grace, {pitch=pitch, duration=duration, grace=note_def})
+        local duration, beats = compute_duration(note_def, song)
+        table.insert(grace, {pitch=pitch, beats=beats, duration=duration, grace=note_def})
     end
     
     -- restore timing state
@@ -168,7 +169,7 @@ function insert_note(note, song)
         -- insert a new note into the song
         local note_def = note
         local pitch = compute_pitch(note_def, song)
-        local duration = compute_duration(note_def, song)
+        local duration, beats = compute_duration(note_def, song)
        
         -- insert grace notes before the main note, if there are any
         if note.grace then
@@ -184,12 +185,12 @@ function insert_note(note, song)
         if pitch==nil then
             -- rest            (strip out 0-duration y rests)
             if duration>0 then
-                table.insert(song.opus, {event='rest', duration=duration, bar_time = song.context.timing.bar_time,
+                table.insert(song.opus, {event='rest', beats=beats, duration=duration, bar_time = song.context.timing.bar_time,
                 note=note})    
             end            
         else       
             -- pitched note
-            table.insert(song.opus, {event='note', pitch=pitch, bar_time = song.context.timing.bar_time, duration=duration, note = note})
+            table.insert(song.opus, {event='note', beats=beasts, pitch=pitch, bar_time = song.context.timing.bar_time, duration=duration, note = note})
             
         end
     

@@ -230,7 +230,7 @@ function parse_field(f, song, inline)
         -- user macro (not transposable)
         if song.parse.no_expand then
             token = {token='field_text', name='user', content=content}                   
-        else        
+        else       
             table.insert(song.parse.user_macros, parse_macro(content))
         end
     end

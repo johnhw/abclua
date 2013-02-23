@@ -367,8 +367,10 @@ timing_change   New timing information. There is always     **base_note_length**
                 
 note            Note receives duration and real pitch       **duration** Duration of the event in microseconds\
                                                             **pitch**    Pitch of the note in MIDI notes\
+                                                            **beats**    Duration of note in beats.
                                                             
 rest            A rest -- just advances time.               **duration** Duration of rest in microseconds.
+                                                            **beats**    Duration of rest in beats.
 -------------------------------------------------------------------------------------------------------------
 
 Table: Event types 

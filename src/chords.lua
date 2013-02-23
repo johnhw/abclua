@@ -190,7 +190,8 @@ function match_chord(chord, custom_table)
     -- get inversion pitch
     if match.inversion then 
         if tonumber(match.inversion) then
-            local note = (chord_form[tonumber(match.inversion)] + get_note_number(base_pitch)) % 12
+            
+            inversion = (chord_form[tonumber(match.inversion)] + base_pitch) % 12
         else
             inversion = get_note_number(match.inversion)
         end       

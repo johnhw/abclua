@@ -48,8 +48,8 @@ function parse_tempo(l)
     local captures = tempo_matcher:match(l)        
     if captures and captures.name and not captures.tempo_rate then    
         -- fill in rate / division if we just have a name        
-        if tempo_names[captures.name] then
-           captures.tempo_rate = tempo_names[captures.name]
+        if tempo_names[string.lower(captures.name)] then
+           captures.tempo_rate = tempo_names[string.lower(captures.name)]
            captures[1] = {num=1, den=4}
         end
     end

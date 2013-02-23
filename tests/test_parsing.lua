@@ -179,6 +179,17 @@ gg]],'Macro expansion'
 )
 
 
+check_result([[X:1
+U:n=g
+U:p=A
+U:~=!coda!
+K:G
+npn|~g~n|]],
+[[X:1
+K:G
+gAg|!coda!g!coda!g|]],'User macros'
+)
+
 check_reproduce([[X:1
 K:G
 A B- D- D2- D3-]], 'Ties')
@@ -259,11 +270,16 @@ E E E]],
 'Line breaks and continue')
 
 
-check_reproduce([[X:1
+check_result([[X:1
 K:G
 D E D | A B :|
-|:: A A A ::|1 B B B :|2 c c c :|3 d d d |]
-|: d e d :|: A B c :|1 g ||]], 'Repeats')
+|:: A A A ::|1 B B B :|2 c c c :|3 d d d |] D D D |: e e e :::: f f f :|
+|: d e d :|: A B c :|1 g ||]],
+[[X:1
+K:G
+D E D | A B :|
+|:: A A A ::|1 B B B :|2 c c c :|3 d d d |] D D D |: e e e ::|:: f f f :|
+|: d e d :|: A B c :|1 g ||]],'Repeats')
 
 
 check_result([[X:1
@@ -332,10 +348,15 @@ K:G
 DED | ABA | DED |
 {ed}DED | {fgA}ABA | {ed}DE{fA}D |]], 'Grace notes')
 
-check_reproduce([[
+check_result([[
 X:1
 K:G
-"Cm7"B | "D"[abc] | "F7"(def) | "Gm"]], 'Chord names')
+"Cm7"B | "D/2"[abc] | "F7"(def) | "Gm/E"]], 
+[[
+X:1
+K:G
+"Cm7"B | "D/Gb"[abc] | "F7"(def) | "Gm/E"]], 
+'Chord names')
 
 check_reproduce([[
 X:1
@@ -352,14 +373,25 @@ K:G
 abzabZ2| Z2 | Z4 | z z Z a]], 'Rests')
 
 
-check_reproduce([[
+check_result([[
 X:1
 Q:1/8=200 "Allegro"
 Q:120
+Q:"Allegro"
 Q:1/4=120
 Q:1/8 1/8 1/4=140
 K:G
-A B C]], 'Tempos')
+A B C]], 
+[[
+X:1
+Q:1/8=200 "Allegro"
+Q:120
+Q:1/4=120 "Allegro"
+Q:1/4=120
+Q:1/8 1/8 1/4=140
+K:G
+A B C]],
+'Tempos')
 
 
 check_reproduce([[X:1
@@ -379,8 +411,9 @@ T:My song
 K:G]], 'Continuation')
 
 
-check_reproduce([[X:1
+check_result([[X:1
 T:My song
+T:Also known as my other song
 +:continued
 A:Kildare
 C:Unknown
@@ -391,6 +424,7 @@ G:ungrouped
 H:Very little is known
 H:about
 +:this song
+but it does support freeform text
 I:abc-creator ABCLua
 L:1/4
 M:4/4
@@ -402,7 +436,35 @@ Q:1/4=120
 R:remarkable
 S:a source
 s:g ^ = a
-U:n=b
+w:oh the-se are so-me words to~a song
+W:Th-ese app-ear at the end
+Z:no one in particular
+K:G]],
+[[X:1
+T:My song
+T:Also known as my other song
++:continued
+A:Kildare
+C:Unknown
+B:book
+D:none
+F:this_file.abc
+G:ungrouped
+H:Very little is known
+H:about
++:this song
++:but it does support freeform text
+I:abc-creator ABCLua
+L:1/4
+M:4/4
+N:A test song
+O:The test suite
+R:reel
+P:AB(CA)2B2
+Q:1/4=120
+R:remarkable
+S:a source
+s:g ^ = a
 w:oh the-se are so-me words to~a song
 W:Th-ese app-ear at the end
 Z:no one in particular

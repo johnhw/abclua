@@ -12,6 +12,8 @@ function parse_range_list(range_list)
     -- Returns each value in this range
     
     local matches = range_matcher:match(range_list)    
+    assert(#matches>0, "Range could not be parsed in bar variant.")
+    
     local sequence = {}    
     -- append each element of the range list
     for i,v in ipairs(matches) do
@@ -60,6 +62,7 @@ function parse_bar(bar, song)
 -- variant markers [range
    local type_info = bar_matcher:match(bar.type)
     
+    assert(type_info~=nil, "Bar could not be parsed.")
     -- compute number of colons around bar (which is the number of repeats of this section)
     if type_info.mid_repeat then
         type_info.end_reps = type_info.mid_repeat[2]-type_info.mid_repeat[1]
@@ -83,9 +86,10 @@ function parse_bar(bar, song)
     -- for a colon sequence, interpret :: as one start end repeat, :::: as two start, two end, etc.
     -- odd colon numbers without a bar symbol don't make sense!
     if type_info.just_colons then
-       
-        type_info.start_reps = type_info.just_colons[2]-type_info.just_colons[1] / 2
-        type_info.start_reps = type_info.just_colons[4]-type_info.just_colons[3] / 2
+        local colons = type_info.just_colons[2]-type_info.just_colons[1]
+        assert(colons%2==0, "Bad number of colons in :: repeat bar.")
+        type_info.start_reps = colons / 2
+        type_info.end_reps = colons / 2
         type_info.mid_repeat = type_info.just_colons -- this is a mid repeat
         type_info.just_colons = nil
     end
@@ -103,6 +107,8 @@ function parse_bar(bar, song)
         end
     end
     
+    assert(parsed_bar.type, "Bar parsed incorrectly.")
+    
     -- convert ranges into a list of integers
     if bar.variant_range then     
          parsed_bar.variant_range = parse_range_list(bar.variant_range)
@@ -110,7 +116,6 @@ function parse_bar(bar, song)
     
     parsed_bar.end_reps = type_info.end_reps
     parsed_bar.start_reps = type_info.start_reps
-    
     
     
     return parsed_bar           
