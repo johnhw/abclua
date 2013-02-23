@@ -5,6 +5,58 @@
 
 require "abclua"
 
+
+
+local rest_breve=[[
+
+[]
+
+]]
+
+local rest_semi_breve = [[
+
+=
+
+]]
+
+local rest_half_note = 
+[[
+
+~ 
+
+]]
+
+local rest_crotchet = 
+[[
+
+}
+
+]]
+
+local rest_quaver = 
+[[
+
+¬
+
+]]
+
+local rest_semi_quaver = 
+[[
+
+ ¬
+ ¬
+]]
+
+
+local rest_demi_semi_quaver = 
+[[
+ ¬
+ ¬
+ ¬
+]]
+
+
+
 local breve=[[
 ||O||
 ]]
@@ -17,36 +69,36 @@ local half_note =
 [[
  |
  |
-O
+O 
 ]]
 
 local crotchet = 
 [[
  |
  |
-*
+* 
 ]]
 
 local quaver = 
 [[
  |\
- |
-*
+ | 
+* 
 ]]
 
 local semi_quaver = 
 [[
  ||\\
- ||
-*
+ ||  
+*   
 ]]
 
 
 local demi_semi_quaver = 
 [[
  |||\\\
- |||
-..
+ |||     
+..     
 ]]
 
 local time_signature_key =
@@ -270,14 +322,12 @@ end
 local note_locations = {c=4, b=5, a=6, g=7, f=8, e=9, d=10}
 
 local max_line_width = 70
-local stave_spacing = 14
+local stave_spacing = 20
 
 
 function render_stream(ascii_state, stream, meter, x, y)
-    -- render a bar, starting at x,y;
-    -- return the stream index to continue from
-    -- and the new x, y position
-    local subdivisions = 24--math.floor((meter.num / (meter.den/4)) * 8)
+    -- render a stream of notes/bars, starting at x,y;
+    local subdivisions = math.floor((meter.num / (meter.den/4)) * 8)
     local note_position 
     local t
     local last_broken = 0
@@ -287,13 +337,16 @@ function render_stream(ascii_state, stream, meter, x, y)
     for i,v in ipairs(stream) do
         if v.token=='note' then
             if not v.note.pitch then
-                note_position = 4
+                note_position = 4 -- rests are centered
             else
+                 -- find vertical position of note
                 note_position = note_locations[v.note.pitch.note] - v.note.pitch.octave * 8
             end
            
-            local dur = (v.note.duration.num/v.note.duration.den)            
-            local len = math.floor((v.note.duration.num/v.note.duration.den)*subdivisions/4)
+            local dur = (v.note.duration.num/v.note.duration.den)
+
+            -- compute visual length of the note
+            local len = math.floor(dur*subdivisions/4)
             local note_form
             local dot = false
             
@@ -301,13 +354,13 @@ function render_stream(ascii_state, stream, meter, x, y)
             for i=x,x+len do
                 render_ascii(ascii_state,  i, y, stave)
             end
-            
+           
+            -- broken rhythms          
             if last_broken then
                if last_broken==1 then dur = dur * 0.5 end
                 if last_broken==-1 then dur = dur * 1.5 end
             end
             
-            -- broken rhythms
             if v.note.duration.broken then
                 last_broken = v.note.duration.broken
                 if last_broken==1 then dur = dur * 1.5 end
@@ -318,32 +371,50 @@ function render_stream(ascii_state, stream, meter, x, y)
             
             -- calculate note form
             
-            if dur==0.25 then note_form = semi_quaver end
-            if dur==0.625 then note_form = semi_quaver; dot=true end           
-            if dur==0.5 then note_form = quaver end
-            if dur==0.75 then note_form = quaver; dot=true end
-            if dur==1 then note_form = crotchet end
-            if dur==1.5 then note_form = crotchet; dot=true; end
-            if dur==2 then note_form = half_note end
-            if dur==3 then note_form = half_note; dot = true end
-            if dur==4 then note_form = semi_breve end
-            if dur==6 then note_form = semi_breve; dot = true end
-            if dur==8 then note_form = breve end
-            if dur==12 then note_form = breve; dot=true end
+            if (dur*8)%3==0 then dot=true end
             
+            if dur>=0.125 then note_form = demi_semi_quaver end            
+            if dur>=0.25 then note_form = semi_quaver end
+            if dur>=0.5 then note_form = quaver end
+            if dur>=1 then note_form = crotchet end
+            if dur>=2 then note_form = half_note end
+            if dur>=4 then note_form = semi_breve end
+            if dur>=8 then note_form = breve end
+            
+            -- draw rests
             if v.note.rest then
-                note_form = '}'
+                if dur>=0.125 then note_form = demi_semi_quaver end            
+                if dur>=0.25 then note_form = semi_quaver end
+                if dur>=0.5 then note_form = quaver end
+                if dur>=1 then note_form = crotchet end
+                if dur>=2 then note_form = half_note end
+                if dur>=4 then note_form = semi_breve end
+                if dur>=8 then note_form = breve end
             end
-            local note_x, note_y = x+len/2, y+note_position
-            w,h = render_ascii(ascii_state,  note_x, note_y, note_form)
+            
+            local note_x, note_y = math.floor(x+len/2)-3, y+note_position
+            -- render note
+            if note_position>6 then
+                note_form = string.reverse(note_form)
+            end
             
            -- guide lines for notes above/below stave
-            if note_position<0 and note_position%2==1 then
-                 render_ascii(ascii_state,  note_x-1, note_y+h-1, '-')
-                 render_ascii(ascii_state,  note_x+1, note_y+h-1, '-')
-
+            
+            for i=9,note_position,2 do
+                  render_ascii(ascii_state,  note_x, y+i, '-')    
+            end
+            
+            for i=1,note_position,-2 do
+                  render_ascii(ascii_state,  note_x, y+i, '-')    
+            end
+            
+            w,h = render_ascii(ascii_state,  note_x, note_y, note_form)
+            if (note_position<4 or note_position>10)and note_position%2==1 then
+                 render_ascii(ascii_state,  note_x-1, note_y+2, '-')
+                 render_ascii(ascii_state,  note_x+1, note_y+2, '-')
             end
          
+            
             -- dotted notes
             if dot then
                 render_ascii(ascii_state,  note_x+2, note_y+h-2, '.')
@@ -372,9 +443,12 @@ function render_stream(ascii_state, stream, meter, x, y)
             
             local w, h = render_ascii(ascii_state, x, y, bar_sprite)
             x = x + w
+            -- variant endings
             if v.bar.variant_range then
                 render_ascii(ascii_state, x-2, y+1, '['..v.bar.variant_range[1])
             end
+            
+            -- break line if close to the end of a bar
              if x>max_line_width then
                 x = x_origin
                 y = y + stave_spacing
@@ -384,44 +458,50 @@ function render_stream(ascii_state, stream, meter, x, y)
     end
 end
 
+function render_title(ascii_state, y, main_title, sub_title)
+    -- render a centered title (and optional subtitle) at the
+    -- given y co-ordinate
+    local centre = (max_line_width-string.len(main_title))/2
+    render_ascii(ascii_state, centre, y, main_title)
+    if sub_title then
+        render_ascii(ascii_state, centre, y+1, '('..sub_title..')') 
+    end
+end
+
 function ascii_score(fname)
     -- Index fname and write the index to stdout
     tunes = {}
     index_songbook(fname, tunes)
     sort_index(tunes)
     for i,v in ipairs(tunes) do
-         ascii_state = {}
-   
+        ascii_state = {}
+        meter = {num=4, den=4} -- default meter
         local key, meter
+        -- assumes only one meter/key in the song
         for j,n in ipairs(v.tokens) do
             if n.token=='key' then key=n.key end
             if n.token=='meter' then meter=n.meter end
         end
         
         -- title
-        local title = v.title[1]
-        local centre = (max_line_width-string.len(title))/2
-        render_ascii(ascii_state, centre, 2, title)
-        if v.title[2] then
-            render_ascii(ascii_state, centre, 3, '('..v.title[2]..')') 
-        end
+        render_title(ascii_state, 2, v.title[1], v.title[2])
+        
         -- tempo
         if v.tempo then
             render_ascii(ascii_state, max_line_width, 3, v.tempo)
         end
         
-        local x,y = 1, 4
-         
+        local x,y = 1, 8
+        
         -- key and time signature
         bar_header = fill_time_key(key, meter)
         x,y = render_ascii(ascii_state, x,y,bar_header)
         
         -- the notes
-        render_stream(ascii_state, v.tokens, meter, x, 4)
-        
+        render_stream(ascii_state, v.tokens, meter, x, 8)
         print_ascii(ascii_state)
-        io.write("\n")
     end
+    io.write("\n")
 end
 
 
