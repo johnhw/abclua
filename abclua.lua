@@ -1,5 +1,4 @@
 re = require "re"
-
 require "src/utils"
 require "src/chords"
 require "src/fields"
@@ -11,6 +10,7 @@ require "src/notes"
 require "src/directives"
 require "src/bar"
 require "src/stream"
+require "src/tuplets"
 require "src/compile"
 require "src/tools"
 require "src/emit_abc"

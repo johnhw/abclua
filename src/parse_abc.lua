@@ -309,7 +309,7 @@ function compile_abc(str, options)
 end
     
 function get_default_context()
-    return   deepcopy({
+    return   {
     tempo = {tempo_rate=120, [1]={num=1, den=8}}, 
     use_parts = false,
     meter = {num=4, den=4},
@@ -323,7 +323,7 @@ function get_default_context()
     directives = {},
     broken_ratio=2,
     write_abc_events = false
-    })
+    }
 end
     
 local section_matcher = re.compile([[
@@ -359,7 +359,6 @@ function parse_abc_multisong(str, options)
         end
     end
         
-    
     -- set defaults for the whole tune
     local default_metadata = {}
     
@@ -374,7 +373,7 @@ function parse_abc_multisong(str, options)
     
     -- first tune might be a file header
     local first_tune = parse_abc(tunes[1], options) 
-    compile_token_stream(first_tune,  deepcopy(default_context), deepcopy(default_metadata))
+    compile_token_stream(first_tune,  default_context, default_metadata)
     table.insert(songs, first_tune)
     
     
@@ -463,6 +462,7 @@ abc_element = abc_element,
 validate_token_stream = validate_token_stream,
 filter_event_stream = filter_event_stream,
 get_note_number = get_note_number,
+get_bpm_from_tempo = get_bpm_from_tempo,
 version=0.2,
 }
 
@@ -471,7 +471,9 @@ return abclua
 -- TODO:
 
 -- Allow chords with key-relative values (e.g. "ii", "V", "V7", "I")
--- Make chords into full fields (root, type, inversion separately)
+-- move to lua 5.1.5
+-- add sqlite example
+-- add tune matcher example
 -- Text string encodings
 
 -- ABCLint -> check abc files for problems

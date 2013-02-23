@@ -43,7 +43,7 @@ ABCLua comes with a package which performs most of the operations of abc2midi (c
 
 
 ### Requires: 
-* [Lua 5.2](http://www.lua.org)
+* [Lua 5.1+](http://www.lua.org)
 * [LPeg](http://www.inf.puc-rio.br/~roberto/lpeg)
 
 ### Optional:    

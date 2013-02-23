@@ -133,7 +133,7 @@ function compose_parts(song)
         
     else
         -- no parts indicator
-        song.stream = deepcopy(expand_patterns(song.context.part_map['default']))
+        song.stream = expand_patterns(song.context.part_map['default'])
     end
     
 end

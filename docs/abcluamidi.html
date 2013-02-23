@@ -1,0 +1,102 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="buttondown.css" type="text/css" />
+</head>
+<body>
+<div id="TOC">
+<ul>
+<li><a href="#abcluamidi">ABCLuaMidi</a><ul>
+<li><a href="#description">Description</a></li>
+<li><a href="#supported-features">Supported features</a><ul>
+<li><a href="#requires">Requires:</a></li>
+</ul></li>
+<li><a href="#using">Using</a></li>
+<li><a href="#differences">Differences</a></li>
+<li><a href="#license">License</a></li>
+</ul></li>
+</ul>
+</div>
+<h1 id="abcluamidi"><a href="#abcluamidi">ABCLuaMidi</a></h1>
+<h2 id="description"><a href="#description">Description</a></h2>
+<p>Compatible implementation of abc2midi, written in Lua, using the ABCLua library.</p>
+<p>Transforms ABC into playable MIDI.</p>
+<h2 id="supported-features"><a href="#supported-features">Supported features</a></h2>
+<p>See <a href="http://ifdo.pugmarks.com/~seymour/runabc/abcguide/abc2midi_guide.html">abc2midi</a> documentation for description of the operation of these features.</p>
+<ul>
+<li>Beat accenting <code>beat</code> <code>beatmod</code> <code>beatstring</code></li>
+<li>Stress models (articulation and time distortion) <code>ptstress</code> <code>stressmodel</code></li>
+<li>Transposition <code>transpose</code> <code>rtranspose</code></li>
+<li>Guitar chords (with arpeggiation) <code>gchord</code> <code>chordname</code> <code>gchordon</code> <code>gchordoff</code></li>
+<li>MIDI control <code>control</code> <code>pitchbend</code></li>
+<li>Strumming <code>chordattack</code> <code>randomchordattack</code></li>
+<li>Drum patterns <code>drum</code> <code>drumon</code> <code>drumoff</code> <code>drumbars</code> <code>drummap</code></li>
+<li>Drones <code>drone</code> <code>droneon</code> <code>droneoff</code></li>
+<li>Microtones <code>^/4C</code></li>
+<li>Linear temperament <code>temperamentlinear</code> <code>temperamentnormal</code></li>
+<li>Accidental propagation <code>propagate-accidentals</code></li>
+<li>Programs, channels <code>program</code> <code>channel</code></li>
+<li>Articulation <code>trim</code></li>
+<li>Grace notes <code>gracedivider</code> (but not <code>grace</code>)</li>
+</ul>
+<h4 id="not-supportedpartial-support"><a href="#not-supportedpartial-support">Not supported/partial support</a></h4>
+<ul>
+<li>lyrics</li>
+<li>Portamento</li>
+<li>Per voice drum/chord/bass channels</li>
+<li><code>snt</code> for tuning</li>
+<li><code>nobarlines</code> <code>barlines</code> (use <code>propagate-accidentals</code> instead)</li>
+</ul>
+<h4 id="extensions"><a href="#extensions">Extensions</a></h4>
+<ul>
+<li><code>gracedivider 0</code> turns off grace notes</li>
+</ul>
+<h3 id="requires"><a href="#requires">Requires:</a></h3>
+<ul>
+<li><a href="http://www.lua.org">Lua 5.2</a></li>
+<li><a href="http://www.inf.puc-rio.br/~roberto/lpeg">LPeg</a></li>
+<li><a href="http://www.pjb.com.au/comp/lua/MIDI.html">MIDI.lua</a></li>
+</ul>
+<h2 id="using"><a href="#using">Using</a></h2>
+<p><code>generate_midi myfile.abc</code> creates <code>myfile.mid</code></p>
+<h2 id="differences"><a href="#differences">Differences</a></h2>
+<ul>
+<li><code>drum</code> maps each note/velocity to each hit in the sequence, not each <code>d</code> character. So <code>%%MIDI drum ddz 40 40 100 100</code> and <code>%%MIDI drum d2z 40 40 100</code> are equivalent.</li>
+<li><code>grace</code> is not supported. Use <code>gracedivider</code></li>
+<li><code>ratio</code> is not supported, but ABCLua's <code>%%set-broken-ratio</code> has the same effect</li>
+</ul>
+<h2 id="license"><a href="#license">License</a></h2>
+<pre><code>Licensened under the BSD 3 clause license.
+    
+* Copyright (c) 2013, John Williamson
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*     * Redistributions of source code must retain the above copyright
+*       notice, this list of conditions and the following disclaimer.
+*     * Redistributions in binary form must reproduce the above copyright
+*       notice, this list of conditions and the following disclaimer in the
+*       documentation and/or other materials provided with the distribution.
+*     * Neither the name of the &lt;organization&gt; nor the
+*       names of its contributors may be used to endorse or promote products
+*       derived from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY &lt;copyright holder&gt; ``AS IS&#39;&#39; AND ANY
+* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL &lt;copyright holder&gt; BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.**
+ </code></pre>
+</body>
+</html>

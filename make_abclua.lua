@@ -1,6 +1,6 @@
 -- concatenates entire source into one lua file
 
-local files = {"utils", "keys", "parts",  "lyrics", "chords", "stream", "macro", "directives", "fields", "bar", "notes", "emit_abc", "tools", "compile", "parse_abc", "register_directives"}
+local files = {"utils", "keys", "parts",  "lyrics", "chords", "stream", "macro", "directives", "fields", "bar", "notes", "emit_abc", "tools", "tuplets", "compile", "parse_abc", "register_directives"}
 
 
 

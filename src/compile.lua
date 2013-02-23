@@ -1,17 +1,23 @@
 -- Functions from transforming a parsed token stream into a song structure and then an event stream
 
 
+function get_bpm_from_tempo(tempo)
+    -- return the real bpm of a tempo 
+    local total_note = 0
+    for i,v in ipairs(tempo) do
+        total_note = total_note + (v.num / v.den)
+    end                    
+    
+    local rate = 60.0 / (total_note * tempo.tempo_rate)
+    return rate
+end
+
 function update_timing(song)
     -- Update the base note length (in seconds), given the current L and Q settings
-    local total_note = 0
     local rate = 0    
     local note_length = song.context.note_length or default_note_length(song)
     
-    for i,v in ipairs(song.context.tempo) do
-        total_note = total_note + (v.num / v.den)
-    
-    end                    
-    rate = 60.0 / (total_note * song.context.tempo.tempo_rate)
+    rate = get_bpm_from_tempo(song.context.tempo)
     song.context.timing.base_note_length = rate / note_length
     
     song.context.timing.grace_note_length = rate / (song.context.grace_length.den/song.context.grace_length.num)
@@ -324,12 +330,10 @@ function compile_token_stream(song, context, metadata)
     -- voice.stream: a series of events (e.g. note on, note off)
     --  indexed by microseconds,
     -- voice.context contains all of the parsed song data
-   
-    
     -- copy any inherited data from the file header
     
     song.default_context = context or get_default_context()
-    song.context = deepcopy(song.default_context)
+    song.context = song.default_context
    
     song.voices = {}
     song.voice_specifiers = {}
