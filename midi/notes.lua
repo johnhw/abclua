@@ -285,7 +285,7 @@ function insert_midi_note(event, midi_state)
         -- get grace note length
         local note_duration = midi_state.base_note_length / midi_state.grace_divider                
         for j,n in ipairs(event.note.grace.sequence) do            
-                table.insert(notes_to_render, {pitch=n.note.play_pitch, duration=note_duration, velocity=velocity})                                               
+                table.insert(notes_to_render, {pitch=n.play_pitch, duration=note_duration, velocity=velocity})                                               
         end        
     end    
     

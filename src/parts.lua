@@ -1,6 +1,5 @@
 -- Functions for dealing with parts, repeats and sub-patterns
 
-
 function add_section(song, repeats)
     -- add the current temporary buffer to the song as a new pattern
     -- repeat it repeat times
@@ -79,11 +78,11 @@ function expand_patterns(patterns)
         
         for i=1,v.repeats do
             -- repeated measures (including single repeats!)
-            append_table(result, v.section)    
+            append_table(result, deepcopy(v.section))    
             
             -- append variant endings
             if #v.variants>=i then
-                append_table(result, v.variants[i])    
+                append_table(result, deepcopy(v.variants[i]))    
             
             end
         end

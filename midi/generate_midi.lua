@@ -89,6 +89,7 @@ function default_midi_state()
         accents = {enabled=true, delta=15, mode='beat', first=127, strong=100, other=80, accent_multiple=4, pattern=nil,stress={}},
         transpose = 0,
         trimming = 1.0,
+        key = nil,
         grace_divider = 4,
         custom_chords = {},
         note_length = 4,
@@ -252,6 +253,10 @@ function produce_midi_opus(song)
             if event.event=='note_length' then
                 -- update grace subdivisions
                 midi_state.note_length = note_length
+            end
+           
+            if event.event=='key' then
+                midi_state.key = event.key
             end
             
             if event.event=='timing_change' then

@@ -9,7 +9,7 @@ M:3/4
 L:1/4
 K:G
 %%MIDI chordattack 0
-"Dmaj" D>ED | "G7" G2 G | "Emin" A>BA |
+"Dmaj" D>ED | "I7" G2 G | "Emin" A>BA |
 %%MIDI chordattack 10
  "D" d3 | "Dmaj" B>AB | "Emin" E2 E |
 %%MIDI chordattack 40

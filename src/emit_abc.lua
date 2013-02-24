@@ -531,7 +531,8 @@ end
 function abc_chord(chord)  
     
     -- return the represenation of a chord
-   local chord_str = chord_case(chord.base_pitch)
+   
+   local chord_str = chord_case(chord.root)
    -- omit maj for major chords
    if chord.chord_type~='maj' then
       chord_str = chord_str..string.lower(chord.chord_type)

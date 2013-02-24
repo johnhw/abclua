@@ -7,9 +7,15 @@ K:G
 V:1
 %%MIDI temperamentlinear 1200.0 696.57843
 G G G | C C C | D D D | G G G | C C C | D D D |
+%%MIDI temperamentlinear 1200.0 700
+G G G | C C C | D D D | G G G | C C C | D D D |
 V:2
 %%MIDI temperamentlinear 1200.0 696.57843
 E E E | E E E | E E E | E E E | E E E | E E E |
+%%MIDI temperamentlinear 1200.0 700
+E E E | E E E | E E E | E E E | E E E | E E E |
 V:3
 %%MIDI temperamentlinear 1200.0 696.57843
+A G A | A G A | A G A | A G A | A G A | A G A |
+%%MIDI temperamentlinear 1200.0 700
 A G A | A G A | A G A | A G A | A G A | A G A |

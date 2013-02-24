@@ -108,7 +108,7 @@ function insert_midi_chord(event, midi_state)
     
     if event.event=='text' then
         
-        event.chord = parse_chord(event.text, midi_state.custom_chords)
+        event.chord = parse_chord(event.text)
         -- if can't parse as a chord, then return
         
         if not event.chord then return end
@@ -138,7 +138,7 @@ function insert_midi_chord(event, midi_state)
     local t = midi_state.last_bar_time -- start the pattern at the start of this bar
     
     -- get chord notes (first is the bass note)
-    local base_notes = event.chord.notes
+    local base_notes = get_chord_notes(event.chord, midi_state.custom_chords, midi_state.key)
         
     -- do nothing if this is not a valid chord
     if not base_notes then return end

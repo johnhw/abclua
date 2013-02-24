@@ -64,6 +64,7 @@ local chords =
 ["7b9b5"] = { 0, 4, 6, 10, 13, },
 ["7sus4/13"] = { 0, 6, 7, 10, 21, },
 ["9"] = { 0, 4, 7, 10, 14, },
+["dim9"] = { 0, 3, 6, 9, 13},
 ["9s5"] = { 0, 4, 8, 10, 14, },
 ["9b5"] = { 0, 4, 6, 10, 14, },
 ["9sus4"] = { 0, 7, 10, 14, 18, },
@@ -131,16 +132,23 @@ local common_chords =
 }
 
 
-local chord_matcher = re.compile([[
-        chord <- ({:root: root :} ({:type: [^/%s] +:}) ? ('/' {:inversion: (<root>/[1-3]) :}) ?) -> {}
-        root <- ([a-g] ('b' / 's') ?)
-    ]])
     
     
-function apply_inversion(inversion, base_pitch, chord_offsets)
+function apply_inversion(inversion, root, chord_offsets)
     -- apply the inversion
     local notes = {}    
     
+    local base_pitch = get_note_number(root)
+    if inversion then 
+        -- numerical inversion
+        if tonumber(inversion) then
+            inversion = (chord_offsets[tonumber(inversion)]+base_pitch) % 12
+        else
+            -- note name inversion
+            inversion = get_note_number(inversion) 
+        end
+    end
+   
     for i,v in ipairs(chord_offsets) do
         -- if inversion, shift the note to the octave below
         if inversion and inversion==(v+base_pitch) % 12 then
@@ -159,12 +167,17 @@ function apply_inversion(inversion, base_pitch, chord_offsets)
     return notes
 end
 
-function match_chord(chord, custom_table)
+local chord_matcher = re.compile([[
+        chord <- ({:root: root :} ({:type: [^/%s] +:}) ? ('/' {:inversion: (<root>/[1-3]) :}) ?) -> {}
+        root <- (([a-g] ('b' / 's') ?) / (<numeral>))
+        numeral <- ('iii' / 'ii' / 'iv' / 'vii' 'vi' / 'v' / 'i') 
+    ]])
+    
+function parse_chord(chord)
     -- Matches chord definitions, returning the root note
-    -- the chord type, and the notes in that chord (as semitone offsets)
+    -- the chord type, and the inversion
+  
     -- convert sharp signs to s and lowercase
-    -- optionally take a table of custom chord types
-    custom_table = custom_table or {}    
     chord = chord:gsub('#', 's')
     chord = string.lower(chord)
            
@@ -173,41 +186,64 @@ function match_chord(chord, custom_table)
         return nil
     end
     
-    local base_pitch = get_note_number(match.root)
-    local inversion
-        
-        
-    match.type = match.type or 'maj' -- default to major chord    
-    local chord_offsets    
-        
-    local chord_form = custom_table[match.type] or chords[match.type]
-    if chord_form  then
-        chord_offsets = chord_form
-    else    
-        return nil -- not a valid chord
-    end    
-    
+  
+    local inversion        
     -- get inversion pitch
     if match.inversion then 
-        if tonumber(match.inversion) then
-            
-            inversion = (chord_form[tonumber(match.inversion)] + base_pitch) % 12
+        if tonumber(match.inversion) then       
+            inversion = tonumber(match.inversion)
         else
-            inversion = get_note_number(match.inversion)
+            inversion = canonical_note_name(get_note_number(match.inversion))
         end       
     end
-    
-    local notes = apply_inversion(inversion, base_pitch, chord_offsets)       
-    return {chord_type=match.type, base_pitch=match.root, offsets=chord_offsets, notes=notes, inversion=canonical_note_name(inversion)}   
+    return {chord_type=match.type or 'maj', root=match.root,inversion=inversion, original_type=match.type}   
 end
 
+local numerals = {iii=3, ii=2, i=1, iv=4, v=5, vi=6, vii=7}
+
+function get_chord_notes(chord, custom_table, key)
+    -- get the notes in a chord
+     local chord_type
+     local root
+     -- deal with numeral chords
+     if numerals[chord.root] then
+        root = numerals[chord.root]-1
+        base_pitch = (get_note_number(key.root)+root) % 12
+        root = canonical_note_name(base_pitch)
+        
+        -- decide whether major or minor
+        if chord.root == 2 or chord.root==3 or chord.root==6 then
+            chord_type = chord.original_type or 'min'
+            if chord_type=='7' then chord.chord_type='m7' end
+            if chord_type=='9' then chord.chord_type='m9' end
+            
+        elseif chord.root == 7  then
+            chord_type = chord.original_type or 'dim'
+            if chord_type=='7' then chord.chord_type='dim7' end
+            if chord_type=='9' then chord.chord_type='dim9' end
+         
+        else
+            chord_type = chord.original_type or 'maj' 
+        end
+     else
+        -- not a numeral chord
+        root = chord.root
+        chord_type = chord.original_type or 'maj' -- default to major chord    
+     end
+    
+     local chord_form = custom_table[chord_type] or chords[chord_type]
+     -- empty chord if we can't play it
+     if not chord_form then return {} end
+     local notes = apply_inversion(chord.inversion, root, chord_form)       
+     return notes
+end
 
 
 function transpose_chord(chord, shift)
     -- return a transposed chord name given a string and an integer offset
     -- e.g. transpose_chord('Cm', 4) returns 'Em'     
     
-      chord.base_pitch = transpose_note_name(chord.base_pitch, shift)
+      chord.root = transpose_note_name(chord.root, shift)
       -- need to transpose inversions as well
       if chord.inversion then
             chord.inversion = transpose_note_name(chord.inversion, shift)   
@@ -217,7 +253,7 @@ end
 
 function is_chord(str)
     -- Return true if this string is a valid chord identifier
-    if match_chord(str) then
+    if parse_chord(str) then
         return true
     else
         return false
@@ -225,41 +261,6 @@ function is_chord(str)
 end
 
 
-function parse_chord(chord, custom)
-    -- parse a chord, returning a chord structure
-    return match_chord(chord, custom)    
-end
-
-function invert_chord(chord)
--- takes a chord defintion string (e.g. "Gm" or "Fm7" or "Asus2") and returns the notes in it
--- as a table of pitches (with C=0)
-
-    
-    local match = chord
-    local notes = {}
-    local inversion
-    if match then  
-       inversion = match.inversion      
-        for i,v in ipairs(match.notes) do
-            -- if inversion, shift the note to the octave below
-            if inversion and inversion==(v+match.base_pitch) % 12 then
-                 table.insert(notes, v+match.base_pitch-12)
-                 inversion = nil -- clear the inversion field so we don't re-add the note
-            else               
-                table.insert(notes, v+match.base_pitch)
-            end
-        end
-    end
-    
-    -- an inversion which was not in the chord itself
-    -- (e.g. Cmaj/F)
-    if inversion then
-        table.insert(notes, inversion-12)
-    end
-    
-    return notes
-    
-end
 
 function voice_chord(notes, octave)
     -- Takes a note sequence for a chord and expands the chord across several octaves

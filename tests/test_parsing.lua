@@ -349,14 +349,10 @@ K:G
 DED | ABA | DED |
 {ed}DED | {fgA}ABA | {ed}DE{fA}D |]], 'Grace notes')
 
-check_result([[
+check_reproduce([[
 X:1
 K:G
 "Cm7"B | "D/2"[abc] | "F7"(def) | "Gm/E"]], 
-[[
-X:1
-K:G
-"Cm7"B | "D/Gb"[abc] | "F7"(def) | "Gm/E"]], 
 'Chord names')
 
 check_reproduce([[
