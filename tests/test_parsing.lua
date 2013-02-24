@@ -98,6 +98,15 @@ K:G treble transpose=-4
 K:G bass octave=2
 K:G bass middle=3]], 'Key with clefs')
 
+
+check_reproduce([[X:1003
+T:Amazing Grace
+M:3/4
+K:G
+"D7"A/B/|(d3d)zB|
+"G"d2 B/G/|B2A|"C"G2 E|"G"D2 D|"Em"G2 (3 B/A/G/|"D"B2 A|("G"G3G2)||]], 'Slurs')
+
+
 check_reproduce(
 [[X:1
 M:3/4
@@ -202,6 +211,20 @@ K:G
 check_reproduce([[X:1
 K:G
 "Cm"F "D"(def) "Amin/G"[CEg] "G7"]], 'Chord names')
+
+check_reproduce([[X:1003
+T:Amazing Grace
+R:Waltz
+C:Carrell and Clayton 1831
+N:Words by Newton 1779
+O:England
+M:3/4
+L:1/4
+Q:1/4=100
+K:G
+D|"G"G2 B/G/|B2 "D7"A|"Em"G2 "C"E|"G"D2 D|G2 B/G/|B2 "D7"A/B/|("D"d3|d)zB|
+"G"d2 B/G/|B2A|"C"G2 E|"G"D2 D|"Em"G2 (3B/A/G/|"D"B2 A|("G"G3|G2)|]
+]], 'Amazing Grace')
 
 check_reproduce([[X:1
 K:G

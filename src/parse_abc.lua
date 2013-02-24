@@ -15,7 +15,6 @@ range_set <- (range (',' range)*)
 range <- ([0-9] ('-' [0-9]) ?)
 slurred_note <- ( ((<complete_note>) -> {}) / ( ({:chord: chord :} ) ? '(' ((<complete_note> %s*)+) ')' )  -> {}  ) 
 
-
 chord_group <- ( ({:chord: chord :} ) ? ('[' ((<complete_note> %s*) +) ']' ) ) -> {} 
 complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: ({decoration} +)->{} :}) ?  {:note_def: full_note :}  (%s * {:tie: (tie)  :}) ? ) -> {} 
 triplet <- ('(' {[1-9]} (':' {[1-9] ?}  (':' {[1-9]} ? ) ?) ?) -> {}
@@ -68,6 +67,7 @@ function add_note_to_stream(token_stream, note)
 function read_tune_segment(tune_data, song)
     -- read the next token in the note stream    
     local cross_ref = nil
+    
     for i,v in ipairs(tune_data) do
         
         if type(v) == 'number' then
@@ -398,6 +398,7 @@ function parse_abc_file(filename, options)
     -- Read a file and send it for parsing. Returns the 
     -- corresponding song table.
     local f = io.open(filename, 'r')
+    assert(f, "Could not open file "..filename)
     local contents = f:read('*a')
     return parse_abc_multisong(contents, options)
 end
@@ -472,7 +473,7 @@ return abclua
 -- add tune matcher example
 -- Text string encodings
 -- More assertions / test cases
---- move chord note finding to compile phase 88888
+-- Fix slurs around bar symbols (parse '(' and ')' separately
 
 -- ABCLint -> check abc files for problems
 

@@ -189,10 +189,10 @@ function duration_stream(stream)
         return 0
     end
     
-    local end_time = stream[-1].t
+    local end_time = stream[#stream].t
     -- must add on duration to avoid chopping last note
-    if stream[-1].duration then
-        end_time = end_time + stream[-1].duration
+    if stream[#stream].duration then
+        end_time = end_time + stream[#stream].duration
     end
     return end_time
 end

@@ -364,7 +364,7 @@ function abc_triplet(triplet)
         triplet_string = triplet_string .. ':' .. triplet.r
     end
     
-    return triplet_string .. ' ' -- must include trailing space separator!
+    return triplet_string -- .. ' ' -- must include trailing space separator!
 end
 
 
@@ -464,6 +464,7 @@ function abc_duration(note_duration)
 
     local duration = ''
  
+   
     -- work out the duration form
     -- nothing if fraction is 1/1
     -- just a if fraction is a/1
@@ -474,6 +475,11 @@ function abc_duration(note_duration)
     end
     if note_duration.den~=1 then
         duration = duration .. '/' .. note_duration.den
+    end
+    
+    -- special case: /2 becomes just / 
+    if note_duration.den==2 and note_duration.num==1 then
+        duration = '/'
     end
 
     -- add broken rhythm symbols (< and >)
@@ -729,7 +735,7 @@ function abc_from_songs(songs, creator)
     creator = creator or 'abclua'
     -- write out header
     table.insert(out, '%abc-2.1\n')
-    table.insert(out, '%%abc-creator='..creator..'\n')
+    table.insert(out, '%%abc-creator '..creator..'\n')
     
     -- each song segment separated by two newlines
     for i,v in ipairs(songs) do
