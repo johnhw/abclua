@@ -27,7 +27,7 @@ end
 function write_wav_header(file, samples, sr)
     -- write a wav header containing a block
     -- of <samples> 8 bit unsigned values
-    local chunk_size = 36 + samples
+    local chunk_size = 36 + samples*2
     file:write('RIFF')
     write_dword(file, chunk_size)
     file:write('WAVE')
@@ -40,7 +40,7 @@ function write_wav_header(file, samples, sr)
     write_word(file, 1) -- block align
     write_word(file, 16)
     file:write('data')
-    write_dword(file, samples) -- data block length
+    write_dword(file, samples*2) -- data block length
 end
 
 function synthesize_note(wav, sr, duration, pitch, beat_time, tempo)
@@ -128,7 +128,7 @@ function synthesize(fname)
     for i,v in ipairs(notes) do
         if v.event=='note' or v.event=='rest' then
             -- if t<v.t then
-                -- -- advance pointer, writing out 0 values 
+                -- advance pointer, writing out 0 values 
                 -- for i=1,(v.t-t)/sample_time do
                     -- write_word(wav, 0)
                 -- end
@@ -136,6 +136,7 @@ function synthesize(fname)
             -- end                       
             -- write the note out
             sample_duration = v.duration / sample_time
+  
             synthesize_note(wav, sr, sample_duration, v.note.play_pitch, v.note.play_bar_time*meter, tempo)
             t = v.t+sample_duration*sample_time
         end
