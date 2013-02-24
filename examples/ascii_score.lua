@@ -144,11 +144,11 @@ local start_repeat =
 
 |
 |
-|**
+|@ 
 |
 |
 |
-|**
+|@ 
 |
 |
 
@@ -163,11 +163,11 @@ local mid_repeat =
 
  |
  |
-*|*
+@|@
  |
  |
  |
-*|*
+@|@
  |
  |
 
@@ -181,11 +181,11 @@ local end_repeat =
 
   |
   |
-**|
+ @|
   |
   |
   |
-**|
+ @|
   |
   |
 
@@ -232,8 +232,6 @@ local stave =
 
 function render_ascii(ascii_state, x, y, sprite)
     -- render a block of ASCII at the given location, overwriting what is there
-    -- chop off leading and trailing newlines
-    -- sprite = string.sub(sprite, 1, -1)
     local x_origin = x
     local key
     local w, h = 0,0
@@ -260,6 +258,7 @@ function render_ascii(ascii_state, x, y, sprite)
 end
 
 function print_ascii(ascii_state)
+    -- print an ASCII state object to stdout
     cells = {}
     for i,v in pairs(ascii_state) do
         table.insert(cells, v)
@@ -320,7 +319,6 @@ function sort_index(index)
 end
 
 local note_locations = {c=4, b=5, a=6, g=7, f=8, e=9, d=10}
-
 local max_line_width = 70
 local stave_spacing = 20
 
@@ -335,6 +333,7 @@ function render_stream(ascii_state, stream, meter, x, y)
     local x_origin = x
     x = x + 1
     for i,v in ipairs(stream) do
+        
         if v.token=='note' then
             if not v.note.pitch then
                 note_position = 4 -- rests are centered
@@ -343,8 +342,8 @@ function render_stream(ascii_state, stream, meter, x, y)
                 note_position = note_locations[v.note.pitch.note] - v.note.pitch.octave * 8
             end
            
-            local dur = (v.note.duration.num/v.note.duration.den)
-
+            local dur = v.note.play_beats 
+            
             -- compute visual length of the note
             local len = math.floor(dur*subdivisions/4)
             local note_form
@@ -354,19 +353,19 @@ function render_stream(ascii_state, stream, meter, x, y)
             for i=x,x+len do
                 render_ascii(ascii_state,  i, y, stave)
             end
-           
-            -- broken rhythms          
-            if last_broken then
-               if last_broken==1 then dur = dur * 0.5 end
-                if last_broken==-1 then dur = dur * 1.5 end
-            end
+                       
+            -- work out triplets
+            local frac = 128/(dur-math.floor(dur))
             
-            if v.note.duration.broken then
-                last_broken = v.note.duration.broken
-                if last_broken==1 then dur = dur * 1.5 end
-                if last_broken==-1 then dur = dur * 0.5 end
-            else
-                last_broken = 0
+            local triplet
+            if frac%3==0 then
+                triplet = '3'
+            end
+            if frac%5==0 then
+                triplet = '5'
+            end
+            if frac%7==0 then
+                triplet = '7'
             end
             
             -- calculate note form
@@ -393,7 +392,7 @@ function render_stream(ascii_state, stream, meter, x, y)
             end
             
             local note_x, note_y = math.floor(x+len/2)-3, y+note_position
-            -- render note
+            -- flip notes below middle of stave
             if note_position>6 then
                 note_form = string.reverse(note_form)
             end
@@ -420,6 +419,17 @@ function render_stream(ascii_state, stream, meter, x, y)
                 render_ascii(ascii_state,  note_x+2, note_y+h-2, '.')
             end
             
+            if triplet then
+                render_ascii(ascii_state,  note_x+1, note_y+h-4, triplet)
+            end
+           
+            -- accidentals
+            if v.note.pitch and v.note.pitch.accidental then
+                local accidental = v.note.pitch.accidental.num / v.note.pitch.accidental.den
+                local accidentals = {[-1]='_', [1]='^', [0]='=', [-2]='__', [2]='^^'}
+                render_ascii(ascii_state,  note_x-1, note_y+h-2, accidentals[accidental] or '=')
+            end
+            
             -- deal with ties
              if last_tied then
                 render_ascii(ascii_state, last_tied[1], last_tied[2], string.rep('=', 2+note_x-last_tied[1]))
@@ -430,10 +440,20 @@ function render_stream(ascii_state, stream, meter, x, y)
             else
                 last_tied = nil
             end
-            
+       
+             if v.note.chord  then
+                render_ascii(ascii_state,  x, y+15, abc_chord(v.note.chord))
+            end
+      
             x = x + len
         end
-        -- stop if we get a bar
+        
+          -- write chord symbols
+        if v.chord  then
+           render_ascii(ascii_state,  x, y+15, abc_chord(v.chord))
+        end
+      
+        -- bar line symbols
         if v.token=='bar' then
             
             -- break on bars if possible
@@ -477,6 +497,8 @@ function ascii_score(fname)
         ascii_state = {}
         meter = {num=4, den=4} -- default meter
         local key, meter
+        -- precompile to get real durations
+        precompile_token_stream(v.tokens)
         -- assumes only one meter/key in the song
         for j,n in ipairs(v.tokens) do
             if n.token=='key' then key=n.key end
@@ -491,14 +513,14 @@ function ascii_score(fname)
             render_ascii(ascii_state, max_line_width, 3, v.tempo)
         end
         
-        local x,y = 1, 8
+        local x,y = 1, 10
         
         -- key and time signature
         bar_header = fill_time_key(key, meter)
         x,y = render_ascii(ascii_state, x,y,bar_header)
         
         -- the notes
-        render_stream(ascii_state, v.tokens, meter, x, 8)
+        render_stream(ascii_state, v.tokens, meter, x, 10)
         print_ascii(ascii_state)
     end
     io.write("\n")

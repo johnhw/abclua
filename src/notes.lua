@@ -78,16 +78,16 @@ function compute_duration(note, song)
     -- duration field of the note itself
     -- bars for multi-measure rests  
     
-    if note.space then return 0 end
+    if note.space then return 0,0 end
     
     -- we are guaranteed to have filled out the num and den fields
     local length = note.duration.num / note.duration.den
-    
-    
+        
     -- measure rest (duration is in bars, not unit lengths)
     if note.measure_rest then   
         -- one bar =  meter ratio * note length (e.g. 1/16 = 16)
-        return compute_bar_length(song) *  length
+        local bar = compute_bar_length(song) *  length 
+        return bar, bar/song.context.meter.num
     end
     
     
@@ -127,8 +127,7 @@ function compute_duration(note, song)
     
     local beats = length * this_note * prev_note * song.context.timing.triplet_compress    
     length = beats * song.context.timing.base_note_length * 1e6
-    
-  
+
     return length, beats
 end
 
@@ -146,11 +145,9 @@ function expand_grace(song, grace_note)
        
     local grace = {}
     
-    for i,v in ipairs(grace_note) do
-        local note_def = v
-        local pitch = compute_pitch(note_def, song)
-        local duration, beats = compute_duration(note_def, song)
-        table.insert(grace, {pitch=pitch, beats=beats, duration=duration, grace=note_def})
+    for i,v in ipairs(grace_note) do        
+        compile_note(v, song)
+        table.insert(grace, v)
     end
     
     -- restore timing state
@@ -162,19 +159,32 @@ function expand_grace(song, grace_note)
 end
     
     
+function compile_note(note, song)
+    -- compile a single note: compute pitch and duration
+    local pitch = compute_pitch(note, song)
+    local duration, beats = compute_duration(note, song)
+    -- insert grace notes before the main note, if there are any
+    if note.grace then
+            note.grace.sequence = expand_grace(song, note.grace) 
+    end
+    note.play_pitch = pitch
+    note.play_duration = duration
+    note.play_beats = beats
+    note.play_bar_time = song.context.timing.bar_time
+    return note
+end
 
-
+function advance_note_time(song, duration)
+    -- advance time, update tuplet state
+    update_tuplet_state(song)   
+    -- advance bar time (in fractions of a bar)
+    song.context.timing.bar_time = song.context.timing.bar_time + duration / song.context.timing.bar_length
+end
 
 function insert_note(note, song)
         -- insert a new note into the song
-        local note_def = note
-        local pitch = compute_pitch(note_def, song)
-        local duration, beats = compute_duration(note_def, song)
        
-        -- insert grace notes before the main note, if there are any
-        if note.grace then
-            note.grace.sequence = expand_grace(song, note.grace) 
-        end
+        note = compile_note(note, song)
         
         -- extract any chords into a separate event
         if note.chord then
@@ -182,21 +192,14 @@ function insert_note(note, song)
         end
       
         -- insert the note events
-        if pitch==nil then
+        if note.play_pitch==nil then
             -- rest            (strip out 0-duration y rests)
-            if duration>0 then
-                table.insert(song.opus, {event='rest', beats=beats, duration=duration, bar_time = song.context.timing.bar_time,
-                note=note})    
+            if note.play_duration>0 then
+                table.insert(song.opus, {event='rest', note=note})    
             end            
         else       
             -- pitched note
-            table.insert(song.opus, {event='note', beats=beasts, pitch=pitch, bar_time = song.context.timing.bar_time, duration=duration, note = note})
-            
+            table.insert(song.opus, {event='note', note = note})
         end
-    
-        update_tuplet_state(song)
-   
-        
-        -- advance bar time (in fractions of a bar)
-        song.context.timing.bar_time = song.context.timing.bar_time + duration / song.context.timing.bar_length
+        advance_note_time(song, note.play_duration)        
 end

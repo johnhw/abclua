@@ -39,6 +39,7 @@ function check_result(str, result, name)
     -- Verify that passing a string through the parser gives a particular result
     -- This includes macro expansion
     local parsed = abclua.parse_abc(str).token_stream
+    abclua.precompile_token_stream(parsed)
     stream, context = compile_tokens(parsed)
     str = emit_abc(parsed)
     local mis = first_difference_string(str, result)

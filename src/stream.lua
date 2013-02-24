@@ -31,19 +31,22 @@ function time_stream(stream)
             t = last_bar
         end
         
+        local duration = 0
         -- rests and notes
         if event.event=='rest' or event.event=='note' then
+            duration = event.note.play_duration
             if not in_chord then
-                t = t + event.duration
+                t = t + duration
             else
                 -- record maximum time in chord; this is how much we will advance by
-                if event.duration > max_duration then
-                    max_duration = event.duration
+                if duration > max_duration then
+                    max_duration = duration
                 end
             end            
             bar_time = event.bar_time
         end
         
+        event.duration = duration
         -- record bar/bar-relative timing
         event.measure = {play_measure = measure, written_measure=measure, bar_time=bar_time}        
         
@@ -59,7 +62,6 @@ function time_stream(stream)
             in_chord = false
             t = t + max_duration -- advance by longest note in chord
         end
-       
        
     end
     
@@ -77,16 +79,17 @@ function get_note_stream(timed_stream, channel)
    
    local channel = channel or 1
    for i,event in ipairs(timed_stream) do        
-            if event.event=='note' then                
-                if not notes_on[event.pitch] then 
-                    table.insert(out, {event='note_on', t=event.t, pitch=event.pitch, channel=channel})
-                    notes_on[event.pitch] = true
+            if event.event=='note' then      
+                
+                if not notes_on[event.note.play_pitch] then 
+                    table.insert(out, {event='note_on', t=event.t, pitch=event.note.play_pitch, channel=channel})
+                    notes_on[event.note.play_pitch] = true
                 end
                 
                 -- don't insert a note off if the note is tied
                 if not event.note.tie then                    
-                    table.insert(out, {event='note_off', t=event.t+event.duration-1, pitch=event.pitch, channel=channel})                                    
-                    notes_on[event.pitch] = false
+                    table.insert(out, {event='note_off', t=event.t+event.duration-1, pitch=event.note.play_pitch, channel=channel})                                    
+                    notes_on[event.note.play_pitch] = false
                 end          
             end
     end
@@ -229,8 +232,9 @@ function render_grace_notes(stream)
             local sequence = v.note.grace.sequence            
             local duration = 0 -- total duration of the grace notes
             for j,n in ipairs(sequence) do                    
-                table.insert(out, {event='note', t=duration+v.t, duration=n.duration, pitch=n.pitch, note=n.grace})
-                duration = duration + n.duration
+                local grace_duration = n.play_duration/4
+                table.insert(out, {event='note', t=duration+v.t, duration=grace_duration, note=n})
+                duration = duration + grace_duration
             end            
             
             -- cut into the time of the next note, and push it along

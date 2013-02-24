@@ -461,6 +461,7 @@ filter_event_stream = filter_event_stream,
 get_note_number = get_note_number,
 get_bpm_from_tempo = get_bpm_from_tempo,
 printable_note_name = printable_note_name,
+precompile_token_stream = precompile_token_stream,
 version=0.2,
 }
 
@@ -473,6 +474,7 @@ return abclua
 -- Text string encodings
 -- Pre-compile phase (without parts/repeats/etc.) -- just fill in real durations and pitches
 -- More assertions / test cases
+--- move chord note finding to compile phase
 
 -- ABCLint -> check abc files for problems
 

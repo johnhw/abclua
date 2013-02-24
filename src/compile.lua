@@ -1,6 +1,5 @@
 -- Functions from transforming a parsed token stream into a song structure and then an event stream
 
-
 function get_bpm_from_tempo(tempo)
     -- return the real bpm of a tempo 
     local total_note = 0
@@ -14,6 +13,7 @@ end
 
 function update_timing(song)
     -- Update the base note length (in seconds), given the current L and Q settings
+    -- Returns a timing state update event to be inserted into the output stream
     local rate = 0    
     local note_length = song.context.note_length or default_note_length(song)
     
@@ -23,9 +23,8 @@ function update_timing(song)
     song.context.timing.grace_note_length = rate / (song.context.grace_length.den/song.context.grace_length.num)
     song.context.timing.bar_length = compute_bar_length(song)
         
-    table.insert(song.opus, {event='timing_change', base_note_length=song.context.timing.base_note_length*1e6, bar_length=song.context.timing.bar_length,
-    beats_in_bar = song.context.meter.num, note_length=note_length, beat_length = song.context.timing.bar_length/song.context.meter.num})
-   
+    table.insert(song.opus, {event='timing_change', timing={base_note_length=song.context.timing.base_note_length*1e6, bar_length=song.context.timing.bar_length,
+    beats_in_bar = song.context.meter.num, note_length=note_length, beat_length = song.context.timing.bar_length/song.context.meter.num}})
 end    
 
 function is_compound_time(song)
@@ -186,6 +185,54 @@ function start_new_voice(song, voice, specifiers)
 end
 
 
+function precompile_token_stream(token_stream)
+    -- run through a token stream, giving duration and pitches to all notes
+    -- splitting off chord symbols. Does not expand repeats/parts/voices/etc.
+    -- One-to-one mapping of original token stream (no tokens added or removed)
+    local song = {context=get_default_context(), opus={}}
+    reset_timing(song)
+
+    for i,v in ipairs(token_stream) do
+        -- notes
+        if v.token=='note' then 
+           compile_note(v.note, song)
+           advance_note_time(song, v.note.play_duration)
+        end
+        
+        -- deal with triplet definitions
+        if v.token=='triplet' then                
+            -- update the context tuplet state so that timing is correct for the next notes
+            apply_triplet(song, v.triplet)
+        end
+        
+        -- deal with bars and repeat symbols
+        if v.token=='bar' then
+            reset_bar_time(song)
+            song.context.accidental = {} -- clear any lingering accidentals             
+        end
+          
+        if v.token=='note_length' then
+            song.context.note_length = v.note_length
+            update_timing(song)
+        end
+        
+        if v.token=='tempo' then
+            song.context.tempo = v.tempo
+            update_timing(song)
+        end
+               
+        if v.token=='meter' then  
+            song.context.meter = v.meter
+            update_timing(song)  
+        end
+        
+        -- update key
+        if v.token=='key' then            
+            song.context.key = v.key
+            apply_key(song, song.context.key)
+        end
+    end
+end
 
 function expand_token_stream(song)
     -- expand a token_stream into a song structure
@@ -218,7 +265,7 @@ function expand_token_stream(song)
         if v.token=='triplet' then                
             -- update the context tuplet state so that timing is correct for the next notes
             apply_triplet(song, v.triplet)
-            end
+        end
         
         -- deal with bars and repeat symbols
         if v.token=='bar' then
@@ -269,8 +316,8 @@ function expand_token_stream(song)
         
         if v.token=='note_length' then
              song.context.note_length = v.note_length
-            update_timing(song)
-        end
+             update_timing(song)
+         end
         
         if v.token=='tempo' then
             song.context.tempo = v.tempo

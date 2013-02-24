@@ -255,10 +255,9 @@ function produce_midi_opus(song)
             end
             
             if event.event=='timing_change' then
-                midi_state.base_note_length = event.base_note_length / 1e3
-                midi_state.bar_length = event.bar_length / 1e3
-                midi_state.beat_length = event.beat_length / 1e3
-                
+                midi_state.base_note_length = event.timing.base_note_length / 1e3
+                midi_state.bar_length = event.timing.bar_length / 1e3
+                midi_state.beat_length = event.timing.beat_length / 1e3
             end
         end
                 
