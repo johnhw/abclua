@@ -99,7 +99,7 @@ function synthesize_note(wav, sr, duration, pitch, beat_time, tempo)
             if duration-i<decay then
                 amp = amp * 0.97
             else
-                if attack and amp<velocity then amp=amp*(1+0.008*vsquared) else attack = false end
+                if attack and amp<velocity then amp=amp*(1+0.015*vsquared) else attack = false end
                 if not attack and amp>0.6 then amp=amp*0.9997 end
             end
             wav:write(string.char(math.floor(value%256)))
