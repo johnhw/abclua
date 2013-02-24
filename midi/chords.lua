@@ -106,8 +106,10 @@ function insert_midi_chord(event, midi_state)
     -- do nothing if chords are currently disabled
     if not midi_state.chord.enabled then return end
     
-    if event.event=='text' then
-        
+    -- deal with chords which weren't parsed at parse time
+    -- (because they are custom chords), but have been
+    -- defined since then
+    if event.event=='text' then       
         event.chord = parse_chord(event.text)
         -- if can't parse as a chord, then return
         

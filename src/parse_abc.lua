@@ -469,12 +469,10 @@ version=0.2,
 return abclua
 -- TODO:
 
--- Allow chords with key-relative values (e.g. "ii", "V", "V7", "I")
 -- add tune matcher example
 -- Text string encodings
--- Pre-compile phase (without parts/repeats/etc.) -- just fill in real durations and pitches
 -- More assertions / test cases
---- move chord note finding to compile phase
+--- move chord note finding to compile phase 88888
 
 -- ABCLint -> check abc files for problems
 

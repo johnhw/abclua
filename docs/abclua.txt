@@ -201,7 +201,6 @@ measure_rest    Measure rest.                              `Z4`          **bars*
 
 chord           Written chord (e.g. "Cm7")                 `"Cm7"`       **base_pitch** root note, as a lower case letter (e.g. 'b')\
                                                                          **chord_type** string (e.g. 'min' or 'maj')\
-                                                                         **notes** notes in this chord (e.g. [0,3,7])\
                                                                          **inversion** if present, inversion as a lower case letter\
 
 text            Free quoted text (e.g. "This is free")     `"hello"`     **text** text inside the quotes (without position annotation)\
@@ -365,12 +364,12 @@ timing_change   New timing information. There is always     **base_note_length**
                                                             **note_length** length of default note (8=1/8th, 4=1/4 etc.)\
                                                             **beat_length** length of one beat in microseconds\
                 
-note            Note receives duration and real pitch       **duration** Duration of the event in microseconds\
-                                                            **pitch**    Pitch of the note in MIDI notes\
-                                                            **beats**    Duration of note in beats.
+note            Note receives duration and real pitch       **play_duration** Duration of the event in microseconds\
+                                                            **play_pitch**    Pitch of the note in MIDI notes\
+                                                            **play_beats**    Duration of note in beats.
                                                             
-rest            A rest -- just advances time.               **duration** Duration of rest in microseconds.
-                                                            **beats**    Duration of rest in beats.
+rest            A rest -- just advances time.               **play_duration** Duration of rest in microseconds.
+                                                            **play_beats**    Duration of rest in beats.
 -------------------------------------------------------------------------------------------------------------
 
 Table: Event types 

@@ -45,7 +45,7 @@ function check_instrument(stream, instrument, offset)
     local pitch
     for i,v in ipairs(stream) do
         if v.event=='note' then
-            pitch = v.pitch+offset
+            pitch = v.note.play_pitch+offset
             
             -- check if playable at all
             if not instrument[pitch]  then
