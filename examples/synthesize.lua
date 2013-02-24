@@ -63,8 +63,7 @@ function synthesize(fname)
                 --advance pointer, writing out 0 values 
                 wav:write(string.rep(string.char(127), ((v.t-t)/sample_time)))
                 t = v.t
-            end            
-            
+            end                       
             -- write the note out
             sample_duration = v.duration / sample_time
             

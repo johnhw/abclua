@@ -223,8 +223,7 @@ L:1/4
 Q:1/4=100
 K:G
 D|"G"G2 B/G/|B2 "D7"A|"Em"G2 "C"E|"G"D2 D|G2 B/G/|B2 "D7"A/B/|("D"d3|d)zB|
-"G"d2 B/G/|B2A|"C"G2 E|"G"D2 D|"Em"G2 (3B/A/G/|"D"B2 A|("G"G3|G2)|]
-]], 'Amazing Grace')
+"G"d2 B/G/|B2A|"C"G2 E|"G"D2 D|"Em"G2 (3B/A/G/|"D"B2 A|("G"G3|G2)||]], 'Amazing Grace')
 
 check_reproduce([[X:1
 K:G
@@ -416,7 +415,7 @@ A B C]],
 
 check_reproduce([[X:1
 K:G
-A A A z | (3  A A A A z | (3::2  A A A z | (5:3:4  A A A A A z | (3:4:2  D D D]],'Tuplets')
+A A A z | (3 A A A A z | (3::2 A A A z | (5:3:4 A A A A A z | (3:4:2 D D D]],'Tuplets')
 
 check_result([[
 X:1

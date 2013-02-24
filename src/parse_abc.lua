@@ -3,7 +3,7 @@
 -- The master grammar
 local tune_pattern = [[
 elements <- ( ({}  <element>)  +) -> {}
-element <- (  {:field: field :}  / ({:slur: <slurred_note> :}) / ({:chord_group: <chord_group> :})  / {:overlay: <overlay> :} / {:bar: (<bar> / <variant>) :}   / {:free_text: free :} / {:triplet: triplet :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
+element <- (  {:field: field :}  / {:top_note: <complete_note>:} / ({:chord_group: <chord_group> :})  / {:overlay: <overlay> :} / {:bar: (<bar> / <variant>) :}   / {:free_text: free :} / {:triplet: triplet :} / {:slur_begin: '(' :} / {:slur_end: ')' :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
 
 overlay <- ('&' +)
 continuation <- ('\')
@@ -149,27 +149,18 @@ function read_tune_segment(tune_data, song)
                 
             end
             
+            if v.slur_begin then
+                table.insert(song.token_stream, {token='slur_begin'})
+            end
+            
+            if v.slur_end then
+                table.insert(song.token_stream, {token='slur_end'})
+            end
+            
             -- if we have slur groups then there are some notes to parse...
-            if v.slur then            
-                if v.slur.chord then
-                    table.insert(song.token_stream, {token='chord', chord=parse_chord(v.slur.chord)})                                
-                end
+            if v.top_note then                            
+                add_note_to_stream(song.token_stream, v.top_note)
                 
-                -- slur groups (only put the group in if there
-                -- are more than elements, or there is an associated chord name)
-                if #v.slur>1  then
-                    table.insert(song.token_stream, {token='slur_begin'} )
-                   
-                end
-                
-                -- insert the individual notes
-                for i,note in ipairs(v.slur) do                                    
-                    add_note_to_stream(song.token_stream, note)
-                end
-                    
-                if #v.slur>1 then
-                    table.insert(song.token_stream, {token='slur_end'} )
-                end
             end
         end
     end
