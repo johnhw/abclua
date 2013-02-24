@@ -131,7 +131,6 @@ function validate_token_stream(tokens)
         
     swap_or_insert(tokens, {token='field_text', name='ref'}, 1, {token='field_text', name='ref', content='1', is_field=true})    
     swap_or_insert(tokens, {token='field_text', name='title'}, 2, {token='field_text', name='title', content='untitled', is_field=true})
-    
         
     local first_note = 1
     -- find first non-field element

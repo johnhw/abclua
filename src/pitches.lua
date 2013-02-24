@@ -1,6 +1,4 @@
 -- pitch arithmetic functions
-
-
 local natural_pitch_table = {c=0, d=2, e=4, f=5, g=7, a=9, b=11}
 
 function get_semitone(key_mapping, pitch, accidental)
@@ -100,7 +98,9 @@ end
 function get_note_number(note)
     -- Convert a note string to a note number (0-11)
     -- e.g. get_note_number('C#') returns 1
-    return note_table[string.lower(note:gsub('#','s'))]
+    local note = note_table[string.lower(note:gsub('#','s'))]
+    assert(note, "Tried to get note number of "..(note or '<nil>'))
+    return note
 end
 
 function canonical_note_name(num)
@@ -108,7 +108,7 @@ function canonical_note_name(num)
     -- only returns one of the canonical names (so there is no
     -- enharmonic ambiguity). 
     -- This means that canonical_note_name(get_note_number(note)) is not necessarily equal to note 
-    return inverse_key_note_table[num]
+    return inverse_key_note_table[num % 12]
 end
 
 function chord_case(str)

@@ -56,6 +56,7 @@ function apply_triplet(song, triplet)
     else
         q = triplet.q
     end
+    
     p = triplet.p
     r = triplet.r 
     
@@ -101,12 +102,10 @@ function parse_triplet(triplet, song)
         r = p
     end
 
-    -- allow long triplets
-    -- if p>9 then
-        -- warn("Bad triplet length (p>9)")
-    -- end
-    
     -- default to choosing q from the table
+    -- note: for n cases, we can't determine the compression
+    -- until we know what meter we will be in when this triplet is encountered
+    -- (i.e. at compile time)
     local q_table = {-1,3,2,3,'n',2,'n',3,'n'}
     if q==-1 then
         q = q_table[p]
