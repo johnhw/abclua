@@ -17,6 +17,7 @@
 <li><a href="#requires">Requires:</a></li>
 <li><a href="#optional">Optional:</a></li>
 </ul></li>
+<li><a href="#examples">Examples</a></li>
 <li><a href="#using">Using</a></li>
 <li><a href="#test-scripts">Test scripts</a></li>
 <li><a href="#api">API</a></li>
@@ -78,10 +79,25 @@
 <ul>
 <li><a href="http://www.pjb.com.au/comp/lua/MIDI.html">MIDI.lua</a></li>
 </ul>
+<h2 id="examples"><a href="#examples">Examples</a></h2>
+<p>ABCLua comes with a few simple examples:</p>
+<ul>
+<li><code>examples/ascii_score.lua</code> Produces a crude ASCII score rendering of the given abc file.</li>
+<li><code>examples/combine_abc.lua</code> Takes a directory of ABC files, and combines them into a single songbook.</li>
+<li><code>examples/instrument_matching.lua</code> Takes an ABC file, finds the best transposition to play on a high D whistle, and prints the transposed tune to standard out.</li>
+<li><code>examples/separate_abc.lua</code> Takes a songbook ABC file, and separates each tune into its own file.</li>
+<li><code>examples/text_index.lua</code> Takes an ABC file, and writes out a plaintext index sheet, with the metadata for each song in the file.</li>
+<li><code>examples/html_index.lua</code> Takes a directory of ABC files, and writes out a searchable/sortable HTML index for all the files. (uses <a href="http://listjs.com">list.js</a>)</li>
+<li><code>examples/synthesize.lua</code> Takes an ABC file, and crudely synthesises a wav file from it. This is just a demo -- it's very inefficient!</li>
+<li><code>examples/transpose.lua</code> Takes an ABC file, and transposes it to the given key, or by the given number of semitones, and writes the new tune to standard out.</li>
+<li><code>examples/tune_db.lua</code> Simple SQLLite database of tunes; can index tunes from files, list and search the database.</li>
+</ul>
+<p>It also comes with a fairly complete clone of <strong>abc2midi</strong>. <code>abc_to_midi.lua</code> will take an ABC file and produce a corresponding MIDI file. See <a href="abcluamidi.html">the guide</a> for more information.</p>
 <h2 id="using"><a href="#using">Using</a></h2>
-<p>You can use this file just by requiring abclua_all.lua, which has all the functions in one single file as a convenience.</p>
+<p>You can use this file just by requiring <code>abclua_all.lua</code> (or <code>abclua_small.lua</code>, which is the same, but compressed to make it much smaller), which has all the functions in one single file as a convenience.</p>
 <pre><code>require &quot;abclua_all.lua&quot;</code></pre>
-<h4 id="examples"><a href="#examples">Examples</a></h4>
+<p>Requiring <code>abclua</code> is equivalent, but instead loads all of the subpackages from <code>src/</code>, which is less convenient for packaging.</p>
+<h4 id="examples-1"><a href="#examples-1">Examples</a></h4>
 <pre><code>-- Write the first tune in an ABC file as a MIDI file
 local abclua = require &quot;abclua_all&quot;
 -- Assuming you have Peter J. Billam&#39;s MIDI.lua
@@ -145,6 +161,7 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 <pre><code>    -- parse the fragment in the context of the first song loaded
     tokens = parse_abc_fragment(&#39;de&gt;d&#39;)
     stream, context = compile_tokens(tokens)</code></pre></li>
+<li><p><code>precompile_token_stream(tokens, [context])</code> Adds pitch and duration information to all notes; but does not expand repeats/parts/voices etc. Modifies the token stream in place, adding new fields (e.g. <strong>play_pitch</strong> and <strong>play_duration</strong>).</p></li>
 <li><p><code>emit_abc(tokens)</code> Return an ABC string represenation of a given token stream</p>
 <pre><code>    songs = parse_abc_file(&#39;example.abc&#39;)
     -- should print out something close to the first tune in the original example.abc
@@ -159,7 +176,10 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 </ul>
 <h2 id="utility-functions"><a href="#utility-functions">Utility functions</a></h2>
 <ul>
-<li><p><code>diatonic_transpose(tokens, semitones)</code> Modifies the given <em>token</em> stream to transpose all notes and keys by the given number of semitones. This transposes notes, grace notes and written chord (e.g. &quot;Cm7/F&quot;). Transposing the event stream (e.g. for playback) only requires changing the <strong>pitch</strong> field.</p></li>
+<li><p><code>diatonic_transpose(tokens, semitones)</code> Modifies the given <em>token</em> stream to transpose all notes and keys by the given number of semitones. This transposes notes, grace notes and written chords (e.g. &quot;Cm7/F&quot;). Transposing the event stream (e.g. for playback) only requires changing the <strong>pitch</strong> field.</p></li>
+<li><p><code>canonical_note_name(num)</code> returns the note name of an integer (e.g. 0='c', 1='cs').</p></li>
+<li><p><code>get_note_number(name)</code> returns the note number of an name (e.g. 'c'=0, 'cs'=1, 'C#'=1, 'Db'=1).</p></li>
+<li><p><code>validate_token_stream(stream)</code> makes sure the token stream has <strong>ref</strong>, <strong>title</strong> and <strong>key</strong> fields before notes. Swaps existing ones into place, or creates new ones.</p></li>
 <li><p><code>trim_event_stream(events, mode, start_time, end_time)</code> Returns a copy of the given event stream including only events that happened within [start_time, end_time] (given in microseconds). Mode can be<br /> <strong>starts</strong> to include any events that start in that period;<br /> <strong>ends</strong> to include only those that end in that period;<br /><strong>any</strong> to include any event that starts or ends;  <strong>within</strong> to include only those that start and end;<br />and <strong>trim</strong> which is the same as <strong>any</strong> but changes the start time and duration of events so that they fit <em>exactly</em> into the given time period.</p></li>
 <li><p><code>get_note_stream(stream)</code> Convert an event stream into a stream which contains only <strong>note_on</strong> and <strong>note_off</strong> events (e.g. suitable for conversion to MIDI)</p></li>
 <li><p><code>get_chord_stream(stream)</code> Pulls out any written chord definitions (e.g. &quot;Cm7&quot;) from the given stream, constructs the corresponding chords, and returns them as <strong>note_on</strong>, <strong>note_off</strong> events.</p></li>
@@ -192,7 +212,7 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 <td align="left">chord</td>
 <td align="left">Written chord (e.g. &quot;Cm7&quot;)</td>
 <td align="left"><code>&quot;Cm7&quot;</code></td>
-<td align="left"><strong>base_pitch</strong> root note, as a lower case letter (e.g. 'b')<br /><strong>chord_type</strong> string (e.g. 'min' or 'maj')<br /><strong>notes</strong> notes in this chord (e.g. [0,3,7])<br /><strong>inversion</strong> if present, inversion as a lower case letter<br /></td>
+<td align="left"><strong>base_pitch</strong> root note, as a lower case letter (e.g. 'b')<br /><strong>chord_type</strong> string (e.g. 'min' or 'maj')<br /><strong>inversion</strong> if present, inversion as a lower case letter<br /></td>
 </tr>
 <tr class="odd">
 <td align="left">text</td>
@@ -264,7 +284,7 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 <td align="left">bar</td>
 <td align="left">Some form of bar line</td>
 <td align="left"><code>| |: [n,n</code></td>
-<td align="left"><strong>type</strong> type of the bar as a text field<br /><strong>type</strong> can be:<br />=&gt; <strong>plain</strong> regular bar <code>|</code><br />=&gt; <strong>double</strong> double bar <code>||</code><br />=&gt; <strong>thickthin</strong> <code>[|</code><br />=&gt; <strong>thinthick</strong> <code>|]</code><br />=&gt; <strong>start_repeat</strong> <code>|:</code><br />=&gt; <strong>end_repeat</strong> <code>:|</code><br />=&gt; <strong>mid_repeat</strong> <code>:|:</code><br />=&gt; <strong>variant</strong> <code>[n</code><br /><br /><strong>start_repeats</strong> number of repeats<br /><strong>end_repeats</strong> number of repeats<br /><strong>variant_range</strong> list of variants<br />(e.g. [1-3,6 be {1,2,3,6}) <strong>measure</strong> number of this bar (starts at 1)</td>
+<td align="left"><strong>type</strong> type of the bar as a text field<br /><strong>type</strong> can be:<br />=&gt; <strong>plain</strong> regular bar <code>|</code><br />=&gt; <strong>double</strong> double bar <code>||</code><br />=&gt; <strong>thickthin</strong> <code>[|</code><br />=&gt; <strong>thinthick</strong> <code>|]</code><br />=&gt; <strong>start_repeat</strong> <code>|:</code><br />=&gt; <strong>end_repeat</strong> <code>:|</code><br />=&gt; <strong>mid_repeat</strong> <code>:|:</code><br />=&gt; <strong>variant</strong> <code>[n</code><br /><br /><strong>start_repeats</strong> number of repeats (colons before bar)<br /><strong>end_repeats</strong> number of repeats (colons after bar)<br /><strong>variant_range</strong> list of variants<br />(e.g. [1-3,6 would become {1,2,3,6})<br /><strong>measure</strong> number of this bar (starts at 1; no special accounting for anacrusis)</td>
 </tr>
 <tr class="odd">
 <td align="left">words</td>
@@ -428,13 +448,13 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 </tr>
 <tr class="even">
 <td align="left">note</td>
-<td align="left">Note receives duration and real pitch</td>
-<td align="left"><strong>duration</strong> Duration of the event in microseconds<br /><strong>pitch</strong> Pitch of the note in MIDI notes<br /></td>
+<td align="left">Note receives duration and real pitch.</td>
+<td align="left"><strong>play_duration</strong> Duration of the event in microseconds<br /><strong>play_pitch</strong> Pitch of the note in MIDI notes<br /><strong>play_bars</strong> Duration of note in bars.<br /><strong>play_units</strong> Duration of the note in unit note lengths<br /><strong>play_bar_time</strong> Start time of note, as fraction of one measure.<br /></td>
 </tr>
 <tr class="odd">
 <td align="left">rest</td>
 <td align="left">A rest -- just advances time.</td>
-<td align="left"><strong>duration</strong> Duration of rest in microseconds.</td>
+<td align="left"><strong>play_duration</strong> Duration of rest in microseconds.<br /><strong>play_bars</strong> Duration of rest in bars.<br /><strong>play_units</strong> Duration of the note in unit note lengths<br /><strong>play_bar_time</strong> Start time of note, as fraction of one measure.<br /></td>
 </tr>
 </tbody>
 </table>

@@ -26,7 +26,6 @@ See [abc2midi](http://ifdo.pugmarks.com/~seymour/runabc/abcguide/abc2midi_guide.
 
 #### Not supported/partial support
 * lyrics 
-* Portamento
 * Per voice drum/chord/bass channels
 * `snt` for tuning
 * `nobarlines` `barlines` (use `propagate-accidentals` instead)
@@ -51,6 +50,7 @@ See [abc2midi](http://ifdo.pugmarks.com/~seymour/runabc/abcguide/abc2midi_guide.
 * `drum` maps each note/velocity to each hit in the sequence, not each `d` character. So `%%MIDI drum ddz 40 40 100 100` and `%%MIDI drum d2z 40 40 100` are equivalent.
 * `grace` is not supported. Use `gracedivider`
 * `ratio` is not supported, but ABCLua's `%%set-broken-ratio` has the same effect
+* There are no built in stress patterns. You need to define them with `stressmodel`.
 
 ## License    
     Licensened under the BSD 3 clause license.
