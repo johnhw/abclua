@@ -31,7 +31,7 @@ fields.words =  [[('w:' %s * {.*}) -> {}]]
 fields.end_words =  [[('W:' %s * {.*}) -> {}]]
 fields.transcriber =  [[('Z:' %s * {.*}) -> {}]]
 fields.continuation =  [[('+:' %s * {.*}) -> {}]]
-
+fields.extended = [[('E:' %s * {.*}) -> {}]]
 
 -- compile field matchers
 for i,v in pairs(fields) do
@@ -169,39 +169,52 @@ function parse_field(f, song, inline)
     
     -- update specific tune settings
     if field_name=='length' then
-        token = {token='note_length', note_length=parse_length(content)}
+        local note_length = parse_length(content)
+        if note_length then
+            token = {token='note_length', note_length=note_length}
+        end
     end
             
     -- update tempo
     if field_name=='tempo' then            
-        token = {token='tempo', tempo=parse_tempo(content)}
+        local tempo=parse_tempo(content)
+        if tempo then
+            token = {token='tempo', tempo=tempo}
+        end
     end
     
     -- parse lyric definitions
     if field_name=='words' then                        
-         token = {token='words', lyrics=parse_lyrics(content)}           
+        local lyrics = parse_lyrics(content)
+        if lyrics then
+            token = {token='words', lyrics=lyrics}          
+        end
     end
     
      -- parse lyric definitions
     if field_name=='instruction' then                       
          local parse_time, directive = parse_directive(content)
          -- must execute parse time directives immediately
-         
-         if parse_time and not song.parse.no_expand then
-            apply_directive(song, directive.directive, directive.arguments)
-         else
-            -- otherwise defer
-            token = {token='instruction', directive=directive}           
+         if directive then
+             if parse_time and not song.parse.no_expand then
+                apply_directive(song, directive.directive, directive.arguments)
+             else
+                -- otherwise defer
+                token = {token='instruction', directive=directive}           
+             end
          end
     end
             
      -- parse voice definitions
-    if field_name=='voice' then  
-        -- in the header this just sets up the voice properties
-        if song.parse.in_header then
-            token = {token='voice_def', voice=parse_voice(content)}
-        else
-            token = {token='voice_change', voice=parse_voice(content)}
+    if field_name=='voice' then 
+        local voice = parse_voice(content)
+        if voice then                
+            -- in the header this just sets up the voice properties
+            if song.parse.in_header then
+                token = {token='voice_def', voice=voice}
+            else
+                token = {token='voice_change', voice=parse_voice(content)}
+            end
         end
     end
       
@@ -212,7 +225,9 @@ function parse_field(f, song, inline)
         if song.parse.in_header then
             local parts = content:gsub('\\.', '') -- remove dots
             parts = parse_parts(content)
-            token = {token='parts', parts=parts}           
+            if parts then
+                token = {token='parts', parts=parts}           
+            end
         else
             
             -- otherwise we are starting a new part   

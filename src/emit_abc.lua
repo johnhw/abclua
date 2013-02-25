@@ -6,6 +6,7 @@ local field_tags = {key = 'K'
 ,book =  'B'
 ,composer =  'C'
 ,discography =   'D'
+,extended = 'E'
 ,file =   'F'
 ,group =   'G'
 ,history =   'H'
@@ -535,9 +536,7 @@ function abc_note_def(note)
 end
 
 function abc_chord(chord)  
-    
     -- return the represenation of a chord
-   
    local chord_str = chord_case(chord.root)
    -- omit maj for major chords
    if chord.chord_type~='maj' then
@@ -665,7 +664,7 @@ function abc_note_element(element)
     end
     
     
-    if element.token=='chord' then
+    if element.token=='chord' and element.chord then
             return '"' .. abc_chord(element.chord) .. '"'
     end
     
@@ -732,10 +731,11 @@ function abc_from_songs(songs, creator)
     -- the creator field can optionally be specified to identify
     -- the program that created this code
     local out = {}
-    creator = creator or 'abclua'
-    -- write out header
-    table.insert(out, '%abc-2.1\n')
-    table.insert(out, '%%abc-creator '..creator..'\n')
+    if creator then
+        -- write out header
+        table.insert(out, '%abc-2.1\n')
+        table.insert(out, '%%abc-creator '..creator..'\n')
+    end
     
     -- each song segment separated by two newlines
     for i,v in ipairs(songs) do

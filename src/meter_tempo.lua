@@ -52,6 +52,12 @@ function parse_tempo(l)
            captures.tempo_rate = tempo_names[string.lower(captures.name)]
            captures[1] = {num=1, den=4}
         end
+         
+    end
+    
+    -- default if not filled in
+    if not captures.tempo_rate then
+         captures = {tempo_rate=120, [1]={num=1, den=8}}
     end
     
     return captures
@@ -62,7 +68,7 @@ function parse_length(l)
     -- Parse a string giving note length, as a fraction "1/n" (or plain "1")
     -- Returns integer representing denominator.
     local captures = length_matcher:match(l)             
-    if captures[1] then
+    if captures and captures[1] then
         return captures[1]+0
     else
         return 1    

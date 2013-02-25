@@ -4,8 +4,12 @@
 require "abclua"
 
 function separate_abc(fname)
-    local songs = parse_abc_file(fname)    
-    for i,v in ipairs(songs) do
+    local f = io.open(fname, 'r')
+    assert(f, "Could not open file "..fname)
+    local contents = f:read('*a')
+ 
+    -- iterate through songs
+    for v in parse_abc_song_iterator(contents) do
         if v.metadata.title then
             title = v.metadata.title[1] 
             title = title:gsub('%p', '-')
@@ -19,9 +23,9 @@ function separate_abc(fname)
             title = title:gsub('\\-\\_', '_')
             title = title:gsub('\\_\\-', '_')
             
-            local out = io.open(title..'.abc', 'w')
-            out:write(abc_from_songs({v}))
-            out:close()
+            -- local out = io.open(title..'.abc', 'w')
+            -- out:write(abc_from_songs({v}))
+            -- out:close()
         end
     end
 end

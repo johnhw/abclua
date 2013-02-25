@@ -90,7 +90,7 @@ end
 
 
 local key_matcher = re.compile([[
-    key <- ( {:none: ('none') :} / {:pipe: ('Hp' / 'HP') :} / (
+    key <- ( {:none: ('none') :} / {:pipe: ('hp' / 'hp') :} / (
         {:root: ([a-gA-G]) 'b'? '#'? :}  
         (%s * {:mode: (mode %S*):}) ? 
         (%s * {:accidentals: (accidentals):}) ?         
@@ -118,6 +118,11 @@ function parse_key(k)
 
     k = k:lower()
     local captures = key_matcher:match(k)
+    
+    -- if no key, the K:none assumed
+    if not captures then
+        captures = {none='none'}
+    end
     
     -- normalise the accidentals
     local accidentals = {}

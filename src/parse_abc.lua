@@ -9,7 +9,7 @@ overlay <- ('&' +)
 continuation <- ('\')
 beam_split <- (%s +)
 free <- ( '"' {:text: [^"]* :} '"' ) -> {}
-bar <- ( {:type: ((']' / '[') * ('|' / ':') + (']' / '[') *) :} ({:variant_range: (<range_set>) :}) ? ) -> {}
+bar <- ( {:type: (('[') * ('|' / ':') + (']') *) :} ({:variant_range: (<range_set>) :}) ? ) -> {}
 variant <- ({:type: '[' :} {:variant_range: <range_set> :})   -> {}
 range_set <- (range (',' range)*)
 range <- ([0-9] ('-' [0-9]) ?)
@@ -315,15 +315,38 @@ function get_default_context()
 end
     
 local section_matcher = re.compile([[
-     abc_tunes <- (section (break section) * last_line ?) -> {}
+     abc_tunes <- (section (break+ section) * last_line ?) -> {}
      break <- (([ ] * %nl)  )
      section <- { (line +)  }
      line <- ( ([^%nl] +  %nl) )
      last_line <- ( ([^%nl]+) )
     ]] 
 )    
-function parse_abc_multisong(str, options)
-         
+
+function parse_and_compile(tune_str, options, context, metadata)
+    -- parse a tune and compile it; returns nil if cannot be parsed or compiled
+    local success, tune = pcall(parse_abc,tune_str,options)
+    if not success then 
+        warn("Could not parse tune beginning: "..string.sub(tune_str, 1, 64)) 
+        warn(tune)
+        return nil
+    end
+    local success,err  = pcall(compile_token_stream,tune,context,metadata)
+    if not success then 
+        warn("Could not compile tune beginning: "..string.sub(tune_str, 1, 64)) 
+        warn(err)
+        return nil
+    end
+    return tune
+end
+
+
+
+
+function parse_abc_coroutine(str, options)
+    -- Iterator for iterating through tunes in a songbook
+    -- This is preferable to just reading the entire thing into an table
+    -- as it saves memory.
     -- split file into sections
    
     
@@ -333,10 +356,9 @@ function parse_abc_multisong(str, options)
     -- can be directives or comments first)
     local sections = section_matcher:match(str)
     local tunes = {}    
-    
     -- malformed file
     if not sections or #sections==0 then
-        return {}
+        return 
     end
    
     -- only include patterns with a field in them; ignore 
@@ -349,40 +371,50 @@ function parse_abc_multisong(str, options)
         
     -- set defaults for the whole tune
     local default_metadata = {}
-    
     local default_context = get_default_context()
     
     -- no tunes!
     if #tunes<1 then
-        return {}
+        return 
     end
-    
-    local songs = {}
     
     -- first tune might be a file header
-    local first_tune = parse_abc(tunes[1], options) 
-    compile_token_stream(first_tune,  default_context, default_metadata)
-    table.insert(songs, first_tune)
-    
+    local first_tune = parse_and_compile(tunes[1], options, default_context, default_metadata)
     
     -- if no notes, is a global header for this whole file
-    if not first_tune.parse.has_notes then
+    if first_tune and not first_tune.parse.has_notes then
         default_metadata = first_tune.metadata
         default_context = first_tune.context
+    else
+        default_metadata = {}
+        default_context = get_default_context()
     end
     
-   
+    -- return the first tune
+    coroutine.yield(first_tune)
+    
     -- add remaining tunes, using file header as default, if needed
     for i,v in ipairs(tunes) do
         -- don't add first tune twice
         if i~=1 then
-            local tune = parse_abc(v, options) 
-            compile_token_stream(tune, deepcopy(default_context), deepcopy(default_metadata))    
-            table.insert(songs, tune)
+            local tune =  parse_and_compile(v, options, deepcopy(default_context), deepcopy(default_metadata))
+            coroutine.yield(tune)
         end
     end
-    
-    return songs
+end
+
+function parse_abc_song_iterator(str, options)
+    -- return an iterator to iterate over songs in a songbook
+    return coroutine.wrap(function() parse_abc_coroutine(str, options)end)
+end
+
+function parse_abc_multisong(str, options) 
+    -- return a table of songs from a songbook
+    local songs = {}
+    for song in parse_abc_song_iterator(str, options) do
+        table.insert(songs, song)
+    end
+    return songs 
 end
 
 function parse_abc_file(filename, options)
@@ -454,6 +486,7 @@ get_note_number = get_note_number,
 get_bpm_from_tempo = get_bpm_from_tempo,
 printable_note_name = printable_note_name,
 precompile_token_stream = precompile_token_stream,
+parse_abc_song_iterator = parse_abc_song_iterator,
 version=0.2,
 }
 
@@ -464,6 +497,8 @@ return abclua
 -- add tune matcher example
 -- Text string encodings
 -- More assertions / test cases
+-- Make automatic tune reproduce tester
+-- Make songbook iterator (to save memory!) -- have parse_abc_multisong() just call the iterator and fill the table
 -- Check bar timing stuff (3/4 and 4/4 should have different bar times!)
 
 -- ABCLint -> check abc files for problems

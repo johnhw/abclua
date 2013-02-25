@@ -7,6 +7,7 @@ function get_bpm_from_tempo(tempo)
         total_note = total_note + (v.num / v.den)
     end                    
     
+   
     local rate = 60.0 / (total_note * tempo.tempo_rate)
     return rate
 end
@@ -345,8 +346,11 @@ function expand_token_stream(song)
         end
         
         if v.token=='new_part' then
-            song.in_variant_part = nil -- clear the variant flag
-            start_new_part(song, v.part)    
+            -- can only start a new part if the parts have been defined.
+            if song.context.part_structure then
+                song.in_variant_part = nil -- clear the variant flag
+                start_new_part(song, v.part)    
+            end
         end
         
         if v.token=='meter' then  

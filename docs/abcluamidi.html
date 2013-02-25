@@ -47,7 +47,6 @@
 <h4 id="not-supportedpartial-support"><a href="#not-supportedpartial-support">Not supported/partial support</a></h4>
 <ul>
 <li>lyrics</li>
-<li>Portamento</li>
 <li>Per voice drum/chord/bass channels</li>
 <li><code>snt</code> for tuning</li>
 <li><code>nobarlines</code> <code>barlines</code> (use <code>propagate-accidentals</code> instead)</li>
@@ -69,6 +68,7 @@
 <li><code>drum</code> maps each note/velocity to each hit in the sequence, not each <code>d</code> character. So <code>%%MIDI drum ddz 40 40 100 100</code> and <code>%%MIDI drum d2z 40 40 100</code> are equivalent.</li>
 <li><code>grace</code> is not supported. Use <code>gracedivider</code></li>
 <li><code>ratio</code> is not supported, but ABCLua's <code>%%set-broken-ratio</code> has the same effect</li>
+<li>There are no built in stress patterns. You need to define them with <code>stressmodel</code>.</li>
 </ul>
 <h2 id="license"><a href="#license">License</a></h2>
 <pre><code>Licensened under the BSD 3 clause license.

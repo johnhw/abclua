@@ -68,6 +68,7 @@ local add_note_to_stream
 local parse_free_text
 local compile_token_stream
 local expand_token_stream
+local precompile_token_stream
 local start_new_voice
 local reset_bar_time
 local reset_timing
@@ -121,6 +122,8 @@ local abc_key
 local abc_tempo
 local abc_meter
 local insert_note
+local advance_note_time
+local compile_note
 local expand_grace
 local compute_duration
 local compute_bar_length
@@ -162,11 +165,10 @@ local get_note_stream
 local time_stream
 local test_chords
 local voice_chord
-local invert_chord
-local parse_chord
 local is_chord
 local transpose_chord
-local match_chord
+local get_chord_notes
+local parse_chord
 local apply_inversion
 local test_lyric_parsing
 local insert_lyrics
@@ -648,7 +650,6 @@ end
 --
 -- Functions for dealing with parts, repeats and sub-patterns
 
-
 function add_section(song, repeats)
     -- add the current temporary buffer to the song as a new pattern
     -- repeat it repeat times
@@ -727,11 +728,11 @@ function expand_patterns(patterns)
         
         for i=1,v.repeats do
             -- repeated measures (including single repeats!)
-            append_table(result, v.section)    
+            append_table(result, deepcopy(v.section))    
             
             -- append variant endings
             if #v.variants>=i then
-                append_table(result, v.variants[i])    
+                append_table(result, deepcopy(v.variants[i]))    
             
             end
         end
@@ -1048,6 +1049,7 @@ local chords =
 ["7b9b5"] = { 0, 4, 6, 10, 13, },
 ["7sus4/13"] = { 0, 6, 7, 10, 21, },
 ["9"] = { 0, 4, 7, 10, 14, },
+["dim9"] = { 0, 3, 6, 9, 13},
 ["9s5"] = { 0, 4, 8, 10, 14, },
 ["9b5"] = { 0, 4, 6, 10, 14, },
 ["9sus4"] = { 0, 7, 10, 14, 18, },
@@ -1115,16 +1117,23 @@ local common_chords =
 }
 
 
-local chord_matcher = re.compile([[
-        chord <- ({:root: root :} ({:type: [^/%s] +:}) ? ('/' {:inversion: (<root>/[1-3]) :}) ?) -> {}
-        root <- ([a-g] ('b' / 's') ?)
-    ]])
     
     
-function apply_inversion(inversion, base_pitch, chord_offsets)
+function apply_inversion(inversion, root, chord_offsets)
     -- apply the inversion
     local notes = {}    
     
+    local base_pitch = get_note_number(root)
+    if inversion then 
+        -- numerical inversion
+        if tonumber(inversion) then
+            inversion = (chord_offsets[tonumber(inversion)]+base_pitch) % 12
+        else
+            -- note name inversion
+            inversion = get_note_number(inversion) 
+        end
+    end
+   
     for i,v in ipairs(chord_offsets) do
         -- if inversion, shift the note to the octave below
         if inversion and inversion==(v+base_pitch) % 12 then
@@ -1143,12 +1152,17 @@ function apply_inversion(inversion, base_pitch, chord_offsets)
     return notes
 end
 
-function match_chord(chord, custom_table)
+local chord_matcher = re.compile([[
+        chord <- ({:root: root :} ({:type: [^/%s] +:}) ? ('/' {:inversion: (<root>/[1-3]) :}) ?) -> {}
+        root <- (([a-g] ('b' / 's') ?) / (<numeral>))
+        numeral <- ('iii' / 'ii' / 'iv' / 'vii' 'vi' / 'v' / 'i') 
+    ]])
+    
+function parse_chord(chord)
     -- Matches chord definitions, returning the root note
-    -- the chord type, and the notes in that chord (as semitone offsets)
+    -- the chord type, and the inversion
+  
     -- convert sharp signs to s and lowercase
-    -- optionally take a table of custom chord types
-    custom_table = custom_table or {}    
     chord = chord:gsub('#', 's')
     chord = string.lower(chord)
            
@@ -1157,40 +1171,64 @@ function match_chord(chord, custom_table)
         return nil
     end
     
-    local base_pitch = get_note_number(match.root)
-    local inversion
-        
-        
-    match.type = match.type or 'maj' -- default to major chord    
-    local chord_offsets    
-        
-    local chord_form = custom_table[match.type] or chords[match.type]
-    if chord_form  then
-        chord_offsets = chord_form
-    else    
-        return nil -- not a valid chord
-    end    
-    
+  
+    local inversion        
     -- get inversion pitch
     if match.inversion then 
-        if tonumber(match.inversion) then
-            local note = (chord_form[tonumber(match.inversion)] + get_note_number(base_pitch)) % 12
+        if tonumber(match.inversion) then       
+            inversion = tonumber(match.inversion)
         else
-            inversion = get_note_number(match.inversion)
+            inversion = canonical_note_name(get_note_number(match.inversion))
         end       
     end
-    
-    local notes = apply_inversion(inversion, base_pitch, chord_offsets)       
-    return {chord_type=match.type, base_pitch=match.root, offsets=chord_offsets, notes=notes, inversion=canonical_note_name(inversion)}   
+    return {chord_type=match.type or 'maj', root=match.root,inversion=inversion, original_type=match.type}   
 end
 
+local numerals = {iii=3, ii=2, i=1, iv=4, v=5, vi=6, vii=7}
+
+function get_chord_notes(chord, custom_table, key)
+    -- get the notes in a chord
+     local chord_type
+     local root
+     -- deal with numeral chords
+     if numerals[chord.root] then
+        root = numerals[chord.root]-1
+        base_pitch = (get_note_number(key.root)+root) % 12
+        root = canonical_note_name(base_pitch)
+        
+        -- decide whether major or minor
+        if chord.root == 2 or chord.root==3 or chord.root==6 then
+            chord_type = chord.original_type or 'min'
+            if chord_type=='7' then chord.chord_type='m7' end
+            if chord_type=='9' then chord.chord_type='m9' end
+            
+        elseif chord.root == 7  then
+            chord_type = chord.original_type or 'dim'
+            if chord_type=='7' then chord.chord_type='dim7' end
+            if chord_type=='9' then chord.chord_type='dim9' end
+         
+        else
+            chord_type = chord.original_type or 'maj' 
+        end
+     else
+        -- not a numeral chord
+        root = chord.root
+        chord_type = chord.original_type or 'maj' -- default to major chord    
+     end
+    
+     local chord_form = custom_table[chord_type] or chords[chord_type]
+     -- empty chord if we can't play it
+     if not chord_form then return nil end
+     local notes = apply_inversion(chord.inversion, root, chord_form)       
+     return notes
+end
 
 
 function transpose_chord(chord, shift)
     -- return a transposed chord name given a string and an integer offset
     -- e.g. transpose_chord('Cm', 4) returns 'Em'     
     
-      chord.base_pitch = transpose_note_name(chord.base_pitch, shift)
+      chord.root = transpose_note_name(chord.root, shift)
       -- need to transpose inversions as well
       if chord.inversion then
             chord.inversion = transpose_note_name(chord.inversion, shift)   
@@ -1200,7 +1238,7 @@ end
 
 function is_chord(str)
     -- Return true if this string is a valid chord identifier
-    if match_chord(str) then
+    if parse_chord(str) then
         return true
     else
         return false
@@ -1208,41 +1246,6 @@ function is_chord(str)
 end
 
 
-function parse_chord(chord, custom)
-    -- parse a chord, returning a chord structure
-    return match_chord(chord, custom)    
-end
-
-function invert_chord(chord)
--- takes a chord defintion string (e.g. "Gm" or "Fm7" or "Asus2") and returns the notes in it
--- as a table of pitches (with C=0)
-
-    
-    local match = chord
-    local notes = {}
-    local inversion
-    if match then  
-       inversion = match.inversion      
-        for i,v in ipairs(match.notes) do
-            -- if inversion, shift the note to the octave below
-            if inversion and inversion==(v+match.base_pitch) % 12 then
-                 table.insert(notes, v+match.base_pitch-12)
-                 inversion = nil -- clear the inversion field so we don't re-add the note
-            else               
-                table.insert(notes, v+match.base_pitch)
-            end
-        end
-    end
-    
-    -- an inversion which was not in the chord itself
-    -- (e.g. Cmaj/F)
-    if inversion then
-        table.insert(notes, inversion-12)
-    end
-    
-    return notes
-    
-end
 
 function voice_chord(notes, octave)
     -- Takes a note sequence for a chord and expands the chord across several octaves
@@ -1327,19 +1330,22 @@ function time_stream(stream)
             t = last_bar
         end
         
+        local duration = 0
         -- rests and notes
         if event.event=='rest' or event.event=='note' then
+            duration = event.note.play_duration
             if not in_chord then
-                t = t + event.duration
+                t = t + duration
             else
                 -- record maximum time in chord; this is how much we will advance by
-                if event.duration > max_duration then
-                    max_duration = event.duration
+                if duration > max_duration then
+                    max_duration = duration
                 end
             end            
-            bar_time = event.bar_time
+            bar_time = event.play_bar_time
         end
         
+        event.duration = duration
         -- record bar/bar-relative timing
         event.measure = {play_measure = measure, written_measure=measure, bar_time=bar_time}        
         
@@ -1355,7 +1361,6 @@ function time_stream(stream)
             in_chord = false
             t = t + max_duration -- advance by longest note in chord
         end
-       
        
     end
     
@@ -1373,16 +1378,17 @@ function get_note_stream(timed_stream, channel)
    
    local channel = channel or 1
    for i,event in ipairs(timed_stream) do        
-            if event.event=='note' then                
-                if not notes_on[event.pitch] then 
-                    table.insert(out, {event='note_on', t=event.t, pitch=event.pitch, channel=channel})
-                    notes_on[event.pitch] = true
+            if event.event=='note' then      
+                
+                if not notes_on[event.note.play_pitch] then 
+                    table.insert(out, {event='note_on', t=event.t, pitch=event.note.play_pitch, channel=channel})
+                    notes_on[event.note.play_pitch] = true
                 end
                 
                 -- don't insert a note off if the note is tied
                 if not event.note.tie then                    
-                    table.insert(out, {event='note_off', t=event.t+event.duration-1, pitch=event.pitch, channel=channel})                                    
-                    notes_on[event.pitch] = false
+                    table.insert(out, {event='note_off', t=event.t+event.duration-1, pitch=event.note.play_pitch, channel=channel})                                    
+                    notes_on[event.note.play_pitch] = false
                 end          
             end
     end
@@ -1482,10 +1488,10 @@ function duration_stream(stream)
         return 0
     end
     
-    local end_time = stream[-1].t
+    local end_time = stream[#stream].t
     -- must add on duration to avoid chopping last note
-    if stream[-1].duration then
-        end_time = end_time + stream[-1].duration
+    if stream[#stream].duration then
+        end_time = end_time + stream[#stream].duration
     end
     return end_time
 end
@@ -1525,8 +1531,9 @@ function render_grace_notes(stream)
             local sequence = v.note.grace.sequence            
             local duration = 0 -- total duration of the grace notes
             for j,n in ipairs(sequence) do                    
-                table.insert(out, {event='note', t=duration+v.t, duration=n.duration, pitch=n.pitch, note=n.grace})
-                duration = duration + n.duration
+                local grace_duration = n.play_duration/4
+                table.insert(out, {event='note', t=duration+v.t, duration=grace_duration, note=n})
+                duration = duration + grace_duration
             end            
             
             -- cut into the time of the next note, and push it along
@@ -1692,7 +1699,7 @@ function get_chord_stream(stream, octave)
             end
             
             -- get the notes for this chord and put them in the sequence
-            notes = voice_chord(chord.notes, octave)
+            notes = voice_chord(get_chord_notes(chord), octave)
             for j, n in ipairs(notes) do
                  table.insert(out, {event='note_on', t=t, pitch=n, channel})                           
                  notes_on[n] = true
@@ -2173,7 +2180,7 @@ function parse_field(f, song, inline)
         -- user macro (not transposable)
         if song.parse.no_expand then
             token = {token='field_text', name='user', content=content}                   
-        else        
+        else       
             table.insert(song.parse.user_macros, parse_macro(content))
         end
     end
@@ -2243,6 +2250,8 @@ function parse_range_list(range_list)
     -- Returns each value in this range
     
     local matches = range_matcher:match(range_list)    
+    assert(#matches>0, "Range could not be parsed in bar variant.")
+    
     local sequence = {}    
     -- append each element of the range list
     for i,v in ipairs(matches) do
@@ -2291,6 +2300,7 @@ function parse_bar(bar, song)
 -- variant markers [range
    local type_info = bar_matcher:match(bar.type)
     
+    assert(type_info~=nil, "Bar could not be parsed.")
     -- compute number of colons around bar (which is the number of repeats of this section)
     if type_info.mid_repeat then
         type_info.end_reps = type_info.mid_repeat[2]-type_info.mid_repeat[1]
@@ -2314,9 +2324,10 @@ function parse_bar(bar, song)
     -- for a colon sequence, interpret :: as one start end repeat, :::: as two start, two end, etc.
     -- odd colon numbers without a bar symbol don't make sense!
     if type_info.just_colons then
-       
-        type_info.start_reps = type_info.just_colons[2]-type_info.just_colons[1] / 2
-        type_info.start_reps = type_info.just_colons[4]-type_info.just_colons[3] / 2
+        local colons = type_info.just_colons[2]-type_info.just_colons[1]
+        assert(colons%2==0, "Bad number of colons in :: repeat bar.")
+        type_info.start_reps = colons / 2
+        type_info.end_reps = colons / 2
         type_info.mid_repeat = type_info.just_colons -- this is a mid repeat
         type_info.just_colons = nil
     end
@@ -2334,6 +2345,8 @@ function parse_bar(bar, song)
         end
     end
     
+    assert(parsed_bar.type, "Bar parsed incorrectly.")
+    
     -- convert ranges into a list of integers
     if bar.variant_range then     
          parsed_bar.variant_range = parse_range_list(bar.variant_range)
@@ -2341,7 +2354,6 @@ function parse_bar(bar, song)
     
     parsed_bar.end_reps = type_info.end_reps
     parsed_bar.start_reps = type_info.start_reps
-    
     
     
     return parsed_bar           
@@ -2433,16 +2445,16 @@ function compute_duration(note, song)
     -- duration field of the note itself
     -- bars for multi-measure rests  
     
-    if note.space then return 0 end
+    if note.space then return 0,0 end
     
     -- we are guaranteed to have filled out the num and den fields
     local length = note.duration.num / note.duration.den
-    
-    
+        
     -- measure rest (duration is in bars, not unit lengths)
     if note.measure_rest then   
         -- one bar =  meter ratio * note length (e.g. 1/16 = 16)
-        return compute_bar_length(song) *  length
+        local bar = compute_bar_length(song) *  length 
+        return bar, bar/song.context.meter.num
     end
     
     
@@ -2479,11 +2491,11 @@ function compute_duration(note, song)
     else
         song.context.timing.prev_broken_note = 1
     end
-        
-    length = length * song.context.timing.base_note_length * this_note * prev_note * 1e6 * song.context.timing.triplet_compress
-   
-  
-    return length   
+    
+    local beats = length * this_note * prev_note * song.context.timing.triplet_compress    
+    length = beats * song.context.timing.base_note_length * 1e6
+    local note_length = song.context.note_length or default_note_length(song)
+    return length, beats / note_length, beats
 end
 
 
@@ -2500,11 +2512,9 @@ function expand_grace(song, grace_note)
        
     local grace = {}
     
-    for i,v in ipairs(grace_note) do
-        local note_def = v
-        local pitch = compute_pitch(note_def, song)
-        local duration = compute_duration(note_def, song)
-        table.insert(grace, {pitch=pitch, duration=duration, grace=note_def})
+    for i,v in ipairs(grace_note) do        
+        compile_note(v, song)
+        table.insert(grace, v)
     end
     
     -- restore timing state
@@ -2516,19 +2526,34 @@ function expand_grace(song, grace_note)
 end
     
     
+function compile_note(note, song)
+    -- compile a single note: compute pitch and duration
+    local pitch = compute_pitch(note, song)
+    local duration, beats, units = compute_duration(note, song)
+    -- insert grace notes before the main note, if there are any
+    if note.grace then
+            note.grace.sequence = expand_grace(song, note.grace) 
+    end
+    note.play_pitch = pitch
+    note.play_duration = duration
+    note.play_bars = beats
+    note.play_units = units
+    note.play_bar_time = song.context.timing.bar_time
+    
+    return note
+end
 
-
+function advance_note_time(song, note)
+    -- advance time, update tuplet state
+    update_tuplet_state(song)   
+    -- advance bar time (in fractions of a bar)
+    song.context.timing.bar_time = song.context.timing.bar_time + note.play_bars
+end
 
 function insert_note(note, song)
         -- insert a new note into the song
-        local note_def = note
-        local pitch = compute_pitch(note_def, song)
-        local duration = compute_duration(note_def, song)
        
-        -- insert grace notes before the main note, if there are any
-        if note.grace then
-            note.grace.sequence = expand_grace(song, note.grace) 
-        end
+        note = compile_note(note, song)
         
         -- extract any chords into a separate event
         if note.chord then
@@ -2536,23 +2561,16 @@ function insert_note(note, song)
         end
       
         -- insert the note events
-        if pitch==nil then
+        if note.play_pitch==nil then
             -- rest            (strip out 0-duration y rests)
-            if duration>0 then
-                table.insert(song.opus, {event='rest', duration=duration, bar_time = song.context.timing.bar_time,
-                note=note})    
+            if note.play_duration>0 then
+                table.insert(song.opus, {event='rest', note=note})    
             end            
         else       
             -- pitched note
-            table.insert(song.opus, {event='note', pitch=pitch, bar_time = song.context.timing.bar_time, duration=duration, note = note})
-            
+            table.insert(song.opus, {event='note', note = note})
         end
-    
-        update_tuplet_state(song)
-   
-        
-        -- advance bar time (in fractions of a bar)
-        song.context.timing.bar_time = song.context.timing.bar_time + duration / song.context.timing.bar_length
+        advance_note_time(song, note)        
 end
 
 
@@ -2926,7 +2944,7 @@ function abc_triplet(triplet)
         triplet_string = triplet_string .. ':' .. triplet.r
     end
     
-    return triplet_string .. ' ' -- must include trailing space separator!
+    return triplet_string -- .. ' ' -- must include trailing space separator!
 end
 
 
@@ -3026,6 +3044,7 @@ function abc_duration(note_duration)
 
     local duration = ''
  
+   
     -- work out the duration form
     -- nothing if fraction is 1/1
     -- just a if fraction is a/1
@@ -3036,6 +3055,11 @@ function abc_duration(note_duration)
     end
     if note_duration.den~=1 then
         duration = duration .. '/' .. note_duration.den
+    end
+    
+    -- special case: /2 becomes just / 
+    if note_duration.den==2 and note_duration.num==1 then
+        duration = '/'
     end
 
     -- add broken rhythm symbols (< and >)
@@ -3093,7 +3117,8 @@ end
 function abc_chord(chord)  
     
     -- return the represenation of a chord
-   local chord_str = chord_case(chord.base_pitch)
+   
+   local chord_str = chord_case(chord.root)
    -- omit maj for major chords
    if chord.chord_type~='maj' then
       chord_str = chord_str..string.lower(chord.chord_type)
@@ -3290,7 +3315,7 @@ function abc_from_songs(songs, creator)
     creator = creator or 'abclua'
     -- write out header
     table.insert(out, '%abc-2.1\n')
-    table.insert(out, '%%abc-creator='..creator..'\n')
+    table.insert(out, '%%abc-creator '..creator..'\n')
     
     -- each song segment separated by two newlines
     for i,v in ipairs(songs) do
@@ -3439,7 +3464,6 @@ function validate_token_stream(tokens)
         
     swap_or_insert(tokens, {token='field_text', name='ref'}, 1, {token='field_text', name='ref', content='1', is_field=true})    
     swap_or_insert(tokens, {token='field_text', name='title'}, 2, {token='field_text', name='title', content='untitled', is_field=true})
-    
         
     local first_note = 1
     -- find first non-field element
@@ -3518,6 +3542,7 @@ function apply_triplet(song, triplet)
     else
         q = triplet.q
     end
+    
     p = triplet.p
     r = triplet.r 
     
@@ -3563,12 +3588,10 @@ function parse_triplet(triplet, song)
         r = p
     end
 
-    -- allow long triplets
-    -- if p>9 then
-        -- warn("Bad triplet length (p>9)")
-    -- end
-    
     -- default to choosing q from the table
+    -- note: for n cases, we can't determine the compression
+    -- until we know what meter we will be in when this triplet is encountered
+    -- (i.e. at compile time)
     local q_table = {-1,3,2,3,'n',2,'n',3,'n'}
     if q==-1 then
         q = q_table[p]
@@ -3582,8 +3605,6 @@ end
 -- From source file: pitches.lua
 --
 -- pitch arithmetic functions
-
-
 local natural_pitch_table = {c=0, d=2, e=4, f=5, g=7, a=9, b=11}
 
 function get_semitone(key_mapping, pitch, accidental)
@@ -3683,7 +3704,9 @@ end
 function get_note_number(note)
     -- Convert a note string to a note number (0-11)
     -- e.g. get_note_number('C#') returns 1
-    return note_table[string.lower(note:gsub('#','s'))]
+    local note = note_table[string.lower(note:gsub('#','s'))]
+    assert(note, "Tried to get note number of "..(note or '<nil>'))
+    return note
 end
 
 function canonical_note_name(num)
@@ -3691,7 +3714,7 @@ function canonical_note_name(num)
     -- only returns one of the canonical names (so there is no
     -- enharmonic ambiguity). 
     -- This means that canonical_note_name(get_note_number(note)) is not necessarily equal to note 
-    return inverse_key_note_table[num]
+    return inverse_key_note_table[num % 12]
 end
 
 function chord_case(str)
@@ -3712,7 +3735,6 @@ end
 --
 -- Functions from transforming a parsed token stream into a song structure and then an event stream
 
-
 function get_bpm_from_tempo(tempo)
     -- return the real bpm of a tempo 
     local total_note = 0
@@ -3726,6 +3748,7 @@ end
 
 function update_timing(song)
     -- Update the base note length (in seconds), given the current L and Q settings
+    -- Returns a timing state update event to be inserted into the output stream
     local rate = 0    
     local note_length = song.context.note_length or default_note_length(song)
     
@@ -3733,11 +3756,17 @@ function update_timing(song)
     song.context.timing.base_note_length = rate / note_length
     
     song.context.timing.grace_note_length = rate / (song.context.grace_length.den/song.context.grace_length.num)
-    song.context.timing.bar_length = compute_bar_length(song)
+    
+    -- deal with unmetered time; one "bar" becomes one whole note
+    if song.context.meter.num==0 then
+         song.context.timing.bar_length = rate*1e6
+    else
+        song.context.timing.bar_length = compute_bar_length(song)
+    end
+    
         
-    table.insert(song.opus, {event='timing_change', base_note_length=song.context.timing.base_note_length*1e6, bar_length=song.context.timing.bar_length,
-    beats_in_bar = song.context.meter.num, note_length=note_length, beat_length = song.context.timing.bar_length/song.context.meter.num})
-   
+    table.insert(song.opus, {event='timing_change', timing={base_note_length=song.context.timing.base_note_length*1e6, bar_length=song.context.timing.bar_length,
+    beats_in_bar = song.context.meter.num, note_length=note_length, beat_length = song.context.timing.bar_length/song.context.meter.num}})
 end    
 
 function is_compound_time(song)
@@ -3898,6 +3927,54 @@ function start_new_voice(song, voice, specifiers)
 end
 
 
+function precompile_token_stream(token_stream, context)
+    -- run through a token stream, giving duration and pitches to all notes
+    -- splitting off chord symbols. Does not expand repeats/parts/voices/etc.
+    -- One-to-one mapping of original token stream (no tokens added or removed)
+    local song = {context=context or get_default_context(), opus={}}
+    reset_timing(song)
+
+    for i,v in ipairs(token_stream) do
+        -- notes
+        if v.token=='note' then 
+           compile_note(v.note, song)
+           advance_note_time(song, v.note)
+        end
+        
+        -- deal with triplet definitions
+        if v.token=='triplet' then                
+            -- update the context tuplet state so that timing is correct for the next notes
+            apply_triplet(song, v.triplet)
+        end
+        
+        -- deal with bars and repeat symbols
+        if v.token=='bar' then
+            reset_bar_time(song)
+            song.context.accidental = {} -- clear any lingering accidentals             
+        end
+          
+        if v.token=='note_length' then
+            song.context.note_length = v.note_length
+            update_timing(song)
+        end
+        
+        if v.token=='tempo' then
+            song.context.tempo = v.tempo
+            update_timing(song)
+        end
+               
+        if v.token=='meter' then  
+            song.context.meter = v.meter
+            update_timing(song)  
+        end
+        
+        -- update key
+        if v.token=='key' then            
+            song.context.key = v.key
+            apply_key(song, song.context.key)
+        end
+    end
+end
 
 function expand_token_stream(song)
     -- expand a token_stream into a song structure
@@ -3930,7 +4007,7 @@ function expand_token_stream(song)
         if v.token=='triplet' then                
             -- update the context tuplet state so that timing is correct for the next notes
             apply_triplet(song, v.triplet)
-            end
+        end
         
         -- deal with bars and repeat symbols
         if v.token=='bar' then
@@ -3981,8 +4058,8 @@ function expand_token_stream(song)
         
         if v.token=='note_length' then
              song.context.note_length = v.note_length
-            update_timing(song)
-        end
+             update_timing(song)
+         end
         
         if v.token=='tempo' then
             song.context.tempo = v.tempo
@@ -4070,7 +4147,7 @@ end
 -- The master grammar
 local tune_pattern = [[
 elements <- ( ({}  <element>)  +) -> {}
-element <- (  {:field: field :}  / ({:slur: <slurred_note> :}) / ({:chord_group: <chord_group> :})  / {:overlay: <overlay> :} / {:bar: (<bar> / <variant>) :}   / {:free_text: free :} / {:triplet: triplet :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
+element <- (  {:field: field :}  / {:top_note: <complete_note>:} / ({:chord_group: <chord_group> :})  / {:overlay: <overlay> :} / {:bar: (<bar> / <variant>) :}   / {:free_text: free :} / {:triplet: triplet :} / {:slur_begin: '(' :} / {:slur_end: ')' :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
 
 overlay <- ('&' +)
 continuation <- ('\')
@@ -4081,7 +4158,6 @@ variant <- ({:type: '[' :} {:variant_range: <range_set> :})   -> {}
 range_set <- (range (',' range)*)
 range <- ([0-9] ('-' [0-9]) ?)
 slurred_note <- ( ((<complete_note>) -> {}) / ( ({:chord: chord :} ) ? '(' ((<complete_note> %s*)+) ')' )  -> {}  ) 
-
 
 chord_group <- ( ({:chord: chord :} ) ? ('[' ((<complete_note> %s*) +) ']' ) ) -> {} 
 complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: ({decoration} +)->{} :}) ?  {:note_def: full_note :}  (%s * {:tie: (tie)  :}) ? ) -> {} 
@@ -4135,6 +4211,7 @@ function add_note_to_stream(token_stream, note)
 function read_tune_segment(tune_data, song)
     -- read the next token in the note stream    
     local cross_ref = nil
+    
     for i,v in ipairs(tune_data) do
         
         if type(v) == 'number' then
@@ -4216,27 +4293,18 @@ function read_tune_segment(tune_data, song)
                 
             end
             
+            if v.slur_begin then
+                table.insert(song.token_stream, {token='slur_begin'})
+            end
+            
+            if v.slur_end then
+                table.insert(song.token_stream, {token='slur_end'})
+            end
+            
             -- if we have slur groups then there are some notes to parse...
-            if v.slur then            
-                if v.slur.chord then
-                    table.insert(song.token_stream, {token='chord', chord=parse_chord(v.slur.chord)})                                
-                end
+            if v.top_note then                            
+                add_note_to_stream(song.token_stream, v.top_note)
                 
-                -- slur groups (only put the group in if there
-                -- are more than elements, or there is an associated chord name)
-                if #v.slur>1  then
-                    table.insert(song.token_stream, {token='slur_begin'} )
-                   
-                end
-                
-                -- insert the individual notes
-                for i,note in ipairs(v.slur) do                                    
-                    add_note_to_stream(song.token_stream, note)
-                end
-                    
-                if #v.slur>1 then
-                    table.insert(song.token_stream, {token='slur_end'} )
-                end
             end
         end
     end
@@ -4252,7 +4320,7 @@ function expand_macros(song, line)
     
     expanded_line = apply_macros(song.parse.macros, line)
     expanded_line = apply_macros(song.parse.user_macros, expanded_line)
-        
+     
     -- macros changed this line; must now re-parse the line
     match = tune_matcher:match(expanded_line)
     if not match then
@@ -4299,21 +4367,18 @@ function parse_abc_line(line, song)
     -- read tune
     --
     if not field_parsed and not song.parse.in_header then
-        
-        -- try and match notes
-        local match = tune_matcher:match(line)
+        local match
+        if not song.parse.no_expand and (#song.parse.macros>0 or #song.parse.user_macros>0)  then               
+                match = expand_macros(song, line)                
+        else
+            match = tune_matcher:match(line)
+        end
                 
         -- if it was a tune line, then parse it
         -- (if not, it should be a metadata field)
         if match then            
         
-            -- check for macros
-            if not song.parse.no_expand and (#song.parse.macros>0 or #song.parse.user_macros>0)  then               
-                match = expand_macros(song, line)
-                if not match then 
-                    return nil -- bad macro messed this line up
-                end
-            end
+            -- check for macros           
             
             -- we found tune notes; this isn't a file header
             song.parse.has_notes = true
@@ -4468,6 +4533,7 @@ function parse_abc_file(filename, options)
     -- Read a file and send it for parsing. Returns the 
     -- corresponding song table.
     local f = io.open(filename, 'r')
+    assert(f, "Could not open file "..filename)
     local contents = f:read('*a')
     return parse_abc_multisong(contents, options)
 end
@@ -4531,21 +4597,19 @@ filter_event_stream = filter_event_stream,
 get_note_number = get_note_number,
 get_bpm_from_tempo = get_bpm_from_tempo,
 printable_note_name = printable_note_name,
+precompile_token_stream = precompile_token_stream,
 version=0.2,
 }
 
 
 -- TODO:
 
--- Allow chords with key-relative values (e.g. "ii", "V", "V7", "I")
--- move to lua 5.1.5
--- add sqlite example
 -- add tune matcher example
 -- Text string encodings
+-- More assertions / test cases
+-- Check bar timing stuff (3/4 and 4/4 should have different bar times!)
 
 -- ABCLint -> check abc files for problems
-
--- Midi processing routines.
 
 -- transposing macros don't work when octave modifiers and ties are applied
 
@@ -4786,8 +4850,8 @@ function parse_tempo(l)
     local captures = tempo_matcher:match(l)        
     if captures and captures.name and not captures.tempo_rate then    
         -- fill in rate / division if we just have a name        
-        if tempo_names[captures.name] then
-           captures.tempo_rate = tempo_names[captures.name]
+        if tempo_names[string.lower(captures.name)] then
+           captures.tempo_rate = tempo_names[string.lower(captures.name)]
            captures[1] = {num=1, den=4}
         end
     end

@@ -1,4 +1,4 @@
-set ABCLUA_VERSION=0.2.0
+set ABCLUA_VERSION=0.2.1
 del /Q /S dist
 mkdir dist
 mkdir dist\src

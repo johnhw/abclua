@@ -61,8 +61,7 @@ function apply_triplet(song, triplet)
     r = triplet.r 
     
     -- set compression and number of notes to apply this to    
-    push_triplet(song, triplet.p, triplet.q, triplet.r)
-    
+    push_triplet(song, p,q,r)   
 end
 
 
