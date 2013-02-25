@@ -91,7 +91,8 @@ function default_midi_state()
         trimming = 1.0,
         key = nil,
         last_chord = nil,
-        bar_chord = nil,
+        in_chord = false,
+        chord_time = 0,
         grace_divider = 4,
         custom_chords = {},
         note_length = 4,
@@ -223,18 +224,37 @@ function produce_midi_opus(song)
                 -- insert_midi_rest(event,midi_state,score)
             -- end
             
-            if event.event=='note' then                
+            if event.event=='note' then  
+            
+                -- offset notes when playing inside a chord group (to simulate strumming)
+                if midi_state.in_chord then
+                    midi_state.chord_time = midi_state.chord_time + midi_state.chord.delay + math.random()*midi_state.chord.random_delay                          
+                    event.t = event.t + midi_state.chord_time * 1e3
+                    event.duration = event.duration - midi_state.chord_time * 1e3                       
+                end
+                
                 insert_midi_note(event,midi_state)
             end
             
                         
+            if event.event=='chord_begin' then
+                midi_state.in_chord = true
+                midi_state.chord_time = 0
+            end
+            
+            if event.event=='chord_end' then
+                midi_state.in_chord = false
+            end
+            
+            
             if event.event=='chord' or event.event=='text' then
                 -- check free text for custom chord events!                
-                last_chord = event                
+                midi_state.last_chord = event        
+                
             end
             
             if event.event=='bar' and event.bar.type~='variant' then                                            
-                if last_chord then insert_midi_chord(last_chord, midi_state) end
+                if midi_state.last_chord then insert_midi_chord(midi_state.last_chord, midi_state) end
                 midi_state.last_bar_time = event.t/1e3
                 midi_state.t = event.t/1e3
                 insert_midi_drum(midi_state)                
@@ -351,7 +371,7 @@ function test_midi_generation()
     -- run the test suite
     tests = {'stress_2', 'stress_1', 'accents', 'beatstring', 'chordattack', 'chords', 'drone', 
     'micro', 'transpose', 'trim', 'linear', 'pitch_bend', 'drum', 'chordname', 'beatmod', 'drummap', 'pedal', 'crescendo',
-    'dynamics', 'grace', 'ornaments', 'portamento', 'cc'}
+    'dynamics', 'grace', 'ornaments', 'portamento', 'cc', 'chordattack_2'}
 
     for i,v in ipairs(tests) do
         print("Testing: "..v)

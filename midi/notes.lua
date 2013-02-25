@@ -255,6 +255,7 @@ function apply_slides(midi_state, start_time, end_time, decorations)
 end
 
 function insert_midi_note(event, midi_state)
+        
     -- insert a plain note into the score
     local duration = event.duration/1e3
     
@@ -264,6 +265,9 @@ function insert_midi_note(event, midi_state)
     midi_state.t = event.t / 1e3
     local start_time = midi_state.t
     local end_time = midi_state.t + duration
+    
+    
+    
     
     local decorations = event.note.decoration or {}
     

@@ -111,15 +111,15 @@ function midi_program(arguments, midi_state, score)
     --
     
     local t = get_distorted_time(midi_state.t, midi_state)
-    if len(arguments)==3 then
+    if #arguments==3 then
         -- channel and program
-        if check_argument(arguments[2], 1, 16, 'Invalid MIDI Channel') and check_argument(arguments[3], 1, 128, 'Invalid program') then
-            score.insert({'patch_change', t, tonumber(arguments[2])-1, tonumber(arguments[3])-1})
+        if check_argument(arguments[2], 0, 15, 'Invalid MIDI Channel') and check_argument(arguments[3], 1, 128, 'Invalid program') then
+            table.insert(midi_state.current_track, {'patch_change', t, tonumber(arguments[2])-1, tonumber(arguments[3])})
         end
     else
         -- just program change on current channel
-        if check_argument(arguments[2], 1, 128, 'Invalid program') then
-             score.insert({'patch_change', t, midi_state.channel, tonumber(arguments[2])-1})
+        if check_argument(arguments[2], 0, 127, 'Invalid program') then
+            table.insert(midi_state.current_track, {'patch_change', t, midi_state.channel, tonumber(arguments[2])})
          end
     end
 end

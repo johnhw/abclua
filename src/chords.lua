@@ -233,7 +233,7 @@ function get_chord_notes(chord, custom_table, key)
     
      local chord_form = custom_table[chord_type] or chords[chord_type]
      -- empty chord if we can't play it
-     if not chord_form then return {} end
+     if not chord_form then return nil end
      local notes = apply_inversion(chord.inversion, root, chord_form)       
      return notes
 end

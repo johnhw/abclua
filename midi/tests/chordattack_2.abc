@@ -1,0 +1,21 @@
+X:437
+T:Chordattack test
+Z:Nigel Gatherer
++:and friends
+Q:1/4=140 
+M:3/4
+L:1/4
+K:G
+%%MIDI program 0
+%%MIDI chordattack 0
+[CEG] [CEG] [CEG]
+%%MIDI chordattack 10
+[CEG] [CEG] [CEG]
+%%MIDI chordattack 40
+[CEG] [CEG] [CEG]
+ %%MIDI chordattack 0
+[CEG] [CEG] [CEG]
+ %%MIDI randomchordattack 60
+[CEG] [CEG] [CEG]
+
+
