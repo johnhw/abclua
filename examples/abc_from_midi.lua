@@ -1,7 +1,7 @@
 -- Generates an ABC file from a (simple) MIDI file
+
 require "abclua"
 local MIDI = require "MIDI"
-require "src/utils"
 
 function octaved_count(tab, t)
     -- count instance of t scaled by various factors
@@ -23,7 +23,7 @@ function guess_tempo(events)
      local last_t = 0
      local intervals = {}
      
-     for i,v in ipairs(events[2]) do 
+     for i,v in ipairs(events) do 
         -- record time since last note    
         if v[1]=='note' then
             octaved_count(intervals, v[2]-last_t)        
@@ -32,20 +32,24 @@ function guess_tempo(events)
      end
      
      -- create table of (tempo, count) pairs
-     local ordered_intervals = {}
+     local ordered_intervals = {}     
      for i,v in pairs(intervals) do
-        table.insert(ordered_intervals, {i,v})
+        if i>0 then 
+            table.insert(ordered_intervals, {i,v})
+        end
      end
+     
      
      -- sort the histogram
      table.sort(ordered_intervals, function(a,b) return a[2]>b[2] end)
      
      -- compute estimated BPM
      local tempo = 60e3 / ordered_intervals[1][1]
-     local note_length = 1
+     local note_length = 4
+     
      
      -- Force BPM into [60, 240]
-     while tempo<60 do
+     while tempo<30 do
         tempo = tempo * 2
         note_length = note_length / 2
      end
@@ -83,7 +87,7 @@ function guess_key(events)
     
     -- construct a histogram of semitone occurence
     local last_note
-    for i,v in ipairs(events[2]) do 
+    for i,v in ipairs(events) do 
         if i~=1 and v[1]=='note' then
             local note = v[5] % 12
             note_histogram[note] = (note_histogram[note] or 0) + 1
@@ -222,96 +226,106 @@ function note_from_midi_note(note, key)
      
     -- work out the octave
     octave = ((note-semi)-48) / 12
+    
     if key_semis[semi] then
        note_table = {note=string.upper(nth_note_of_key(key, key_semis[semi]-1)), octave=octave}
     else
         -- we always flatten
-       note_table = {accidental=-1, note=string.upper(nth_note_of_key(key, key_semis[semi])), octave=octave}
+       note_table = {accidental={num=-1, den=1}, note=string.upper(nth_note_of_key(key, key_semis[semi+1])), octave=octave}
     end
     return note_table
+end
+
+
+function read_midi(filename)
+     local midifile = assert(io.open(filename,'rb'))
+     local midi = MIDI.opus2score(MIDI.to_millisecs(MIDI.midi2opus(midifile:read('*a'))))
+     midifile:close()
+     return midi
 end
 
 
 
 
 function abc_from_midi(filename)
-     local midifile = assert(io.open(filename,'rb'))
-     local midi = MIDI.opus2score(MIDI.to_millisecs(MIDI.midi2opus(midifile:read('*a'))))
-     midifile:close()
+     -- Try to convert a midi file to an abc file     
+     local midi = read_midi(filename)     
      
-     
-     
-     local events = MIDI.grep(midi, {0})
-     local mixed = {}
-     for i,v in ipairs(events) do
-        if i~=1 then 
-            for j,n in ipairs(v) do
-                table.insert(mixed, n)
-            end
-        end
-     end
-     
-     events = {1000, mixed}
-     -- guess key and tempo
-     local tempo, note_length = guess_tempo(events)
-     local key = guess_key(events)
+     for i,v in ipairs(midi) do        
+        if i~=1 then             
+            events = v
+            
+            -- guess key and tempo
+            local tempo, note_length = guess_tempo(events)
+            local key = guess_key(events)
     
+            local tokens = {}
      
-    
-     local tokens = {}
+             -- write in the header
+             table.insert(tokens, {token='field_text', name='ref', content='1'})
+             table.insert(tokens, {token='note_length',  note_length=note_length})
+             table.insert(tokens, {token='tempo',  tempo={[1]={num=1, den=8}, tempo_rate=math.floor(0.5+tempo)}})     
+             table.insert(tokens, {token='key',  key={root=key}})
+             
+             -- work out length of base note (in ms)
+             local base_length =  ((60/tempo)/note_length ) * 1000 
+             local duration, t, fraction
+             local pitch, num, den
+             local last_note, last_note_duration
+             local this_bar
+             t = 0
+             this_bar = 0
+             bars = 0
+             for i,v in ipairs(events) do
+             
+                if v[1]=='note' then
+                    last_note = v
+                    last_note_duration = v[3]
+                end
+                
+                if last_note then
+                    if t ~= v[2]  then
+                        -- need to add a rest; this note doesn't start
+                        -- where the last one ended                       
+                        num, den = get_duration_fraction(v[2]-t, base_length)
+                        local note = {rest=true,  duration={broken=0, num=num, den=den}}
+                        table.insert(tokens, {token='note', note=note})
+                 
+                    end
+                    
+                    -- get length of this note
+                    duration = v[3]
+                    num, den = get_duration_fraction(duration, base_length)
+                    this_bar = this_bar + (num/den)
+                    if this_bar>16 then
+                        table.insert(tokens, {token='bar', bar={type='plain'}})
+                        this_bar = 0
+                        bars = bars + 1
+                        if bars==4 then
+                            bars = 0
+                            table.insert(tokens, {token='split_line'})
+                        end
+                    end
+                    
+                    -- compute pitch naming
+                    pitch = note_from_midi_note(v[5], key)
+                    t = t + duration
+                    
+                    local note = {pitch=pitch,  duration={broken=0, num=num, den=den}}
+                    table.insert(tokens, {token='note', note=note})            
+                end
+             end
      
-     -- write in the header
-     table.insert(tokens, {token='field_text', name='ref', content='1'})
-     table.insert(tokens, {token='note_length',  note_length=note_length})
-     table.insert(tokens, {token='tempo',  tempo={[1]={num=1, den=8}, tempo_rate=math.floor(0.5+tempo)}})     
-     table.insert(tokens, {token='key',  key={root=key}})
-     
-     -- work out length of base note (in ms)
-     local base_length =  ((60/tempo)/note_length ) * 1000 
-     local duration, t, fraction
-     local pitch, num, den
-     local last_note, last_note_duration
-     t = 0
-     
-     
-     
-     for i,v in ipairs(events[2]) do
-     
-        if v[1]=='note' then
-            last_note = v
-            last_note_duration = v[3]
+            print(emit_abc(tokens))
         end
-        
-        if last_note then
-            if t ~= v[2]  then
-                -- need to add a rest; this note doesn't start
-                -- where the last one ended
-                num, den = get_duration_fraction(v[2]-t, base_length)
-                local note = {rest=true,  duration={broken=0, num=num, den=den}}
-                table.insert(tokens, {token='note', note=note})
-         
-            end
-            
-            -- get length of this note
-            duration = v[3]
-            num, den = get_duration_fraction(duration, base_length)
-            
-            -- compute pitch naming
-            pitch = note_from_midi_note(v[5], key)
-            t = t + duration
-            
-            local note = {pitch=pitch,  duration={broken=0, num=num, den=den}}
-            table.insert(tokens, {token='note', note=note})            
-        end
-     end
-     
-     print(token_stream_to_abc(tokens))
-     
-     
- 
+    end
 end
 
-abc_from_midi('bonidoon.mid')
+if #arg~=1 then
+    print("Usage abc_to_midi.lua <file.abc>")
+else
+    abc_from_midi(arg[1])
+end
 
 --  guess bar locations; break every 4 bars
 --  guess broken rhythm

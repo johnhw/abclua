@@ -464,7 +464,7 @@ return abclua
 -- add tune matcher example
 -- Text string encodings
 -- More assertions / test cases
--- Deal with M:none correctly (bar times don't make sense)
+-- Check bar timing stuff (3/4 and 4/4 should have different bar times!)
 
 -- ABCLint -> check abc files for problems
 

@@ -90,6 +90,8 @@ function default_midi_state()
         transpose = 0,
         trimming = 1.0,
         key = nil,
+        last_chord = nil,
+        bar_chord = nil,
         grace_divider = 4,
         custom_chords = {},
         note_length = 4,
@@ -227,11 +229,12 @@ function produce_midi_opus(song)
             
                         
             if event.event=='chord' or event.event=='text' then
-                -- check free text for custom chord events!
-                insert_midi_chord(event, midi_state)
+                -- check free text for custom chord events!                
+                last_chord = event                
             end
             
-            if event.event=='bar' and event.bar.type~='variant' then
+            if event.event=='bar' and event.bar.type~='variant' then                                            
+                if last_chord then insert_midi_chord(last_chord, midi_state) end
                 midi_state.last_bar_time = event.t/1e3
                 midi_state.t = event.t/1e3
                 insert_midi_drum(midi_state)                
