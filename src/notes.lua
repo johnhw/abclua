@@ -127,8 +127,8 @@ function compute_duration(note, song)
     
     local beats = length * this_note * prev_note * song.context.timing.triplet_compress    
     length = beats * song.context.timing.base_note_length * 1e6
-
-    return length, beats
+    local note_length = song.context.note_length or default_note_length(song)
+    return length, beats / note_length, beats
 end
 
 
@@ -162,23 +162,25 @@ end
 function compile_note(note, song)
     -- compile a single note: compute pitch and duration
     local pitch = compute_pitch(note, song)
-    local duration, beats = compute_duration(note, song)
+    local duration, beats, units = compute_duration(note, song)
     -- insert grace notes before the main note, if there are any
     if note.grace then
             note.grace.sequence = expand_grace(song, note.grace) 
     end
     note.play_pitch = pitch
     note.play_duration = duration
-    note.play_beats = beats
+    note.play_bars = beats
+    note.play_units = units
     note.play_bar_time = song.context.timing.bar_time
+    
     return note
 end
 
-function advance_note_time(song, duration)
+function advance_note_time(song, note)
     -- advance time, update tuplet state
     update_tuplet_state(song)   
     -- advance bar time (in fractions of a bar)
-    song.context.timing.bar_time = song.context.timing.bar_time + duration / song.context.timing.bar_length
+    song.context.timing.bar_time = song.context.timing.bar_time + note.play_bars
 end
 
 function insert_note(note, song)
@@ -201,5 +203,5 @@ function insert_note(note, song)
             -- pitched note
             table.insert(song.opus, {event='note', note = note})
         end
-        advance_note_time(song, note.play_duration)        
+        advance_note_time(song, note)        
 end

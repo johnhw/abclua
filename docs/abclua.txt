@@ -149,6 +149,9 @@ just a convenience for reading a file and calling parse_abc_multisong() on it.
             -- parse the fragment in the context of the first song loaded
             tokens = parse_abc_fragment('de>d')
             stream, context = compile_tokens(tokens)
+            
+* `precompile_token_stream(tokens, [context])` Adds pitch and duration information to all notes; but does not expand repeats/parts/voices etc. Modifies the token stream in place, adding
+new fields (e.g. **play_pitch** and **play_duration**). 
         
 * `emit_abc(tokens)` Return an ABC string represenation of a given token stream
 
@@ -170,7 +173,13 @@ just a convenience for reading a file and calling parse_abc_multisong() on it.
 ## Utility functions
 
 * `diatonic_transpose(tokens, semitones)` Modifies the given *token* stream to transpose all notes and keys by the given number of semitones. This transposes
-notes, grace notes and written chord (e.g. "Cm7/F"). Transposing the event stream (e.g. for playback) only requires changing the **pitch** field.
+notes, grace notes and written chords (e.g. "Cm7/F"). Transposing the event stream (e.g. for playback) only requires changing the **pitch** field.
+
+* `canonical_note_name(num)` returns the note name of an integer (e.g. 0='c', 1='cs').
+
+* `get_note_number(name)` returns the note number of an name (e.g. 'c'=0, 'cs'=1, 'C#'=1, 'Db'=1).
+
+* `validate_token_stream(stream)` makes sure the token stream has **ref**, **title** and **key** fields before notes. Swaps existing ones into place, or creates new ones.
 
 * `trim_event_stream(events, mode, start_time, end_time)` Returns a copy of the given event stream including only events that happened within [start_time, end_time]
 (given in microseconds). Mode can be\
@@ -239,15 +248,12 @@ bar             Some form of bar line                       `| |: [n,n`  **type*
                                                                          => **mid_repeat** `:|:`\
                                                                          => **variant**    `[n`\
                                                                          \
-                                                                         **start_repeats** number of repeats\
-                                                                         **end_repeats** number of repeats\
+                                                                         **start_repeats** number of repeats (colons before bar)\
+                                                                         **end_repeats** number of repeats (colons after bar)\
                                                                          **variant_range** list of variants\
-                                                                         (e.g. [1-3,6 be {1,2,3,6})
-                                                                         **measure** number of this bar (starts at 1)
-                                                                         
-                                                                         
-                                                                         
-
+                                                                         (e.g. [1-3,6 would become {1,2,3,6})\
+                                                                         **measure** number of this bar (starts at 1; no special accounting for anacrusis)
+                                                                                                                                    
 words           Aligned lyrics                              `w:oh th-is` **lyrics** syllable table. Each element\
                                                                          of the table has the following fields:\
                                                                          => **syllable** text of the syllable\
@@ -364,12 +370,18 @@ timing_change   New timing information. There is always     **base_note_length**
                                                             **note_length** length of default note (8=1/8th, 4=1/4 etc.)\
                                                             **beat_length** length of one beat in microseconds\
                 
-note            Note receives duration and real pitch       **play_duration** Duration of the event in microseconds\
+note            Note receives duration and real pitch.      **play_duration** Duration of the event in microseconds\
                                                             **play_pitch**    Pitch of the note in MIDI notes\
-                                                            **play_beats**    Duration of note in beats.
+                                                            **play_bars**     Duration of note in bars.\
+                                                            **play_units**    Duration of the note in unit note lengths\
+                                                            **play_bar_time**      Start time of note, as fraction of one measure.\                                                                          
                                                             
-rest            A rest -- just advances time.               **play_duration** Duration of rest in microseconds.
-                                                            **play_beats**    Duration of rest in beats.
+                                                            
+rest            A rest -- just advances time.               **play_duration** Duration of rest in microseconds.\
+                                                            **play_bars**    Duration of rest in bars.\
+                                                            **play_units**    Duration of the note in unit note lengths\
+                                                            **play_bar_time**      Start time of note, as fraction of one measure.\
+                                                            
 -------------------------------------------------------------------------------------------------------------
 
 Table: Event types 

@@ -7,7 +7,7 @@
 require "lsqlite3"
 require "abclua"
 require "lfs"
-require "examples/tune_dna"
+
 
 local field_order = {'title', 'abc', 'file', 'file_index', 'composer', 'key', 'meter', 'tempo', 'rhythm', 'area', 'book',  'discography', 
  'group', 'history', 'notes', 'origin', 'remark', 'source', 'transcriber', 'ref'}
@@ -45,9 +45,7 @@ function index_songbook(fname, tunes)
         meta = song.header_metadata 
         if meta and meta.ref then
             meta.file_index = i
-            meta.abc = emit_abc(song.token_stream)
-            meta.melody_dna, meta.rhythm_dna = dna_tune(code_tune(song.voices['default'].stream))
-            
+            meta.abc = emit_abc(song.token_stream)                        
             meta.file = fname
             table.insert(tunes, meta)
         end
@@ -218,7 +216,7 @@ function recreate_db()
     -- Make sure the tables exist, recreating them if necessary
     tune_db:exec([[CREATE TABLE IF NOT EXISTS abctunes (title,
     file, abc, file_index, composer, key, meter, real_tempo, tempo, rhythm, area, book, discography, abc_group, history, notes, origin, remark, 
-    source, transcriber, melody_dna, rhythm_dna, ref UNIQUE PRIMARY KEY);]])
+    source, transcriber, ref UNIQUE PRIMARY KEY);]])
 
     tune_db:exec([[CREATE TABLE IF NOT EXISTS titles (ref, alt_title);]])
     

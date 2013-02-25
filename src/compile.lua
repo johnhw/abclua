@@ -21,7 +21,14 @@ function update_timing(song)
     song.context.timing.base_note_length = rate / note_length
     
     song.context.timing.grace_note_length = rate / (song.context.grace_length.den/song.context.grace_length.num)
-    song.context.timing.bar_length = compute_bar_length(song)
+    
+    -- deal with unmetered time; one "bar" becomes one whole note
+    if song.context.meter.num==0 then
+         song.context.timing.bar_length = rate*1e6
+    else
+        song.context.timing.bar_length = compute_bar_length(song)
+    end
+    
         
     table.insert(song.opus, {event='timing_change', timing={base_note_length=song.context.timing.base_note_length*1e6, bar_length=song.context.timing.bar_length,
     beats_in_bar = song.context.meter.num, note_length=note_length, beat_length = song.context.timing.bar_length/song.context.meter.num}})
@@ -185,18 +192,18 @@ function start_new_voice(song, voice, specifiers)
 end
 
 
-function precompile_token_stream(token_stream)
+function precompile_token_stream(token_stream, context)
     -- run through a token stream, giving duration and pitches to all notes
     -- splitting off chord symbols. Does not expand repeats/parts/voices/etc.
     -- One-to-one mapping of original token stream (no tokens added or removed)
-    local song = {context=get_default_context(), opus={}}
+    local song = {context=context or get_default_context(), opus={}}
     reset_timing(song)
 
     for i,v in ipairs(token_stream) do
         -- notes
         if v.token=='note' then 
            compile_note(v.note, song)
-           advance_note_time(song, v.note.play_duration)
+           advance_note_time(song, v.note)
         end
         
         -- deal with triplet definitions

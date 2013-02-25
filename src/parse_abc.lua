@@ -464,7 +464,7 @@ return abclua
 -- add tune matcher example
 -- Text string encodings
 -- More assertions / test cases
--- Fix slurs around bar symbols (parse '(' and ')' separately
+-- Deal with M:none correctly (bar times don't make sense)
 
 -- ABCLint -> check abc files for problems
 

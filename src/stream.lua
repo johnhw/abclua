@@ -43,7 +43,7 @@ function time_stream(stream)
                     max_duration = duration
                 end
             end            
-            bar_time = event.bar_time
+            bar_time = event.play_bar_time
         end
         
         event.duration = duration

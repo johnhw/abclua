@@ -9,35 +9,35 @@ require "abclua"
 
 local rest_breve=[[
 
-[]
 
+[]
 ]]
 
 local rest_semi_breve = [[
 
-=
 
+=
 ]]
 
 local rest_half_note = 
 [[
 
-~ 
 
+~ 
 ]]
 
 local rest_crotchet = 
 [[
 
-}
 
+}
 ]]
 
 local rest_quaver = 
 [[
 
-¬
 
+¬
 ]]
 
 local rest_semi_quaver = 
@@ -56,12 +56,16 @@ local rest_demi_semi_quaver =
 ]]
 
 
-
+-- heads must be on the base
 local breve=[[
+
+
 ||O||
 ]]
 
 local semi_breve = [[
+
+
 O
 ]]
 
@@ -124,15 +128,15 @@ local bar_line =
 
 
    
+|--
 |
+|--
 |
+|--
 |
+|--
 |
-|
-|
-|
-|
-|
+|--
 
 
 ]]
@@ -325,7 +329,7 @@ local stave_spacing = 20
 
 function render_stream(ascii_state, stream, meter, x, y)
     -- render a stream of notes/bars, starting at x,y;
-    local subdivisions = math.floor((meter.num / (meter.den/4)) * 8)
+    local subdivisions = math.floor((meter.num / (meter.den/4)) * 12)
     local note_position 
     local t
     local last_broken = 0
@@ -342,7 +346,7 @@ function render_stream(ascii_state, stream, meter, x, y)
                 note_position = note_locations[v.note.pitch.note] - v.note.pitch.octave * 8
             end
            
-            local dur = v.note.play_beats 
+            local dur = v.note.play_bars * 4 
             
             -- compute visual length of the note
             local len = math.floor(dur*subdivisions/4)
@@ -358,14 +362,12 @@ function render_stream(ascii_state, stream, meter, x, y)
             local frac = 128/(dur-math.floor(dur))
             
             local triplet
-            if frac%3==0 then
-                triplet = '3'
-            end
-            if frac%5==0 then
-                triplet = '5'
-            end
-            if frac%7==0 then
-                triplet = '7'
+            local triplets = {3,5,7,9} -- possible triplet values
+            for j,n in ipairs(triplets) do
+                if frac%n==0 then -- if divides evenly, this is a triplet
+                    triplet = ''..n
+                end
+                
             end
             
             -- calculate note form
@@ -382,19 +384,22 @@ function render_stream(ascii_state, stream, meter, x, y)
             
             -- draw rests
             if v.note.rest then
-                if dur>=0.125 then note_form = demi_semi_quaver end            
-                if dur>=0.25 then note_form = semi_quaver end
-                if dur>=0.5 then note_form = quaver end
-                if dur>=1 then note_form = crotchet end
-                if dur>=2 then note_form = half_note end
-                if dur>=4 then note_form = semi_breve end
-                if dur>=8 then note_form = breve end
+                if dur>=0.125 then note_form = rest_demi_semi_quaver end            
+                if dur>=0.25 then note_form = rest_semi_quaver end
+                if dur>=0.5 then note_form = rest_quaver end
+                if dur>=1 then note_form = rest_crotchet end
+                if dur>=2 then note_form = rest_half_note end
+                if dur>=4 then note_form = rest_semi_breve end
+                if dur>=8 then note_form = rest_breve end
             end
             
             local note_x, note_y = math.floor(x+len/2)-3, y+note_position
+            
+            
             -- flip notes below middle of stave
             if note_position>6 then
                 note_form = string.reverse(note_form)
+                note_y = note_y + 1            
             end
             
            -- guide lines for notes above/below stave
@@ -432,11 +437,11 @@ function render_stream(ascii_state, stream, meter, x, y)
             
             -- deal with ties
              if last_tied then
-                render_ascii(ascii_state, last_tied[1], last_tied[2], string.rep('=', 2+note_x-last_tied[1]))
+                render_ascii(ascii_state, last_tied[1], last_tied[2], string.rep('~', 2+note_x-last_tied[1]))
             end
                 
             if v.note.tie then
-                 last_tied = {note_x+1, note_y-2}
+                 last_tied = {note_x+1, note_y}
             else
                 last_tied = nil
             end
@@ -520,7 +525,7 @@ function ascii_score(fname)
         x,y = render_ascii(ascii_state, x,y,bar_header)
         
         -- the notes
-        render_stream(ascii_state, v.tokens, meter, x, 10)
+        render_stream(ascii_state, v.tokens, meter, x+2, 10)
         print_ascii(ascii_state)
     end
     io.write("\n")
