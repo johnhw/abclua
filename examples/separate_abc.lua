@@ -23,9 +23,9 @@ function separate_abc(fname)
             title = title:gsub('\\-\\_', '_')
             title = title:gsub('\\_\\-', '_')
             
-            -- local out = io.open(title..'.abc', 'w')
-            -- out:write(abc_from_songs({v}))
-            -- out:close()
+            local out = io.open(title..'.abc', 'w')
+            out:write(abc_from_songs({v}))
+            out:close()
         end
     end
 end

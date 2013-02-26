@@ -340,7 +340,30 @@ function parse_and_compile(tune_str, options, context, metadata)
     return tune
 end
 
-
+function songbook_block_iterator(str, options)
+    -- Iterator for iterating through tune blocks in a songbook    
+    str = str..'\n'
+    return coroutine.wrap( 
+        function ()                
+        -- tunes must begin with a field (although there
+        -- can be directives or comments first)
+        local sections = section_matcher:match(str)
+         
+        -- malformed file
+        if not sections or #sections==0 then
+            return 
+        end
+        
+        -- only include patterns with a field in them; ignore 
+        -- free text blocks
+        for i,v in ipairs(sections) do    
+            if v:gmatch('\n[a-zA-Z]:') then                            
+                coroutine.yield(v)
+            end
+        end
+    end)
+    
+end
 
 
 function parse_abc_coroutine(str, options)
@@ -349,37 +372,21 @@ function parse_abc_coroutine(str, options)
     -- as it saves memory.
     -- split file into sections
    
-    
-    str = str..'\n'
-    
-    -- tunes must begin with a field (although there
-    -- can be directives or comments first)
-    local sections = section_matcher:match(str)
-    local tunes = {}    
-    -- malformed file
-    if not sections or #sections==0 then
-        return 
-    end
-   
-    -- only include patterns with a field in them; ignore 
-    -- free text blocks
-    for i,v in ipairs(sections) do    
-        if v:gmatch('\n[a-zA-Z]:') then            
-            table.insert(tunes, v)  
-        end
-    end
+    local iterator = songbook_block_iterator(str, options)
         
     -- set defaults for the whole tune
     local default_metadata = {}
     local default_context = get_default_context()
     
-    -- no tunes!
-    if #tunes<1 then
-        return 
+    local tune_str 
+    tune_str = iterator()
+    
+    if not tune_str then
+        return -- no tunes at all
     end
     
     -- first tune might be a file header
-    local first_tune = parse_and_compile(tunes[1], options, default_context, default_metadata)
+    local first_tune = parse_and_compile(tune_str, options, default_context, default_metadata)
     
     -- if no notes, is a global header for this whole file
     if first_tune and not first_tune.parse.has_notes then
@@ -393,13 +400,10 @@ function parse_abc_coroutine(str, options)
     -- return the first tune
     coroutine.yield(first_tune)
     
-    -- add remaining tunes, using file header as default, if needed
-    for i,v in ipairs(tunes) do
-        -- don't add first tune twice
-        if i~=1 then
-            local tune =  parse_and_compile(v, options, deepcopy(default_context), deepcopy(default_metadata))
-            coroutine.yield(tune)
-        end
+    -- remaining tunes
+    tune_str = iterator()
+    if tune_str then
+        coroutine.yield(parse_and_compile(tune_str, options, deepcopy(default_context), deepcopy(default_metadata)))    
     end
 end
 
@@ -498,9 +502,10 @@ return abclua
 -- Text string encodings
 -- More assertions / test cases
 -- Make automatic tune reproduce tester
--- Make songbook iterator (to save memory!) -- have parse_abc_multisong() just call the iterator and fill the table
+-- Make tune header scanner/block iterator
 -- Check bar timing stuff (3/4 and 4/4 should have different bar times!)
-
+-- Auto chord generator example
+-- Optimize field parsing (don't parse 20 times!)
 -- ABCLint -> check abc files for problems
 
 -- transposing macros don't work when octave modifiers and ties are applied

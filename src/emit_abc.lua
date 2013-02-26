@@ -108,7 +108,7 @@ function abc_key(key)
     end
     
     if key.pipe then
-        return 'K:HP'
+        return 'K:'..key.pipe
     end
     
     -- root and modal modifier

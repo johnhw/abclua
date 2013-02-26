@@ -58,6 +58,18 @@ function deepcopy(orig)
     return copy
 end
 
+
+function time_execution(fn, times)
+    -- time the execution of a function
+    times = times or 1
+    local start_t = os.clock()
+    for i=1,times do
+        fn()
+    end
+    local end_t = os.clock() - start_t    
+    return end_t/times
+end
+
 -- Right trim a string
 function rtrim(s)
   local n = #s

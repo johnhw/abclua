@@ -353,6 +353,17 @@ GABcdefg z4
 K:Gexp ^f
 GABcdefg z4]], 'Keys with modes and accidentals')
 
+
+check_reproduce([[X:1
+K:none
+CDEFGABc z4
+K:Fexp ^c ^f
+CDEFGABc z4
+K:Fdor
+K:HP
+K:Hp
+GABcdefg z4]], 'Special keys')
+
 check_reproduce(
 [[X:1
 K:G

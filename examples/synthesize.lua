@@ -108,6 +108,9 @@ function synthesize_note(wav, sr, duration, pitch, beat_time, tempo)
 end
 
 function synthesize(fname)
+    if not string.lower(fname):gmatch('.abc') then
+        return -- only synthesizer abc files
+    end
     local wav_name = string.lower(fname):gsub('.abc', '.wav')
     local songs = parse_abc_file(fname)    
     local song = songs[1]
