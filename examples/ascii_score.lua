@@ -346,7 +346,7 @@ function render_stream(ascii_state, stream, meter, x, y)
                 note_position = note_locations[v.note.pitch.note] - v.note.pitch.octave * 8
             end
            
-            local dur = v.note.play_bars * 4 
+            local dur = v.note.play_notes * 4 
             
             -- compute visual length of the note
             local len = math.floor(dur*subdivisions/4)

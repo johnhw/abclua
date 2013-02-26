@@ -475,6 +475,8 @@ get_bpm_from_tempo = get_bpm_from_tempo,
 printable_note_name = printable_note_name,
 precompile_token_stream = precompile_token_stream,
 parse_abc_song_iterator = parse_abc_song_iterator,
+scan_metadata = scan_metadata,
+songbook_block_iterator = songbook_block_iterator,
 version=0.2,
 }
 

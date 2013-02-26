@@ -29,7 +29,7 @@ function code_tune(stream)
     for i,v in ipairs(stream) do
         if v.event=='note' then
             new_note = v.note.play_pitch 
-            new_dur = v.note.play_bars
+            new_dur = v.note.play_notes
             if note then
                 -- get relative change in pitch/duration
                 table.insert(melody, new_note-note)

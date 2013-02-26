@@ -270,20 +270,27 @@ end
 
 
 function scan_metadata(str)
+    -- quickly scan a string, and fill out the metadata fields
     local meta = {}
-    local last_field 
-    -- quickly scan a string, and fill out the metadata
-    for line in str.split('\n') do
-        local match, content = str:match('^([%a\\+]):([^]:[|]?.*)')
+    local last_field         
+    for i,line in ipairs(split(str, '\n')) do        
+        local match, content = line:match('^([%a\\+]):([^]:[|]?.*)')        
         if match then
-            field_name = field_names[match]
-            if field_name then 
-                meta[field_name] = content
+            field_name = field_names[match]            
+            if field_name then                 
+                if field_name=='continuation' and last_field then
+                    -- continuation fields with +:
+                    meta[field_name][#meta[field_name]] = meta[field_name][#meta[field_name]]..content
+                else
+                    -- standard fields
+                    meta[field_name] = meta[field_name] or {}
+                    table.insert(meta[field_name], content)
+                    last_field = field_name
+                end
             end            
         end        
      end
-
-    
+    return meta    
 end
 
 function parse_field(f, song, inline)

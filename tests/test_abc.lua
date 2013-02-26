@@ -649,7 +649,7 @@ function test_bar_time()
     X:1
     K:G
     M:3/4
-    L:1/8
+    L:1/4
     G G G  | [M:4/4] G G G G | [M:5/4] G G G G G      
     ]]
     local songs = abclua.parse_abc_multisong(bar_time)

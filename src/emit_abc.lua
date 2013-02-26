@@ -646,23 +646,17 @@ function abc_bar(bar)
 end
 
 
+local note_elements = {split=' ', split_line='\n', continue_line='\\\n', chord_begin='[', chord_end=']', slur_end=')', slur_begin='('}
+
 function abc_note_element(element)
     -- Return a string representing a note element 
     -- can be a note, rest, bar symbol
     -- chord group, slur group, triplet/tuplet
     -- line break, beam break or some inline text
-    if element.token=='split' then
-        return ' '
-    end
     
-    if element.token=='split_line' then
-        return '\n'
-    end
+    local static_element = note_elements[element.token]
     
-    if element.token=='continue_line' then
-        return '\\\n'
-    end
-    
+    if static_element then return static_element end
     
     if element.token=='chord' and element.chord then
             return '"' .. abc_chord(element.chord) .. '"'
@@ -671,23 +665,7 @@ function abc_note_element(element)
     if element.token=='overlay' then
         return string.rep('&', element.bars)
     end
-    
-    if element.token=='chord_begin' then
-            return '['        
-    end
-    
-    if element.token=='chord_end' then
-        return ']'
-    end
-    
-    if element.token=='slur_begin' then
-        return '('        
-    end
-    
-    if element.token=='slur_end' then
-        return ')'
-    end
-    
+        
     if element.token=='text' then     
         return '"' .. (element.position or '').. element.text .. '"'
     end
@@ -744,4 +722,8 @@ function abc_from_songs(songs, creator)
     end
     return table.concat(out)
 end
+
+
+
+
 

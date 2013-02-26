@@ -163,6 +163,11 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
     tokens = parse_abc_fragment(&#39;de&gt;d&#39;)
     stream, context = compile_tokens(tokens)</code></pre></li>
 <li><p><code>precompile_token_stream(tokens, [context])</code> Adds pitch and duration information to all notes; but does not expand repeats/parts/voices etc. Modifies the token stream in place, adding new fields (e.g. <strong>play_pitch</strong> and <strong>play_duration</strong>).</p></li>
+<li><p><code>parse_abc_song_iterator</code> Returns an function which parses and compiles a tune from a songbook each time it is called. Useful for parsing very large ABC files.</p>
+<p>local content = f:read('*a') for song in parse_abc_song(iterator) do -- do something with the parsed/compiled tune end</p></li>
+<li><p><code>scan_metadata</code> Scans a single tune string and returns the metadata from the tune (e.g. title, ref no.). This allows quick scanning of tunes without doing a full parse.</p></li>
+<li><p><code>songbook_block_iterator</code> Simple iterator which returns the string representing the next tune in a songbook.</p>
+<p>local content = f:read('*a') local meta for block in songbook_block_iterator(content) do meta = scan_metadata(block) if meta.title[1]=='Ashokan Farewell' then print(&quot;Tune found!&quot;) end end</p></li>
 <li><p><code>emit_abc(tokens)</code> Return an ABC string represenation of a given token stream</p>
 <pre><code>    songs = parse_abc_file(&#39;example.abc&#39;)
     -- should print out something close to the first tune in the original example.abc

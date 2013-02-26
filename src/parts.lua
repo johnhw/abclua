@@ -37,9 +37,9 @@ local variant_tag = 0
 
 
 function append_with_copy(a, b)
-    -- appends b to a, copy elements of a as it does so (if needed)
+    -- appends b to a, copy elements of a as it does so (if needed)    
     for i=1,#b do
-        table.insert(b, copy_if_needed(a))
+        table.insert(a, copy_if_needed(b[i]))
     end
 end
 
@@ -68,8 +68,7 @@ function start_variant_part(song, bar)
             song.context.part_map[song.context.parent_part].variants = {}
     end
             
-    for i,v in ipairs(endings) do
-        
+    for i,v in ipairs(endings) do        
         song.context.part_map[song.context.parent_part].variants[v] = part_tag
     end
                 
@@ -83,15 +82,14 @@ function expand_patterns(patterns)
     for i,v in ipairs(patterns) do
         
         for i=1,v.repeats do
-            -- repeated measures (including single repeats!)               
+            -- repeated measures (including single repeats!)                            
             append_with_copy(result, v.section)            
             -- append variant endings
             if #v.variants>=i then                                
-                append_with_copy(result,v.variants[i])
+                append_with_copy(result, v.variants[i])
             end
         end
-    end
-    
+    end    
     return result        
 end
 

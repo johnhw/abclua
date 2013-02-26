@@ -9,9 +9,11 @@ function separate_abc(fname)
     local contents = f:read('*a')
  
     -- iterate through songs
-    for v in parse_abc_song_iterator(contents) do
-        if v.metadata.title then
-            title = v.metadata.title[1] 
+    for v in songbook_block_iterator(contents) do 
+        meta = scan_metadata(v)
+        
+        if meta.title then
+            title = meta.title[1] 
             title = title:gsub('%p', '-')
             title = title:gsub(' ', '_')
             title = title:gsub('/', '-')
@@ -24,7 +26,7 @@ function separate_abc(fname)
             title = title:gsub('\\_\\-', '_')
             
             local out = io.open(title..'.abc', 'w')
-            out:write(abc_from_songs({v}))
+            out:write(v)
             out:close()
         end
     end

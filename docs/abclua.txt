@@ -170,6 +170,28 @@ just a convenience for reading a file and calling parse_abc_multisong() on it.
             
 * `precompile_token_stream(tokens, [context])` Adds pitch and duration information to all notes; but does not expand repeats/parts/voices etc. Modifies the token stream in place, adding
 new fields (e.g. **play_pitch** and **play_duration**). 
+
+
+* `parse_abc_song_iterator` Returns an function which parses and compiles a tune from a songbook each time it is called. Useful for parsing very large ABC files.
+
+    local content = f:read('*a')
+    for song in parse_abc_song(iterator) do
+        -- do something with the parsed/compiled tune
+    end
+    
+
+* `scan_metadata` Scans a single tune string and returns the metadata from the tune (e.g. title, ref no.). This allows quick scanning of tunes without doing a full parse.
+
+* `songbook_block_iterator` Simple iterator which returns the string representing the next tune in a songbook.
+
+    local content = f:read('*a')
+    local meta
+    for block in songbook_block_iterator(content) do
+        meta = scan_metadata(block)
+        if meta.title[1]=='Ashokan Farewell' then
+            print("Tune found!")
+        end
+    end
         
 * `emit_abc(tokens)` Return an ABC string represenation of a given token stream
 

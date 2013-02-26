@@ -78,7 +78,7 @@ function compute_duration(note, song)
     -- duration field of the note itself
     -- bars for multi-measure rests  
     
-    if note.space then return 0,0 end
+    if note.space then return 0,0,0 end
     
     -- we are guaranteed to have filled out the num and den fields
     local length = note.duration.num / note.duration.den
@@ -87,7 +87,7 @@ function compute_duration(note, song)
     if note.measure_rest then   
         -- one bar =  meter ratio * note length (e.g. 1/16 = 16)
         local bar = compute_bar_length(song) *  length 
-        return bar, bar/song.context.meter.num
+        return bar, length*song.context.meter.num, length
     end
     
     
@@ -128,7 +128,11 @@ function compute_duration(note, song)
     local beats = length * this_note * prev_note * song.context.timing.triplet_compress    
     length = beats * song.context.timing.base_note_length * 1e6
     local note_length = song.context.note_length or default_note_length(song)
-    return length, beats / note_length, beats
+    local meter = song.context.meter
+    local notes = beats/note_length
+    local bars = notes*meter.den/meter.num
+    
+    return length, notes, bars
 end
 
 
@@ -162,17 +166,18 @@ end
 function compile_note(note, song)
     -- compile a single note: compute pitch and duration
     local pitch = compute_pitch(note, song)
-    local duration, beats, units = compute_duration(note, song)
+    local duration, notes, bars = compute_duration(note, song)
+    
     -- insert grace notes before the main note, if there are any
     if note.grace then
             note.grace.sequence = expand_grace(song, note.grace) 
     end
     note.play_pitch = pitch
     note.play_duration = duration
-    note.play_bars = beats
-    note.play_units = units
-    note.play_bar_time = song.context.timing.bar_time
+    note.play_notes = notes
+    note.play_bars = bars
     
+    note.play_bar_time = song.context.timing.bar_time     
     return note
 end
 
