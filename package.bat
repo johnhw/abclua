@@ -1,4 +1,4 @@
-set ABCLUA_VERSION=0.2.1
+set ABCLUA_VERSION=0.2.2
 del /Q /S dist
 mkdir dist
 mkdir dist\src
@@ -13,6 +13,7 @@ cd docs
 call make_docs.bat
 cd ..
 copy readme.txt dist
+copy abclua.lua dist
 copy abc_to_midi.lua dist
 copy docs\abclua.txt dist\docs\abclua.txt
 copy docs\abclua.html dist\docs\abclua.html

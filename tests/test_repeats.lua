@@ -17,6 +17,7 @@ function verify_notes(str, result, test)
     local songs = abclua.parse_abc_multisong(str)          
     local stream = songs[1].voices['default'].stream    
     assert(get_notes(stream) == result, test)   
+    print(test.." passed OK")
 end
 
 function test_repeats()

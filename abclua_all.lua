@@ -57,6 +57,10 @@ local compile_tokens
 local parse_abc_fragment
 local parse_abc_file
 local parse_abc_multisong
+local parse_abc_song_iterator
+local parse_abc_coroutine
+local songbook_block_iterator
+local parse_and_compile
 local get_default_context
 local compile_abc
 local parse_abc
@@ -132,6 +136,19 @@ local default_note_length
 local parse_bar
 local parse_range_list
 local parse_field
+local scan_metadata
+local continuation_token
+local macro_token
+local meter_token
+local parts_token
+local user_token
+local voice_token
+local instruction_token
+local words_token
+local tempo_token
+local length_token
+local key_token
+local text_token
 local expand_parts
 local parse_voice
 local parse_parts
@@ -170,6 +187,7 @@ local transpose_chord
 local get_chord_notes
 local parse_chord
 local apply_inversion
+local chord_type_list
 local test_lyric_parsing
 local insert_lyrics
 local insert_lyrics_stream
@@ -177,6 +195,7 @@ local parse_lyrics
 local compose_parts
 local expand_patterns
 local start_variant_part
+local append_with_copy
 local start_new_part
 local add_section
 local create_key_structure
@@ -195,7 +214,9 @@ local invert_table
 local table_print 
 local verbose_table_print 
 local rtrim
+local time_execution
 local deepcopy
+local copy_if_needed
 local copy_table
 local set_property
 local first_difference_string
@@ -250,19 +271,42 @@ function copy_table(orig)
     return copy   
 end
 
+local __copy_table = {}
+
+function copy_if_needed(obj)
+    -- return the given object if it's the first
+    -- time we've tried to copy it; else return a copy
+    if __copy_table[obj] then return deepcopy(obj) end
+    __copy_table[obj] = true
+    return obj
+end
+
 -- copy a table completely (excluding metatables)
+-- don't copy keys, just values
 function deepcopy(orig)
     local orig_type = type(orig)
     local copy
     if orig_type == 'table' then
         copy = {}
         for orig_key, orig_value in next, orig, nil do
-            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+            copy[orig_key] = deepcopy(orig_value)
         end        
     else -- number, string, boolean, etc
         copy = orig
     end
     return copy
+end
+
+
+function time_execution(fn, times)
+    -- time the execution of a function
+    times = times or 1
+    local start_t = os.clock()
+    for i=1,times do
+        fn()
+    end
+    local end_t = os.clock() - start_t    
+    return end_t/times
 end
 
 -- Right trim a string
@@ -504,7 +548,7 @@ end
 
 
 local key_matcher = re.compile([[
-    key <- ( {:none: ('none') :} / {:pipe: ('Hp' / 'HP') :} / (
+    key <- ( {:none: ('none') :} / {:pipe: ('hp' / 'Hp' / 'HP' ) :} / (
         {:root: ([a-gA-G]) 'b'? '#'? :}  
         (%s * {:mode: (mode %S*):}) ? 
         (%s * {:accidentals: (accidentals):}) ?         
@@ -527,11 +571,22 @@ local key_matcher = re.compile([[
 
 ]])
 
-function parse_key(k)
+function parse_key(original_k)
     -- Parse a key definition, in the format <root>[b][#][mode] [accidentals] [expaccidentals]    
 
-    k = k:lower()
+    k = original_k:lower()
     local captures = key_matcher:match(k)
+    
+    -- if no key, the K:none assumed
+    if not captures then
+        captures = {none='none'}        
+    end
+    
+    -- must preseve case in pipe keys; just reparse without
+    -- lowercasing
+    if captures.pipe then
+        captures = key_matcher:match(original_k)
+    end
     
     -- normalise the accidentals
     local accidentals = {}
@@ -686,6 +741,12 @@ end
 local variant_tag = 0
 
 
+function append_with_copy(a, b)
+    -- appends b to a, copy elements of a as it does so (if needed)    
+    for i=1,#b do
+        table.insert(a, copy_if_needed(b[i]))
+    end
+end
 
 function start_variant_part(song, bar)
     -- start a variant part. The variant specifier indicates the ranges that 
@@ -712,8 +773,7 @@ function start_variant_part(song, bar)
             song.context.part_map[song.context.parent_part].variants = {}
     end
             
-    for i,v in ipairs(endings) do
-        
+    for i,v in ipairs(endings) do        
         song.context.part_map[song.context.parent_part].variants[v] = part_tag
     end
                 
@@ -727,17 +787,14 @@ function expand_patterns(patterns)
     for i,v in ipairs(patterns) do
         
         for i=1,v.repeats do
-            -- repeated measures (including single repeats!)
-            append_table(result, deepcopy(v.section))    
-            
+            -- repeated measures (including single repeats!)                            
+            append_with_copy(result, v.section)            
             -- append variant endings
-            if #v.variants>=i then
-                append_table(result, deepcopy(v.variants[i]))    
-            
+            if #v.variants>=i then                                
+                append_with_copy(result, v.variants[i])
             end
         end
-    end
-    
+    end    
     return result        
 end
 
@@ -748,8 +805,7 @@ function compose_parts(song)
     -- using the parts indicator. If no parts indicator, just uses the default part
     -- Combines all repeats etc. inside each part into a stream as well
     -- The final stream is a fresh copy of all the events
-    
-    
+        
     start_new_part(song, nil)
     
     local variant_counts = {}
@@ -758,8 +814,8 @@ function compose_parts(song)
         song.stream = {}        
         for c in song.context.part_sequence:gmatch"." do            
             if song.context.part_map[c] then 
-                local pattern = deepcopy(expand_patterns(song.context.part_map[c]))
-                append_table(song.stream, pattern)
+                local pattern = expand_patterns(song.context.part_map[c])
+                append_with_copy(song.stream, pattern)
                 
                 -- count repetitions of this part
                 if not variant_counts[c] then
@@ -773,8 +829,8 @@ function compose_parts(song)
                 if song.context.part_map[c].variants and song.context.part_map[c].variants[vc] then
                     -- find the name of this variant ending
                     local variant_part_name = song.context.part_map[c].variants[vc]
-                    pattern = deepcopy(expand_patterns(song.context.part_map[variant_part_name]))
-                    append_table(song.stream, pattern)
+                    pattern = expand_patterns(song.context.part_map[variant_part_name])
+                    append_with_copy(song.stream, pattern)
                 
                 end            
             end
@@ -1117,7 +1173,10 @@ local common_chords =
 }
 
 
-    
+function chord_type_list()
+    -- return the list of all chord forms
+    return chords
+end    
     
 function apply_inversion(inversion, root, chord_offsets)
     -- apply the inversion
@@ -1310,8 +1369,7 @@ function time_stream(stream)
     local measure = 1
     local written_measure = 1
     t = 0    
-    local last_bar = 0
-    local bar_time
+    local last_bar = 0    
     
     for i,event in ipairs(stream) do        
         event.t = t
@@ -1321,6 +1379,7 @@ function time_stream(stream)
             last_bar = event.t
             measure = measure + 1
             written_measure = event.bar.meeasure
+            event.bar.play_measure = measure
         end
         
         
@@ -1341,16 +1400,11 @@ function time_stream(stream)
                 if duration > max_duration then
                     max_duration = duration
                 end
-            end            
-            bar_time = event.play_bar_time
+            end                                    
         end
+        event.duration = duration                
         
-        event.duration = duration
-        -- record bar/bar-relative timing
-        event.measure = {play_measure = measure, written_measure=measure, bar_time=bar_time}        
-        
-        -- chord symbols
-       
+        -- chord symbols       
         -- chord starts; stop advancing time
         if event.event=='chord_begin' then
             in_chord = true
@@ -1952,41 +2006,40 @@ end
 
 -- create the various pattern matchers
 
-local fields = {}
-fields.key = [[('K:' {.*} ) -> {}]]
-fields.title = [[('T:' %s * {.*}) -> {}]]
-fields.ref =  [[('X:' %s * {.*}) -> {}]]
-fields.area =  [[('A:' %s * {.*}) -> {}]]
-fields.book =  [[('B:' %s * {.*}) -> {}]]
-fields.composer =  [[('C:' %s * {.*}) -> {}]]
-fields.discography =  [[('D:' %s * {.*}) -> {}]]
-fields.file =  [[('F:' %s * {.*}) -> {}]]
-fields.group =  [[('G:' %s * {.*}) -> {}]]
-fields.history =  [[('H:' %s * {.*}) -> {}]]
-fields.instruction =  [[('I:' %s * {.*}) -> {}]]
-fields.length =  [[('L:' %s * {.*}) -> {}]]
-fields.meter =  [[('M:' %s * {.*}) -> {}]]
-fields.macro =  [[('m:' %s * {.*}) -> {}]]
-fields.notes =  [[('N:' %s * {.*}) -> {}]]
-fields.origin =  [[('O:' %s * {.*}) -> {}]]
-fields.parts =  [[('P:' %s * {.*}) -> {}]]
-fields.tempo =  [[('Q:' %s * {.*}) -> {}]]
-fields.rhythm =  [[('R:' %s * {.*}) -> {}]]
-fields.remark =  [[('r:' %s * {.*}) -> {}]]
-fields.source =  [[('S:' %s * {.*}) -> {}]]
-fields.symbolline =  [[('s:' %s * {.*}) -> {}]]
-fields.user =  [[('U:' %s * {.*}) -> {}]]
-fields.voice =  [[('V:' %s * {.*}) -> {}]]
-fields.words =  [[('w:' %s * {.*}) -> {}]]
-fields.end_words =  [[('W:' %s * {.*}) -> {}]]
-fields.transcriber =  [[('Z:' %s * {.*}) -> {}]]
-fields.continuation =  [[('+:' %s * {.*}) -> {}]]
 
 
--- compile field matchers
-for i,v in pairs(fields) do
-    fields[i] = re.compile(v)
-end
+local field_tags = {key = 'K'
+,title = 'T'
+,ref =  'X'
+,area =  'A'
+,book =  'B'
+,composer =  'C'
+,discography =   'D'
+,extended = 'E'
+,file =   'F'
+,group =   'G'
+,history =   'H'
+,instruction =   'I'
+,length =   'L'
+,meter =   'M'
+,macro =   'm'
+,notes =   'N'
+,origin =   'O'
+,parts =   'P'
+,tempo =   'Q'
+,rhythm =   'R'
+,remark =  'r'
+,source =   'S'
+,symbolline =   's'
+,user =   'U'
+,voice =   'V'
+,words =  'w'
+,end_words =  'W'
+,transcriber =  'Z'
+,continuation =  '+'
+}
+
+local field_names = invert_table(field_tags)
 
 local parts_matcher = re.compile(
 [[
@@ -2060,25 +2113,198 @@ end
 
 
 
+function text_token(content, song, field_name)      
+    return  {token='field_text', name=field_name, content=content} 
+end
+
+function key_token(content, song)
+     song.parse.found_key = true -- key marks the end of the header
+     return {token='key', key=parse_key(content)}     
+end
+
+function length_token(content, song)
+        
+        return {token='note_length', note_length=parse_length(content)}
+end
+
+function tempo_token(content, song)
+    local tempo=parse_tempo(content)
+    if tempo then
+        return  {token='tempo', tempo=tempo}
+    end
+end
+
+function words_token(content, song) 
+        local lyrics = parse_lyrics(content)
+        if lyrics then
+            return {token='words', lyrics=lyrics}          
+        end
+end
+
+function instruction_token(content, song)
+     local parse_time, directive = parse_directive(content)
+     -- + -- must execute parse time directives immediately
+     if directive then
+         if parse_time and not song.parse.no_expand then
+            apply_directive(song, directive.directive, directive.arguments)
+         else
+            -- + -- otherwise defer
+            return {token='instruction', directive=directive}           
+         end
+     end
+end
+
+
+function voice_token(content, song)    
+    local voice = parse_voice(content)
+    if voice then                
+        ---- in the header this just sets up the voice properties
+        if song.parse.in_header then
+            return {token='voice_def', voice=voice}
+        else
+            return {token='voice_change', voice=parse_voice(content)}
+        end
+    end
+end
+
+function user_token(content, song)
+    -- user macro (not transposable)
+    if song.parse.no_expand then
+        return {token='field_text', name='user', content=content}                   
+    else       
+        table.insert(song.parse.user_macros, parse_macro(content))
+    end      
+end
+
+
+function parts_token(content, song)
+        ---- parts definition if we are still in the header
+        ---- look up the parts and expand them out
+        if song.parse.in_header then
+            local parts = content:gsub('\\.', '') -- remove dots
+            parts = parse_parts(content)
+            if parts then
+                return {token='parts', parts=parts}           
+            end
+        else            
+            ---- otherwise we are starting a new part   
+            ---- parts are always one character long, spaces and dots are ignored
+            local part = content:gsub('%s', '')
+            part = part:gsub('\\.', '')
+            part = string.sub(part,1,1)
+                        
+            return {token='new_part', part=part}           
+        end
+    
+end
+    
+function meter_token(content, song)    
+    -- update meter   
+    return {token='meter', meter=parse_meter(content)}              
+end
+
+function macro_token(content, song)
+    if song.parse.no_expand then
+        return {token='field_text', name='macro', content=content}                   
+    else
+        ---- we DON'T insert macros into the token_stream. Instead
+        ---- we expand them as we find them
+        local macro = parse_macro(content)
+        
+        ---- transposing macro
+        if re.find(macro.lhs, "'n'") then
+            local notes = {'a', 'b', 'c', 'd', 'e', 'f', 'g'}             
+            local note                   
+            ----- insert one macro for each possible note
+            for i,v in ipairs(notes) do
+                table.insert(song.parse.macros, transpose_macro(macro.lhs, v, macro.rhs)) 
+                table.insert(song.parse.macros, transpose_macro(macro.lhs, string.upper(v), macro.rhs))                                                    
+            end
+        else
+            ---- non-transposing macro
+            table.insert(song.parse.macros, macro)
+        end
+    end    
+end
+    
+function continuation_token(content, song)
+     local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'macro', 'user', 'voice', 'instruction'} -- those fields we parse individually    
+     if song.parse.last_field then
+        -- append plain text if necessary
+        if not is_in(song.parse.last_field, parsable) then        
+            return {token='append_field_text', name=song.parse.last_field, content=content}                
+        end
+        
+         if song.parse.last_field=='words' then
+            return words_token('words', content, song)                
+         end
+     end                 
+end
+        
+ local field_fns = {key = key_token
+,title = text_token
+,ref =  text_token
+,area =  text_token
+,book =  text_token
+,composer =  text_token
+,discography = text_token
+,extended = text_token
+,file = text_token
+,group =  text_token
+,history = text_token
+,instruction =   instruction_token
+,length =   length_token
+,meter =   meter_token
+,macro =   macro_token
+,notes =   text_token
+,origin =  text_token
+,parts =   parts_token
+,tempo =   tempo_token
+,rhythm =   text_token
+,remark =  text_token
+,source =   text_token
+,symbolline =   text_token
+,user =   user_token
+,voice =   voice_token
+,words =  words_token
+,end_words =  text_token
+,transcriber =  text_token
+,continuation =  continuation_token
+}
+
+
+function scan_metadata(str)
+    -- quickly scan a string, and fill out the metadata fields
+    local meta = {}
+    local last_field         
+    for i,line in ipairs(split(str, '\n')) do        
+        local match, content = line:match('^([%a\\+]):([^]:[|]?.*)')        
+        if match then
+            field_name = field_names[match]            
+            if field_name then                 
+                if field_name=='continuation' and last_field then
+                    -- continuation fields with +:
+                    meta[field_name][#meta[field_name]] = meta[field_name][#meta[field_name]]..content
+                else
+                    -- standard fields
+                    meta[field_name] = meta[field_name] or {}
+                    table.insert(meta[field_name], content)
+                    last_field = field_name
+                end
+            end            
+        end        
+     end
+    return meta    
+end
 
 function parse_field(f, song, inline)
     -- parse a metadata field, of the form X: stuff
     -- (either as a line on its own, or as an inline [x:stuff] field
-     local name, field, match, field_name, content
+     local name, field, field_name
+     local match, content = f:match('^([%a\\+]):([^]:[|]?.*)')
           
-     -- find matching field
-     local field_name = nil
-     for name, field in pairs(fields) do
-        match = field:match(f)         
-        if match then
-            field_name = name
-            content = match[1]                
-        end
-     end
-     
-            
      -- not a metadata field at all
-     if not field_name then
+     if not match then
         -- in the header, treat lines without a tag as continuations
         if song.parse.in_header then
             field_name = 'continuation' 
@@ -2087,140 +2313,15 @@ function parse_field(f, song, inline)
             -- otherwise it was probably a tune line
             return false
         end
-     end    
-        
-    local token
-   
-    local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'macro', 'user', 'voice', 'instruction'} -- those fields we parse individually
-    local field = {name=field_name, content=content}
-    -- continuation
-    if field_name=='continuation' then
-        if song.parse.last_field then
-            -- append plain text if necessary
-            if not is_in(song.parse.last_field, parsable) then            
-                token = {token='append_field_text', name=song.parse.last_field, content=content}                
-            end
-            
-             if song.parse.last_field=='words' then
-                 token = {token='words', lyrics=parse_lyrics(content)}
-             end
-         end
-         
-    else
-        -- if not a parsable field, store it as plain text
-    
-        song.parse.last_field = field_name
-        if not is_in(field_name, parsable) then
-            token =  {token='field_text', name=field_name, content=content}
-        end
+     else
+        field_name = field_names[match]
+        if not field_name then return end -- unknown field
+     end
 
-    end
-    
-    
-    -- update specific tune settings
-    if field_name=='length' then
-        token = {token='note_length', note_length=parse_length(content)}
-    end
-            
-    -- update tempo
-    if field_name=='tempo' then            
-        token = {token='tempo', tempo=parse_tempo(content)}
-    end
-    
-    -- parse lyric definitions
-    if field_name=='words' then                        
-         token = {token='words', lyrics=parse_lyrics(content)}           
-    end
-    
-     -- parse lyric definitions
-    if field_name=='instruction' then                       
-         local parse_time, directive = parse_directive(content)
-         -- must execute parse time directives immediately
-         
-         if parse_time and not song.parse.no_expand then
-            apply_directive(song, directive.directive, directive.arguments)
-         else
-            -- otherwise defer
-            token = {token='instruction', directive=directive}           
-         end
-    end
-            
-     -- parse voice definitions
-    if field_name=='voice' then  
-        -- in the header this just sets up the voice properties
-        if song.parse.in_header then
-            token = {token='voice_def', voice=parse_voice(content)}
-        else
-            token = {token='voice_change', voice=parse_voice(content)}
-        end
-    end
-      
-   
-    if field_name=='parts' then            
-        -- parts definition if we are still in the header
-        -- look up the parts and expand them out
-        if song.parse.in_header then
-            local parts = content:gsub('\\.', '') -- remove dots
-            parts = parse_parts(content)
-            token = {token='parts', parts=parts}           
-        else
-            
-            -- otherwise we are starting a new part   
-            -- parts are always one character long, spaces and dots are ignored
-            local part = content:gsub('%s', '')
-            part = part:gsub('\\.', '')
-            part = string.sub(part,1,1)
-                        
-            token = {token='new_part', part=part}           
-        end
-    end
-    
-    
-    if field_name=='user' then
-        -- user macro (not transposable)
-        if song.parse.no_expand then
-            token = {token='field_text', name='user', content=content}                   
-        else       
-            table.insert(song.parse.user_macros, parse_macro(content))
-        end
-    end
-    
-    if field_name=='macro' then
-        if song.parse.no_expand then
-            token = {token='field_text', name='macro', content=content}                   
-        else
-            -- we DON'T insert macros into the token_stream. Instead
-            -- we expand them as we find them
-            local macro = parse_macro(content)
-            
-            -- transposing macro
-            if re.find(macro.lhs, "'n'") then
-                local notes = {'a', 'b', 'c', 'd', 'e', 'f', 'g'}             
-                local note                   
-                -- insert one macro for each possible note
-                for i,v in ipairs(notes) do
-                    table.insert(song.parse.macros, transpose_macro(macro.lhs, v, macro.rhs)) 
-                    table.insert(song.parse.macros, transpose_macro(macro.lhs, string.upper(v), macro.rhs))                                                    
-                end
-            else
-                -- non-transposing macro
-                table.insert(song.parse.macros, macro)
-            end
-        end
-    end
-    
-    -- update meter
-    if field_name=='meter' then            
-        token = {token='meter', meter=parse_meter(content)}           
-    end       
-    
-    -- update key
-    if field_name=='key' then            
-        token = {token='key', key=parse_key(content)}
-        song.parse.found_key = true -- key marks the end of the header
-    end
-    
-    if token then
+    local token =  field_fns[field_name](content, song, field_name)
+          
+    if token then        
+        if field_name~='continuation' then song.parse.last_field = field_name end        
         token.inline = inline
         token.is_field = true
         table.insert(song.token_stream, token)
@@ -2445,7 +2546,7 @@ function compute_duration(note, song)
     -- duration field of the note itself
     -- bars for multi-measure rests  
     
-    if note.space then return 0,0 end
+    if note.space then return 0,0,0 end
     
     -- we are guaranteed to have filled out the num and den fields
     local length = note.duration.num / note.duration.den
@@ -2454,7 +2555,7 @@ function compute_duration(note, song)
     if note.measure_rest then   
         -- one bar =  meter ratio * note length (e.g. 1/16 = 16)
         local bar = compute_bar_length(song) *  length 
-        return bar, bar/song.context.meter.num
+        return bar, length*song.context.meter.num, length
     end
     
     
@@ -2495,7 +2596,11 @@ function compute_duration(note, song)
     local beats = length * this_note * prev_note * song.context.timing.triplet_compress    
     length = beats * song.context.timing.base_note_length * 1e6
     local note_length = song.context.note_length or default_note_length(song)
-    return length, beats / note_length, beats
+    local meter = song.context.meter
+    local notes = beats/note_length
+    local bars = notes*meter.den/meter.num
+    
+    return length, notes, bars
 end
 
 
@@ -2529,17 +2634,18 @@ end
 function compile_note(note, song)
     -- compile a single note: compute pitch and duration
     local pitch = compute_pitch(note, song)
-    local duration, beats, units = compute_duration(note, song)
+    local duration, notes, bars = compute_duration(note, song)
+    
     -- insert grace notes before the main note, if there are any
     if note.grace then
             note.grace.sequence = expand_grace(song, note.grace) 
     end
     note.play_pitch = pitch
     note.play_duration = duration
-    note.play_bars = beats
-    note.play_units = units
-    note.play_bar_time = song.context.timing.bar_time
+    note.play_notes = notes
+    note.play_bars = bars
     
+    note.play_bar_time = song.context.timing.bar_time     
     return note
 end
 
@@ -2586,6 +2692,7 @@ local field_tags = {key = 'K'
 ,book =  'B'
 ,composer =  'C'
 ,discography =   'D'
+,extended = 'E'
 ,file =   'F'
 ,group =   'G'
 ,history =   'H'
@@ -2687,7 +2794,7 @@ function abc_key(key)
     end
     
     if key.pipe then
-        return 'K:HP'
+        return 'K:'..key.pipe
     end
     
     -- root and modal modifier
@@ -3115,9 +3222,7 @@ function abc_note_def(note)
 end
 
 function abc_chord(chord)  
-    
     -- return the represenation of a chord
-   
    local chord_str = chord_case(chord.root)
    -- omit maj for major chords
    if chord.chord_type~='maj' then
@@ -3227,48 +3332,26 @@ function abc_bar(bar)
 end
 
 
+local note_elements = {split=' ', split_line='\n', continue_line='\\\n', chord_begin='[', chord_end=']', slur_end=')', slur_begin='('}
+
 function abc_note_element(element)
     -- Return a string representing a note element 
     -- can be a note, rest, bar symbol
     -- chord group, slur group, triplet/tuplet
     -- line break, beam break or some inline text
-    if element.token=='split' then
-        return ' '
-    end
     
-    if element.token=='split_line' then
-        return '\n'
-    end
+    local static_element = note_elements[element.token]
     
-    if element.token=='continue_line' then
-        return '\\\n'
-    end
+    if static_element then return static_element end
     
-    
-    if element.token=='chord' then
+    if element.token=='chord' and element.chord then
             return '"' .. abc_chord(element.chord) .. '"'
     end
     
     if element.token=='overlay' then
         return string.rep('&', element.bars)
     end
-    
-    if element.token=='chord_begin' then
-            return '['        
-    end
-    
-    if element.token=='chord_end' then
-        return ']'
-    end
-    
-    if element.token=='slur_begin' then
-        return '('        
-    end
-    
-    if element.token=='slur_end' then
-        return ')'
-    end
-    
+        
     if element.token=='text' then     
         return '"' .. (element.position or '').. element.text .. '"'
     end
@@ -3312,10 +3395,11 @@ function abc_from_songs(songs, creator)
     -- the creator field can optionally be specified to identify
     -- the program that created this code
     local out = {}
-    creator = creator or 'abclua'
-    -- write out header
-    table.insert(out, '%abc-2.1\n')
-    table.insert(out, '%%abc-creator '..creator..'\n')
+    if creator then
+        -- write out header
+        table.insert(out, '%abc-2.1\n')
+        table.insert(out, '%%abc-creator '..creator..'\n')
+    end
     
     -- each song segment separated by two newlines
     for i,v in ipairs(songs) do
@@ -3324,6 +3408,10 @@ function abc_from_songs(songs, creator)
     end
     return table.concat(out)
 end
+
+
+
+
 
 
 
@@ -3547,8 +3635,7 @@ function apply_triplet(song, triplet)
     r = triplet.r 
     
     -- set compression and number of notes to apply this to    
-    push_triplet(song, triplet.p, triplet.q, triplet.r)
-    
+    push_triplet(song, p,q,r)   
 end
 
 
@@ -3742,6 +3829,7 @@ function get_bpm_from_tempo(tempo)
         total_note = total_note + (v.num / v.den)
     end                    
     
+   
     local rate = 60.0 / (total_note * tempo.tempo_rate)
     return rate
 end
@@ -4080,8 +4168,11 @@ function expand_token_stream(song)
         end
         
         if v.token=='new_part' then
-            song.in_variant_part = nil -- clear the variant flag
-            start_new_part(song, v.part)    
+            -- can only start a new part if the parts have been defined.
+            if song.context.part_structure then
+                song.in_variant_part = nil -- clear the variant flag
+                start_new_part(song, v.part)    
+            end
         end
         
         if v.token=='meter' then  
@@ -4147,25 +4238,21 @@ end
 -- The master grammar
 local tune_pattern = [[
 elements <- ( ({}  <element>)  +) -> {}
-element <- (  {:field: field :}  / {:top_note: <complete_note>:} / ({:chord_group: <chord_group> :})  / {:overlay: <overlay> :} / {:bar: (<bar> / <variant>) :}   / {:free_text: free :} / {:triplet: triplet :} / {:slur_begin: '(' :} / {:slur_end: ')' :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
-
+element <- (  {:field: field :}  / {:top_note: <complete_note>:}  / {:overlay: <overlay> :} / {:bar: (<bar> / <variant>) :}   / {:free_text: free :} / {:triplet: triplet :} / {:slur_begin: '(' :} / {:slur_end: ')' :} /  {:chord_begin: '[' :} / {:chord_end: ']' :} / {:s: beam_split :}  / {:continuation: continuation :}) -> {}
 overlay <- ('&' +)
 continuation <- ('\')
 beam_split <- (%s +)
 free <- ( '"' {:text: [^"]* :} '"' ) -> {}
-bar <- ( {:type: ((']' / '[') * ('|' / ':') + (']' / '[') *) :} ({:variant_range: (<range_set>) :}) ? ) -> {}
+bar <- ( {:type: (('[') * ('|' / ':') + (']') *) :} ({:variant_range: (<range_set>) :}) ? ) -> {}
 variant <- ({:type: '[' :} {:variant_range: <range_set> :})   -> {}
 range_set <- (range (',' range)*)
 range <- ([0-9] ('-' [0-9]) ?)
-slurred_note <- ( ((<complete_note>) -> {}) / ( ({:chord: chord :} ) ? '(' ((<complete_note> %s*)+) ')' )  -> {}  ) 
-
-chord_group <- ( ({:chord: chord :} ) ? ('[' ((<complete_note> %s*) +) ']' ) ) -> {} 
-complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: ({decoration} +)->{} :}) ?  {:note_def: full_note :}  (%s * {:tie: (tie)  :}) ? ) -> {} 
+complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: ({decoration} +)->{} :}) ?  (({:pitch: (note) :} / {:rest: (rest) :} / {:space: (space) :}/{:measure_rest: <measure_rest> :} ) {:duration: (duration ?)  :}  {:broken: (broken ?)  :})  (%s * {:tie: (tie)  :}) ? ) -> {} 
 triplet <- ('(' {[1-9]} (':' {[1-9] ?}  (':' {[1-9]} ? ) ?) ?) -> {}
 grace <- ('{' full_note + '}') -> {}
 tie <- ('-')
 chord <- (["] {([^"] *)} ["])
-full_note <-  (({:pitch: (note) :} / {:rest: (rest) :} / {:space: (space) :}/{:measure_rest: <measure_rest> :} ) {:duration: (duration ?)  :}  {:broken: (broken ?)  :})  -> {}
+full_note <- ((({:pitch: (note) :} / {:rest: (rest) :} / {:space: (space) :}/{:measure_rest: <measure_rest> :} ) {:duration: (duration ?)  :}  {:broken: (broken ?)  :})) -> {}
 rest <- ( 'z' / 'x' )
 space <- 'y'
 measure_rest <- (('Z' / 'X')  ) -> {}
@@ -4175,11 +4262,11 @@ decoration <- ( ('!' ([^!] *) '!') / ('+' ([^+] *) '+') / '.' / [~] / 'H' / 'L' 
 octave <- (( ['] / ',') +)
 accidental <- ( ('^^' /  '__' /  '^' / '_' / '=')   ) 
 duration <- ( (({:num: ([1-9] +) :}) ? ({:slashes: ('/' +)  :})?  ({:den: ((  [1-9]+  ) ) :})?))  -> {}
-
 field <- (  '['  {:contents: field_element  ':'  [^]`] + :} ']' ) -> {}
 field_element <- ([A-Za-z])
-
 ]]
+
+
 local tune_matcher = re.compile(tune_pattern)
 
 
@@ -4219,8 +4306,7 @@ function read_tune_segment(tune_data, song)
             if song.parse.cross_ref then
                  table.insert(song.token_stream, {token='cross_ref', at=v, line=song.parse.line})
             end
-        else
-                    
+        else                   
             -- store annotations
             if v.free_text then
                 -- could be a standalone chord
@@ -4275,22 +4361,13 @@ function read_tune_segment(tune_data, song)
             end
             
             -- chord groups
-            if v.chord_group then
+            if v.chord_begin then            
+                
+                table.insert(song.token_stream, {token='chord_begin'})                                
+            end
             
-                -- textual chords
-                if v.chord_group.chord then
-                    table.insert(song.token_stream, {token='chord', chord=parse_chord(v.chord_group.chord)})                                
-                end
-                
-                if v.chord_group[1] then
-                    table.insert(song.token_stream, {token='chord_begin'})                                
-                    -- insert the individual notes
-                    for i,note in ipairs(v.chord_group) do                
-                        add_note_to_stream(song.token_stream, note)                        
-                    end
-                    table.insert(song.token_stream, {token='chord_end'})                                
-                end                               
-                
+            if v.chord_end then
+                table.insert(song.token_stream, {token='chord_end'})                                                
             end
             
             if v.slur_begin then
@@ -4303,8 +4380,7 @@ function read_tune_segment(tune_data, song)
             
             -- if we have slur groups then there are some notes to parse...
             if v.top_note then                            
-                add_note_to_stream(song.token_stream, v.top_note)
-                
+                add_note_to_stream(song.token_stream, v.top_note)               
             end
         end
     end
@@ -4362,14 +4438,14 @@ function parse_abc_line(line, song)
         song.parse.in_header = false
         table.insert(song.token_stream, {token='header_end'})
     end
-        
+          
     --
     -- read tune
     --
     if not field_parsed and not song.parse.in_header then
         local match
         if not song.parse.no_expand and (#song.parse.macros>0 or #song.parse.user_macros>0)  then               
-                match = expand_macros(song, line)                
+            match = expand_macros(song, line)                
         else
             match = tune_matcher:match(line)
         end
@@ -4378,8 +4454,7 @@ function parse_abc_line(line, song)
         -- (if not, it should be a metadata field)
         if match then            
         
-            -- check for macros           
-            
+            -- check for macros                       
             -- we found tune notes; this isn't a file header
             song.parse.has_notes = true
             
@@ -4459,74 +4534,110 @@ function get_default_context()
 end
     
 local section_matcher = re.compile([[
-     abc_tunes <- (section (break section) * last_line ?) -> {}
+     abc_tunes <- (section (break+ section) * last_line ?) -> {}
      break <- (([ ] * %nl)  )
      section <- { (line +)  }
      line <- ( ([^%nl] +  %nl) )
      last_line <- ( ([^%nl]+) )
     ]] 
 )    
-function parse_abc_multisong(str, options)
+
+function parse_and_compile(tune_str, options, context, metadata)
+    -- parse a tune and compile it; returns nil if cannot be parsed or compiled
+    local success, tune = pcall(parse_abc,tune_str,options)
+    if not success then 
+        warn("Could not parse tune beginning: "..string.sub(tune_str, 1, 64)) 
+        warn(tune)
+        return nil
+    end
+    local success,err  = pcall(compile_token_stream,tune,context,metadata)
+    if not success then 
+        warn("Could not compile tune beginning: "..string.sub(tune_str, 1, 64)) 
+        warn(err)
+        return nil
+    end
+    return tune
+end
+
+function songbook_block_iterator(str, options)
+    -- Iterator for iterating through tune blocks in a songbook    
+    str = str..'\n'
+    return coroutine.wrap( 
+        function ()                
+        -- tunes must begin with a field (although there
+        -- can be directives or comments first)
+        local sections = section_matcher:match(str)
          
+        -- malformed file
+        if not sections or #sections==0 then
+            return 
+        end
+        
+        -- only include patterns with a field in them; ignore 
+        -- free text blocks
+        for i,v in ipairs(sections) do    
+            if v:gmatch('\n[a-zA-Z]:') then                            
+                coroutine.yield(v)
+            end
+        end
+    end)
+    
+end
+
+
+function parse_abc_coroutine(str, options)
+    -- Iterator for iterating through tunes in a songbook
+    -- This is preferable to just reading the entire thing into an table
+    -- as it saves memory.
     -- split file into sections
    
-    
-    str = str..'\n'
-    
-    -- tunes must begin with a field (although there
-    -- can be directives or comments first)
-    local sections = section_matcher:match(str)
-    local tunes = {}    
-    
-    -- malformed file
-    if not sections or #sections==0 then
-        return {}
-    end
-   
-    -- only include patterns with a field in them; ignore 
-    -- free text blocks
-    for i,v in ipairs(sections) do    
-        if v:gmatch('\n[a-zA-Z]:') then            
-            table.insert(tunes, v)  
-        end
-    end
+    local iterator = songbook_block_iterator(str, options)
         
     -- set defaults for the whole tune
     local default_metadata = {}
-    
     local default_context = get_default_context()
     
-    -- no tunes!
-    if #tunes<1 then
-        return {}
-    end
+    local tune_str 
+    tune_str = iterator()
     
-    local songs = {}
+    if not tune_str then
+        return -- no tunes at all
+    end
     
     -- first tune might be a file header
-    local first_tune = parse_abc(tunes[1], options) 
-    compile_token_stream(first_tune,  default_context, default_metadata)
-    table.insert(songs, first_tune)
-    
+    local first_tune = parse_and_compile(tune_str, options, default_context, default_metadata)
     
     -- if no notes, is a global header for this whole file
-    if not first_tune.parse.has_notes then
+    if first_tune and not first_tune.parse.has_notes then
         default_metadata = first_tune.metadata
         default_context = first_tune.context
+    else
+        default_metadata = {}
+        default_context = get_default_context()
     end
     
-   
-    -- add remaining tunes, using file header as default, if needed
-    for i,v in ipairs(tunes) do
-        -- don't add first tune twice
-        if i~=1 then
-            local tune = parse_abc(v, options) 
-            compile_token_stream(tune, deepcopy(default_context), deepcopy(default_metadata))    
-            table.insert(songs, tune)
-        end
-    end
+    -- return the first tune
+    coroutine.yield(first_tune)
     
-    return songs
+    -- remaining tunes
+    tune_str = iterator()
+    if tune_str then
+        coroutine.yield(parse_and_compile(tune_str, options, deepcopy(default_context), deepcopy(default_metadata)))    
+    end
+end
+
+function parse_abc_song_iterator(str, options)
+    -- return an iterator to iterate over songs in a songbook
+    return coroutine.wrap(function() parse_abc_coroutine(str, options)end)
+end
+
+function parse_abc_multisong(str, options) 
+    -- return a table of songs from a songbook
+    local songs = {}
+    for song in parse_abc_song_iterator(str, options) do
+        table.insert(songs, song)
+    end
+    return songs 
 end
 
 function parse_abc_file(filename, options)
@@ -4598,6 +4709,9 @@ get_note_number = get_note_number,
 get_bpm_from_tempo = get_bpm_from_tempo,
 printable_note_name = printable_note_name,
 precompile_token_stream = precompile_token_stream,
+parse_abc_song_iterator = parse_abc_song_iterator,
+scan_metadata = scan_metadata,
+songbook_block_iterator = songbook_block_iterator,
 version=0.2,
 }
 
@@ -4607,8 +4721,8 @@ version=0.2,
 -- add tune matcher example
 -- Text string encodings
 -- More assertions / test cases
--- Check bar timing stuff (3/4 and 4/4 should have different bar times!)
-
+-- Make automatic tune reproduce tester
+-- Auto chord generator example
 -- ABCLint -> check abc files for problems
 
 -- transposing macros don't work when octave modifiers and ties are applied
@@ -4784,11 +4898,7 @@ end
 
 function parse_note(note)
     -- move note def into the note itself
-    
-    for i,v in pairs(note.note_def) do
-        note[i] = v
-    end
-    note.note_def = nil
+    --table_print(note)    
     return make_note(note)
     
 end
@@ -4854,6 +4964,12 @@ function parse_tempo(l)
            captures.tempo_rate = tempo_names[string.lower(captures.name)]
            captures[1] = {num=1, den=4}
         end
+         
+    end
+    
+    -- default if not filled in
+    if not captures.tempo_rate then
+         captures = {tempo_rate=120, [1]={num=1, den=8}}
     end
     
     return captures
@@ -4864,7 +4980,7 @@ function parse_length(l)
     -- Parse a string giving note length, as a fraction "1/n" (or plain "1")
     -- Returns integer representing denominator.
     local captures = length_matcher:match(l)             
-    if captures[1] then
+    if captures and captures[1] then
         return captures[1]+0
     else
         return 1    
@@ -4906,7 +5022,7 @@ local meter_matcher = re.compile([[
     meter <- (fraction / cut / common / none) 
     common <- ({:common: 'C' :}) -> {}
     cut <- ({:cut: 'C|' :}) -> {}
-    none <- ({:none: 'none' / '' :})  -> {}    
+    none <- ({:none: 'none' :})  -> {}    
     fraction <- ({:num: complex :} %s * '/' %s * {:den: [0-9]+ :}) -> {}    
     complex <- ( '(' ? ((number + '+') * number) ->{} ')' ? )
     number <- {([0-9]+)}     
@@ -4916,6 +5032,10 @@ function parse_meter(m)
     -- Parse a string giving the meter definition
     -- Returns fraction as a two element table
     local captures = meter_matcher:match(m)    
+    
+    if not captures then
+        captures = {none='none'}
+    end
     return get_simplified_meter(captures)
     
 end

@@ -79,7 +79,7 @@ function synthesize_note(wav, sr, duration, pitch, beat_time, tempo)
         
         local vsquared = velocity * velocity
         -- simulate hitting the note slightly flat to begin 
-        local fr = 0.94*f
+        local fr = 0.9*f
         attack = true
             
         -- there's no point in being efficient here: Lua is not
@@ -94,7 +94,7 @@ function synthesize_note(wav, sr, duration, pitch, beat_time, tempo)
             
             -- update envelope
             fr = 0.998*fr + 0.002*f
-            if vamp<1.8 then vamp = vamp * 1.0004 end
+            if vamp<1.8 then vamp = vamp * 1.0003 end
          
             if duration-i<decay then
                 amp = amp * 0.97

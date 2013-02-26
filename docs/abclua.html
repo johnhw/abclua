@@ -92,6 +92,7 @@
 <li><code>examples/transpose.lua</code> Takes an ABC file, and transposes it to the given key, or by the given number of semitones, and writes the new tune to standard out.</li>
 <li><code>examples/tune_db.lua</code> Simple SQLLite database of tunes; can index tunes from files, list and search the database.</li>
 <li><code>examples/abc_from_midi.lua</code> Very primitive MIDI -&gt; ABC converter.</li>
+<li><code>examples/hum_rhythm.lua</code> Prints the &quot;humming rhythm&quot; of a tune out (<em>daaaaa-da-daah daaaah-dah</em>...)</li>
 </ul>
 <p>It also comes with a fairly complete clone of <strong>abc2midi</strong>. <code>abc_to_midi.lua</code> will take an ABC file and produce a corresponding MIDI file. See <a href="abcluamidi.html">the guide</a> for more information.</p>
 <h2 id="using"><a href="#using">Using</a></h2>
@@ -163,11 +164,21 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
     tokens = parse_abc_fragment(&#39;de&gt;d&#39;)
     stream, context = compile_tokens(tokens)</code></pre></li>
 <li><p><code>precompile_token_stream(tokens, [context])</code> Adds pitch and duration information to all notes; but does not expand repeats/parts/voices etc. Modifies the token stream in place, adding new fields (e.g. <strong>play_pitch</strong> and <strong>play_duration</strong>).</p></li>
-<li><p><code>parse_abc_song_iterator</code> Returns an function which parses and compiles a tune from a songbook each time it is called. Useful for parsing very large ABC files.</p>
-<p>local content = f:read('*a') for song in parse_abc_song(iterator) do -- do something with the parsed/compiled tune end</p></li>
-<li><p><code>scan_metadata</code> Scans a single tune string and returns the metadata from the tune (e.g. title, ref no.). This allows quick scanning of tunes without doing a full parse.</p></li>
-<li><p><code>songbook_block_iterator</code> Simple iterator which returns the string representing the next tune in a songbook.</p>
-<p>local content = f:read('*a') local meta for block in songbook_block_iterator(content) do meta = scan_metadata(block) if meta.title[1]=='Ashokan Farewell' then print(&quot;Tune found!&quot;) end end</p></li>
+<li><p><code>parse_abc_song_iterator(str)</code> Returns an function which parses and compiles a tune from a songbook each time it is called. Useful for parsing very large ABC files.</p>
+<pre><code>    local content = f:read(&#39;*a&#39;)
+    for song in parse_abc_song(iterator) do
+        -- do something with the parsed/compiled tune
+    end</code></pre></li>
+<li><p><code>scan_metadata(song_str)</code> Scans a single tune string and returns the metadata from the tune (e.g. title, ref no.). This allows quick scanning of tunes without doing a full parse.</p></li>
+<li><p><code>songbook_block_iterator(str)</code> Simple iterator which returns the string representing the next tune in a songbook.</p>
+<pre><code>    local content = f:read(&#39;*a&#39;)
+    local meta
+    for block in songbook_block_iterator(content) do
+        meta = scan_metadata(block)
+        if meta.title[1]==&#39;Ashokan Farewell&#39; then
+            print(&quot;Tune found!&quot;)
+        end
+    end</code></pre></li>
 <li><p><code>emit_abc(tokens)</code> Return an ABC string represenation of a given token stream</p>
 <pre><code>    songs = parse_abc_file(&#39;example.abc&#39;)
     -- should print out something close to the first tune in the original example.abc
@@ -455,12 +466,12 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 <tr class="even">
 <td align="left">note</td>
 <td align="left">Note receives duration and real pitch.</td>
-<td align="left"><strong>play_duration</strong> Duration of the event in microseconds<br /><strong>play_pitch</strong> Pitch of the note in MIDI notes<br /><strong>play_bars</strong> Duration of note in bars.<br /><strong>play_units</strong> Duration of the note in unit note lengths<br /><strong>play_bar_time</strong> Start time of note, as fraction of one measure.<br /></td>
+<td align="left"><strong>play_duration</strong> Duration of the event in microseconds<br /><strong>play_pitch</strong> Pitch of the note in MIDI notes<br /><strong>play_bars</strong> Duration of note in bars.<br /><strong>play_notess</strong> Duration of the note in note lengths (e.g. 0.25=quaver)<br /><strong>play_bar_time</strong> Start time of note, as fraction of one measure.<br /></td>
 </tr>
 <tr class="odd">
 <td align="left">rest</td>
 <td align="left">A rest -- just advances time.</td>
-<td align="left"><strong>play_duration</strong> Duration of rest in microseconds.<br /><strong>play_bars</strong> Duration of rest in bars.<br /><strong>play_units</strong> Duration of the note in unit note lengths<br /><strong>play_bar_time</strong> Start time of note, as fraction of one measure.<br /></td>
+<td align="left"><strong>play_duration</strong> Duration of rest in microseconds.<br /><strong>play_bars</strong> Duration of rest in bars.<br /><strong>play_units</strong> Duration of the note in rest lengths (e.g. 0.25=quaver)<br /><strong>play_bar_time</strong> Start time of rest, as fraction of one measure.<br /></td>
 </tr>
 </tbody>
 </table>

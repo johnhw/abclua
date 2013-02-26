@@ -113,6 +113,7 @@ function abc_key(key)
     
     -- root and modal modifier
     local root = string.upper(string.sub(key.root,1,1)) .. string.sub(key.root,2,-1)    
+    root = root:gsub('s', '#')
     
     if key.mode then     
         root = root .. key.mode

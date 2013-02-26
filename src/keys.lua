@@ -185,9 +185,9 @@ function create_key_structure(k)
                 key_mapping[major[i]] = v
         end        
         
-        key_mapping[1] = 1 -- C sharp
-        key_mapping[4] = 1 -- F sharp
-                    
+        key_mapping['c'] = 1 -- C sharp
+        key_mapping['g'] = 1 -- F sharp
+        return key_mapping  
     else
         -- find the matching key        
         local root = k.root
@@ -230,6 +230,7 @@ function create_key_structure(k)
                 else
                     -- we can use fractional accidentals in the key
                     key_mapping[v.note] = v.accidental.num / v.accidental.den
+                   
                 end
             end
         end

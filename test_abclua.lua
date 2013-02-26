@@ -1,0 +1,6 @@
+require "tests/test_parsing"
+require "tests/test_transpose"
+require "tests/test_durations"
+require "tests/test_pitches"
+require "tests/test_repeats"
+require "tests/test_timing"

@@ -175,24 +175,24 @@ new fields (e.g. **play_pitch** and **play_duration**).
 
 * `parse_abc_song_iterator(str)` Returns an function which parses and compiles a tune from a songbook each time it is called. Useful for parsing very large ABC files.
 
-    local content = f:read('*a')
-    for song in parse_abc_song(iterator) do
-        -- do something with the parsed/compiled tune
-    end
-    
+            local content = f:read('*a')
+            for song in parse_abc_song(iterator) do
+                -- do something with the parsed/compiled tune
+            end
+            
 
 * `scan_metadata(song_str)` Scans a single tune string and returns the metadata from the tune (e.g. title, ref no.). This allows quick scanning of tunes without doing a full parse.
 
 * `songbook_block_iterator(str)` Simple iterator which returns the string representing the next tune in a songbook.
 
-    local content = f:read('*a')
-    local meta
-    for block in songbook_block_iterator(content) do
-        meta = scan_metadata(block)
-        if meta.title[1]=='Ashokan Farewell' then
-            print("Tune found!")
-        end
-    end
+            local content = f:read('*a')
+            local meta
+            for block in songbook_block_iterator(content) do
+                meta = scan_metadata(block)
+                if meta.title[1]=='Ashokan Farewell' then
+                    print("Tune found!")
+                end
+            end
         
 * `emit_abc(tokens)` Return an ABC string represenation of a given token stream
 
@@ -257,7 +257,7 @@ text            Free quoted text (e.g. "This is free")     `"hello"`     **text*
                                                                          **position** position of the text:\
                                                                          can be `<`, `>`, `_`, `^` or `@`
 
-overlay         Voice overlay begins. p                    `\`                 
+overlay         Voice overlay begins.                      `\`                 
                
 chord_begin     Start of a chord group                      `[`
 
@@ -348,12 +348,12 @@ triplet         Tuplet: following notes to be compressed.   `(3 (3:2:3`  **tripl
                                                                          **triplet.r** for the next `r` notes
                                                                          
 append_text     Appending to the previous text field.       `+:more`     **name** name of the field we are appending to (i.e. previous field in the source)\
-                                                                         **content** content to be appended
-_field                                                                         
+_field                                                                   **content** content to be appended
+                                                                         
                                                                                          
 cross_ref       Cross reference to the ABC source. Only                  **line** current line of the ABC source \
-                generated if the cross_ref option is used.               **at** character of the line 
-                                                                 
+                generated if the *cross_ref* option is used              **at** character of the line 
+                when parsing.
 -------------------------------------------------------------------------------------------------------------
 
 Table: Token types in ABCLua        
@@ -403,7 +403,9 @@ event           description                                fields
 header_end      End of the header in the original notation
 
 abc             A string of abc notation, representing the 
-                next event in the stream
+                next event in the stream. Only generated if
+                the *write_abc_events* is specified in the
+                options to compile.
                 
 timing_change   New timing information. There is always     **base_note_length** length of default note in microseconds\
                 one of these at the start of a song.        **bar_length** length of one measure in microseconds\
@@ -414,13 +416,13 @@ timing_change   New timing information. There is always     **base_note_length**
 note            Note receives duration and real pitch.      **play_duration** Duration of the event in microseconds\
                                                             **play_pitch**    Pitch of the note in MIDI notes\
                                                             **play_bars**     Duration of note in bars.\
-                                                            **play_notess**   Duration of the note in note lengths (e.g. 0.25=quaver)\
+                                                            **play_notes**   Duration of the note in note lengths (e.g. 0.25=quaver)\
                                                             **play_bar_time**      Start time of note, as fraction of one measure.\                                                                          
                                                             
                                                             
 rest            A rest -- just advances time.               **play_duration**  Duration of rest in microseconds.\
                                                             **play_bars**      Duration of rest in bars.\
-                                                            **play_units**     Duration of the note in rest lengths (e.g. 0.25=quaver)\
+                                                            **play_notes**     Duration of the note in rest lengths (e.g. 0.25=quaver)\
                                                             **play_bar_time**  Start time of rest, as fraction of one measure.\
                                                             
 -------------------------------------------------------------------------------------------------------------
