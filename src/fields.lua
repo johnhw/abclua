@@ -2,41 +2,40 @@
 
 -- create the various pattern matchers
 
-local fields = {}
-fields.key = [[('K:' {.*} ) -> {}]]
-fields.title = [[('T:' %s * {.*}) -> {}]]
-fields.ref =  [[('X:' %s * {.*}) -> {}]]
-fields.area =  [[('A:' %s * {.*}) -> {}]]
-fields.book =  [[('B:' %s * {.*}) -> {}]]
-fields.composer =  [[('C:' %s * {.*}) -> {}]]
-fields.discography =  [[('D:' %s * {.*}) -> {}]]
-fields.file =  [[('F:' %s * {.*}) -> {}]]
-fields.group =  [[('G:' %s * {.*}) -> {}]]
-fields.history =  [[('H:' %s * {.*}) -> {}]]
-fields.instruction =  [[('I:' %s * {.*}) -> {}]]
-fields.length =  [[('L:' %s * {.*}) -> {}]]
-fields.meter =  [[('M:' %s * {.*}) -> {}]]
-fields.macro =  [[('m:' %s * {.*}) -> {}]]
-fields.notes =  [[('N:' %s * {.*}) -> {}]]
-fields.origin =  [[('O:' %s * {.*}) -> {}]]
-fields.parts =  [[('P:' %s * {.*}) -> {}]]
-fields.tempo =  [[('Q:' %s * {.*}) -> {}]]
-fields.rhythm =  [[('R:' %s * {.*}) -> {}]]
-fields.remark =  [[('r:' %s * {.*}) -> {}]]
-fields.source =  [[('S:' %s * {.*}) -> {}]]
-fields.symbolline =  [[('s:' %s * {.*}) -> {}]]
-fields.user =  [[('U:' %s * {.*}) -> {}]]
-fields.voice =  [[('V:' %s * {.*}) -> {}]]
-fields.words =  [[('w:' %s * {.*}) -> {}]]
-fields.end_words =  [[('W:' %s * {.*}) -> {}]]
-fields.transcriber =  [[('Z:' %s * {.*}) -> {}]]
-fields.continuation =  [[('+:' %s * {.*}) -> {}]]
-fields.extended = [[('E:' %s * {.*}) -> {}]]
 
--- compile field matchers
-for i,v in pairs(fields) do
-    fields[i] = re.compile(v)
-end
+
+local field_tags = {key = 'K'
+,title = 'T'
+,ref =  'X'
+,area =  'A'
+,book =  'B'
+,composer =  'C'
+,discography =   'D'
+,extended = 'E'
+,file =   'F'
+,group =   'G'
+,history =   'H'
+,instruction =   'I'
+,length =   'L'
+,meter =   'M'
+,macro =   'm'
+,notes =   'N'
+,origin =   'O'
+,parts =   'P'
+,tempo =   'Q'
+,rhythm =   'R'
+,remark =  'r'
+,source =   'S'
+,symbolline =   's'
+,user =   'U'
+,voice =   'V'
+,words =  'w'
+,end_words =  'W'
+,transcriber =  'Z'
+,continuation =  '+'
+}
+
+local field_names = invert_table(field_tags)
 
 local parts_matcher = re.compile(
 [[
@@ -110,25 +109,191 @@ end
 
 
 
+function text_token(content, song, field_name)      
+    return  {token='field_text', name=field_name, content=content} 
+end
+
+function key_token(content, song)
+     song.parse.found_key = true -- key marks the end of the header
+     return {token='key', key=parse_key(content)}     
+end
+
+function length_token(content, song)
+        
+        return {token='note_length', note_length=parse_length(content)}
+end
+
+function tempo_token(content, song)
+    local tempo=parse_tempo(content)
+    if tempo then
+        return  {token='tempo', tempo=tempo}
+    end
+end
+
+function words_token(content, song) 
+        local lyrics = parse_lyrics(content)
+        if lyrics then
+            return {token='words', lyrics=lyrics}          
+        end
+end
+
+function instruction_token(content, song)
+     local parse_time, directive = parse_directive(content)
+     -- + -- must execute parse time directives immediately
+     if directive then
+         if parse_time and not song.parse.no_expand then
+            apply_directive(song, directive.directive, directive.arguments)
+         else
+            -- + -- otherwise defer
+            return {token='instruction', directive=directive}           
+         end
+     end
+end
+
+
+function voice_token(content, song)    
+    local voice = parse_voice(content)
+    if voice then                
+        ---- in the header this just sets up the voice properties
+        if song.parse.in_header then
+            return {token='voice_def', voice=voice}
+        else
+            return {token='voice_change', voice=parse_voice(content)}
+        end
+    end
+end
+
+function user_token(content, song)
+    -- user macro (not transposable)
+    if song.parse.no_expand then
+        return {token='field_text', name='user', content=content}                   
+    else       
+        table.insert(song.parse.user_macros, parse_macro(content))
+    end      
+end
+
+
+function parts_token(content, song)
+        ---- parts definition if we are still in the header
+        ---- look up the parts and expand them out
+        if song.parse.in_header then
+            local parts = content:gsub('\\.', '') -- remove dots
+            parts = parse_parts(content)
+            if parts then
+                return {token='parts', parts=parts}           
+            end
+        else            
+            ---- otherwise we are starting a new part   
+            ---- parts are always one character long, spaces and dots are ignored
+            local part = content:gsub('%s', '')
+            part = part:gsub('\\.', '')
+            part = string.sub(part,1,1)
+                        
+            return {token='new_part', part=part}           
+        end
+    
+end
+    
+function meter_token(content, song)    
+    -- update meter   
+    return {token='meter', meter=parse_meter(content)}              
+end
+
+function macro_token(content, song)
+    if song.parse.no_expand then
+        return {token='field_text', name='macro', content=content}                   
+    else
+        ---- we DON'T insert macros into the token_stream. Instead
+        ---- we expand them as we find them
+        local macro = parse_macro(content)
+        
+        ---- transposing macro
+        if re.find(macro.lhs, "'n'") then
+            local notes = {'a', 'b', 'c', 'd', 'e', 'f', 'g'}             
+            local note                   
+            ----- insert one macro for each possible note
+            for i,v in ipairs(notes) do
+                table.insert(song.parse.macros, transpose_macro(macro.lhs, v, macro.rhs)) 
+                table.insert(song.parse.macros, transpose_macro(macro.lhs, string.upper(v), macro.rhs))                                                    
+            end
+        else
+            ---- non-transposing macro
+            table.insert(song.parse.macros, macro)
+        end
+    end    
+end
+    
+function continuation_token(content, song)
+     local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'macro', 'user', 'voice', 'instruction'} -- those fields we parse individually    
+     if song.parse.last_field then
+        -- append plain text if necessary
+        if not is_in(song.parse.last_field, parsable) then        
+            return {token='append_field_text', name=song.parse.last_field, content=content}                
+        end
+        
+         if song.parse.last_field=='words' then
+            return words_token('words', content, song)                
+         end
+     end                 
+end
+        
+ local field_fns = {key = key_token
+,title = text_token
+,ref =  text_token
+,area =  text_token
+,book =  text_token
+,composer =  text_token
+,discography = text_token
+,extended = text_token
+,file = text_token
+,group =  text_token
+,history = text_token
+,instruction =   instruction_token
+,length =   length_token
+,meter =   meter_token
+,macro =   macro_token
+,notes =   text_token
+,origin =  text_token
+,parts =   parts_token
+,tempo =   tempo_token
+,rhythm =   text_token
+,remark =  text_token
+,source =   text_token
+,symbolline =   text_token
+,user =   user_token
+,voice =   voice_token
+,words =  words_token
+,end_words =  text_token
+,transcriber =  text_token
+,continuation =  continuation_token
+}
+
+
+function scan_metadata(str)
+    local meta = {}
+    local last_field 
+    -- quickly scan a string, and fill out the metadata
+    for line in str.split('\n') do
+        local match, content = str:match('^([%a\\+]):([^]:[|]?.*)')
+        if match then
+            field_name = field_names[match]
+            if field_name then 
+                meta[field_name] = content
+            end            
+        end        
+     end
+
+    
+end
 
 function parse_field(f, song, inline)
     -- parse a metadata field, of the form X: stuff
     -- (either as a line on its own, or as an inline [x:stuff] field
-     local name, field, match, field_name, content
+     local name, field, field_name
+     local match, content = f:match('^([%a\\+]):([^]:[|]?.*)')
           
-     -- find matching field
-     local field_name = nil
-     for name, field in pairs(fields) do
-        match = field:match(f)         
-        if match then
-            field_name = name
-            content = match[1]                
-        end
-     end
-     
-            
      -- not a metadata field at all
-     if not field_name then
+     if not match then
         -- in the header, treat lines without a tag as continuations
         if song.parse.in_header then
             field_name = 'continuation' 
@@ -137,155 +302,15 @@ function parse_field(f, song, inline)
             -- otherwise it was probably a tune line
             return false
         end
-     end    
-        
-    local token
-   
-    local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'macro', 'user', 'voice', 'instruction'} -- those fields we parse individually
-    local field = {name=field_name, content=content}
-    -- continuation
-    if field_name=='continuation' then
-        if song.parse.last_field then
-            -- append plain text if necessary
-            if not is_in(song.parse.last_field, parsable) then            
-                token = {token='append_field_text', name=song.parse.last_field, content=content}                
-            end
-            
-             if song.parse.last_field=='words' then
-                 token = {token='words', lyrics=parse_lyrics(content)}
-             end
-         end
-         
-    else
-        -- if not a parsable field, store it as plain text
-    
-        song.parse.last_field = field_name
-        if not is_in(field_name, parsable) then
-            token =  {token='field_text', name=field_name, content=content}
-        end
+     else
+        field_name = field_names[match]
+        if not field_name then return end -- unknown field
+     end
 
-    end
-    
-    
-    -- update specific tune settings
-    if field_name=='length' then
-        local note_length = parse_length(content)
-        if note_length then
-            token = {token='note_length', note_length=note_length}
-        end
-    end
-            
-    -- update tempo
-    if field_name=='tempo' then            
-        local tempo=parse_tempo(content)
-        if tempo then
-            token = {token='tempo', tempo=tempo}
-        end
-    end
-    
-    -- parse lyric definitions
-    if field_name=='words' then                        
-        local lyrics = parse_lyrics(content)
-        if lyrics then
-            token = {token='words', lyrics=lyrics}          
-        end
-    end
-    
-     -- parse lyric definitions
-    if field_name=='instruction' then                       
-         local parse_time, directive = parse_directive(content)
-         -- must execute parse time directives immediately
-         if directive then
-             if parse_time and not song.parse.no_expand then
-                apply_directive(song, directive.directive, directive.arguments)
-             else
-                -- otherwise defer
-                token = {token='instruction', directive=directive}           
-             end
-         end
-    end
-            
-     -- parse voice definitions
-    if field_name=='voice' then 
-        local voice = parse_voice(content)
-        if voice then                
-            -- in the header this just sets up the voice properties
-            if song.parse.in_header then
-                token = {token='voice_def', voice=voice}
-            else
-                token = {token='voice_change', voice=parse_voice(content)}
-            end
-        end
-    end
-      
-   
-    if field_name=='parts' then            
-        -- parts definition if we are still in the header
-        -- look up the parts and expand them out
-        if song.parse.in_header then
-            local parts = content:gsub('\\.', '') -- remove dots
-            parts = parse_parts(content)
-            if parts then
-                token = {token='parts', parts=parts}           
-            end
-        else
-            
-            -- otherwise we are starting a new part   
-            -- parts are always one character long, spaces and dots are ignored
-            local part = content:gsub('%s', '')
-            part = part:gsub('\\.', '')
-            part = string.sub(part,1,1)
-                        
-            token = {token='new_part', part=part}           
-        end
-    end
-    
-    
-    if field_name=='user' then
-        -- user macro (not transposable)
-        if song.parse.no_expand then
-            token = {token='field_text', name='user', content=content}                   
-        else       
-            table.insert(song.parse.user_macros, parse_macro(content))
-        end
-    end
-    
-    if field_name=='macro' then
-        if song.parse.no_expand then
-            token = {token='field_text', name='macro', content=content}                   
-        else
-            -- we DON'T insert macros into the token_stream. Instead
-            -- we expand them as we find them
-            local macro = parse_macro(content)
-            
-            -- transposing macro
-            if re.find(macro.lhs, "'n'") then
-                local notes = {'a', 'b', 'c', 'd', 'e', 'f', 'g'}             
-                local note                   
-                -- insert one macro for each possible note
-                for i,v in ipairs(notes) do
-                    table.insert(song.parse.macros, transpose_macro(macro.lhs, v, macro.rhs)) 
-                    table.insert(song.parse.macros, transpose_macro(macro.lhs, string.upper(v), macro.rhs))                                                    
-                end
-            else
-                -- non-transposing macro
-                table.insert(song.parse.macros, macro)
-            end
-        end
-    end
-    
-    -- update meter
-    if field_name=='meter' then            
-        token = {token='meter', meter=parse_meter(content)}           
-    end       
-    
-    -- update key
-    if field_name=='key' then            
-        token = {token='key', key=parse_key(content)}
-        song.parse.found_key = true -- key marks the end of the header
-    end
-    
-    if token then
+    local token =  field_fns[field_name](content, song, field_name)
+          
+    if token then        
+        if field_name~='continuation' then song.parse.last_field = field_name end        
         token.inline = inline
         token.is_field = true
         table.insert(song.token_stream, token)

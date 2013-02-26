@@ -110,7 +110,7 @@ local meter_matcher = re.compile([[
     meter <- (fraction / cut / common / none) 
     common <- ({:common: 'C' :}) -> {}
     cut <- ({:cut: 'C|' :}) -> {}
-    none <- ({:none: 'none' / '' :})  -> {}    
+    none <- ({:none: 'none' :})  -> {}    
     fraction <- ({:num: complex :} %s * '/' %s * {:den: [0-9]+ :}) -> {}    
     complex <- ( '(' ? ((number + '+') * number) ->{} ')' ? )
     number <- {([0-9]+)}     
@@ -120,6 +120,10 @@ function parse_meter(m)
     -- Parse a string giving the meter definition
     -- Returns fraction as a two element table
     local captures = meter_matcher:match(m)    
+    
+    if not captures then
+        captures = {none='none'}
+    end
     return get_simplified_meter(captures)
     
 end

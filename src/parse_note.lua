@@ -161,11 +161,7 @@ end
 
 function parse_note(note)
     -- move note def into the note itself
-    
-    for i,v in pairs(note.note_def) do
-        note[i] = v
-    end
-    note.note_def = nil
+    --table_print(note)    
     return make_note(note)
     
 end

@@ -11,8 +11,7 @@ function time_stream(stream)
     local measure = 1
     local written_measure = 1
     t = 0    
-    local last_bar = 0
-    local bar_time
+    local last_bar = 0    
     
     for i,event in ipairs(stream) do        
         event.t = t
@@ -22,6 +21,7 @@ function time_stream(stream)
             last_bar = event.t
             measure = measure + 1
             written_measure = event.bar.meeasure
+            event.bar.play_measure = measure
         end
         
         
@@ -42,16 +42,11 @@ function time_stream(stream)
                 if duration > max_duration then
                     max_duration = duration
                 end
-            end            
-            bar_time = event.play_bar_time
+            end                                    
         end
+        event.duration = duration                
         
-        event.duration = duration
-        -- record bar/bar-relative timing
-        event.measure = {play_measure = measure, written_measure=measure, bar_time=bar_time}        
-        
-        -- chord symbols
-       
+        -- chord symbols       
         -- chord starts; stop advancing time
         if event.event=='chord_begin' then
             in_chord = true

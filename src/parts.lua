@@ -77,13 +77,11 @@ function expand_patterns(patterns)
     for i,v in ipairs(patterns) do
         
         for i=1,v.repeats do
-            -- repeated measures (including single repeats!)
-            append_table(result, deepcopy(v.section))    
-            
+            -- repeated measures (including single repeats!)               
+            append_table(result, copy_if_needed(v.section))    
             -- append variant endings
-            if #v.variants>=i then
-                append_table(result, deepcopy(v.variants[i]))    
-            
+            if #v.variants>=i then                                
+                append_table(result, copy_if_needed(v.variants[i]))
             end
         end
     end
@@ -98,8 +96,7 @@ function compose_parts(song)
     -- using the parts indicator. If no parts indicator, just uses the default part
     -- Combines all repeats etc. inside each part into a stream as well
     -- The final stream is a fresh copy of all the events
-    
-    
+        
     start_new_part(song, nil)
     
     local variant_counts = {}
@@ -108,7 +105,7 @@ function compose_parts(song)
         song.stream = {}        
         for c in song.context.part_sequence:gmatch"." do            
             if song.context.part_map[c] then 
-                local pattern = deepcopy(expand_patterns(song.context.part_map[c]))
+                local pattern = copy_if_needed(expand_patterns(song.context.part_map[c]))
                 append_table(song.stream, pattern)
                 
                 -- count repetitions of this part
@@ -123,7 +120,7 @@ function compose_parts(song)
                 if song.context.part_map[c].variants and song.context.part_map[c].variants[vc] then
                     -- find the name of this variant ending
                     local variant_part_name = song.context.part_map[c].variants[vc]
-                    pattern = deepcopy(expand_patterns(song.context.part_map[variant_part_name]))
+                    pattern = copy_if_needed(expand_patterns(song.context.part_map[variant_part_name]))
                     append_table(song.stream, pattern)
                 
                 end            

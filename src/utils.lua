@@ -43,14 +43,25 @@ function copy_table(orig)
     return copy   
 end
 
+local __copy_table = {}
+
+function copy_if_needed(obj)
+    -- return the given object if it's the first
+    -- time we've tried to copy it; else return a copy
+    if __copy_table[obj] then return deepcopy(obj) end
+    __copy_table[obj] = true
+    return obj
+end
+
 -- copy a table completely (excluding metatables)
+-- don't copy keys, just values
 function deepcopy(orig)
     local orig_type = type(orig)
     local copy
     if orig_type == 'table' then
         copy = {}
         for orig_key, orig_value in next, orig, nil do
-            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+            copy[orig_key] = deepcopy(orig_value)
         end        
     else -- number, string, boolean, etc
         copy = orig
