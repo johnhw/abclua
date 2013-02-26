@@ -200,9 +200,13 @@ K:G
 gAg|!coda!g!coda!g|]],'User macros'
 )
 
-check_reproduce([[X:1
+check_result([[X:1
 K:G
-A B- D- D2- D3-]], 'Ties')
+A B- D- D2- D3 - D4   - D-|D]], 
+[[X:1
+K:G
+A B- D- D2- D3- D4- D-|D]], 
+'Ties')
 
 check_reproduce([[X:1
 K:G
