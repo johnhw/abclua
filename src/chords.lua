@@ -132,7 +132,10 @@ local common_chords =
 }
 
 
-    
+function chord_type_list()
+    -- return the list of all chord forms
+    return chords
+end    
     
 function apply_inversion(inversion, root, chord_offsets)
     -- apply the inversion

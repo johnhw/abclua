@@ -63,6 +63,7 @@ ABCLua comes with a few simple examples:
 * `examples/transpose.lua` Takes an ABC file, and transposes it to the given key, or by the given number of semitones, and writes the new tune to standard out.
 * `examples/tune_db.lua` Simple SQLLite database of tunes; can index tunes from files, list and search the database.
 * `examples/abc_from_midi.lua` Very primitive MIDI -> ABC converter. 
+* `examples/hum_rhythm.lua` Prints the "humming rhythm" of a tune out (*daaaaa-da-daah daaaah-dah*...)
 
 It also comes with a fairly complete clone of **abc2midi**. `abc_to_midi.lua` will take an ABC file and produce a corresponding MIDI file. See [the guide](abcluamidi.html) for more information.
     
@@ -172,7 +173,7 @@ just a convenience for reading a file and calling parse_abc_multisong() on it.
 new fields (e.g. **play_pitch** and **play_duration**). 
 
 
-* `parse_abc_song_iterator` Returns an function which parses and compiles a tune from a songbook each time it is called. Useful for parsing very large ABC files.
+* `parse_abc_song_iterator(str)` Returns an function which parses and compiles a tune from a songbook each time it is called. Useful for parsing very large ABC files.
 
     local content = f:read('*a')
     for song in parse_abc_song(iterator) do
@@ -180,9 +181,9 @@ new fields (e.g. **play_pitch** and **play_duration**).
     end
     
 
-* `scan_metadata` Scans a single tune string and returns the metadata from the tune (e.g. title, ref no.). This allows quick scanning of tunes without doing a full parse.
+* `scan_metadata(song_str)` Scans a single tune string and returns the metadata from the tune (e.g. title, ref no.). This allows quick scanning of tunes without doing a full parse.
 
-* `songbook_block_iterator` Simple iterator which returns the string representing the next tune in a songbook.
+* `songbook_block_iterator(str)` Simple iterator which returns the string representing the next tune in a songbook.
 
     local content = f:read('*a')
     local meta
@@ -413,14 +414,14 @@ timing_change   New timing information. There is always     **base_note_length**
 note            Note receives duration and real pitch.      **play_duration** Duration of the event in microseconds\
                                                             **play_pitch**    Pitch of the note in MIDI notes\
                                                             **play_bars**     Duration of note in bars.\
-                                                            **play_units**    Duration of the note in unit note lengths\
+                                                            **play_notess**   Duration of the note in note lengths (e.g. 0.25=quaver)\
                                                             **play_bar_time**      Start time of note, as fraction of one measure.\                                                                          
                                                             
                                                             
-rest            A rest -- just advances time.               **play_duration** Duration of rest in microseconds.\
-                                                            **play_bars**    Duration of rest in bars.\
-                                                            **play_units**    Duration of the note in unit note lengths\
-                                                            **play_bar_time**      Start time of note, as fraction of one measure.\
+rest            A rest -- just advances time.               **play_duration**  Duration of rest in microseconds.\
+                                                            **play_bars**      Duration of rest in bars.\
+                                                            **play_units**     Duration of the note in rest lengths (e.g. 0.25=quaver)\
+                                                            **play_bar_time**  Start time of rest, as fraction of one measure.\
                                                             
 -------------------------------------------------------------------------------------------------------------
 

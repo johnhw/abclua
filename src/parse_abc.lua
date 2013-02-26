@@ -488,10 +488,7 @@ return abclua
 -- Text string encodings
 -- More assertions / test cases
 -- Make automatic tune reproduce tester
--- Make tune header scanner/block iterator
--- Check bar timing stuff (3/4 and 4/4 should have different bar times!)
 -- Auto chord generator example
--- Optimize field parsing (don't parse 20 times!)
 -- ABCLint -> check abc files for problems
 
 -- transposing macros don't work when octave modifiers and ties are applied
