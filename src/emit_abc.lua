@@ -715,7 +715,7 @@ function abc_from_songs(songs, creator)
         table.insert(out, '%abc-2.1\n')
         table.insert(out, '%%abc-creator '..creator..'\n')
     end
-    
+   
     -- each song segment separated by two newlines
     for i,v in ipairs(songs) do
         table.insert(out, emit_abc(v.token_stream))

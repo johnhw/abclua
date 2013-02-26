@@ -239,7 +239,7 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 </tr>
 <tr class="even">
 <td align="left">overlay</td>
-<td align="left">Voice overlay begins. p</td>
+<td align="left">Voice overlay begins.</td>
 <td align="left"><code>\</code></td>
 <td align="left"></td>
 </tr>
@@ -364,14 +364,14 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 <td align="left"><strong>triplet</strong> triplet definition <strong>triplet.p</strong><br /><strong>triplet.q</strong> compresses notes by <code>p/q</code><br /><strong>triplet.r</strong> for the next <code>r</code> notes</td>
 </tr>
 <tr class="odd">
-<td align="left">append_text</td>
+<td align="left">append_text _field</td>
 <td align="left">Appending to the previous text field.</td>
 <td align="left"><code>+:more</code></td>
 <td align="left"><strong>name</strong> name of the field we are appending to (i.e. previous field in the source)<br /><strong>content</strong> content to be appended</td>
 </tr>
 <tr class="even">
 <td align="left">cross_ref</td>
-<td align="left">Cross reference to the ABC source. Only generated if the cross_ref option is used.</td>
+<td align="left">Cross reference to the ABC source. Only generated if the <em>cross_ref</em> option is used when parsing.</td>
 <td align="left"></td>
 <td align="left"><strong>line</strong> current line of the ABC source<br /><strong>at</strong> character of the line</td>
 </tr>
@@ -455,7 +455,7 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 </tr>
 <tr class="even">
 <td align="left">abc</td>
-<td align="left">A string of abc notation, representing the next event in the stream</td>
+<td align="left">A string of abc notation, representing the next event in the stream. Only generated if the <em>write_abc_events</em> is specified in the options to compile.</td>
 <td align="left"></td>
 </tr>
 <tr class="odd">
@@ -466,12 +466,12 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 <tr class="even">
 <td align="left">note</td>
 <td align="left">Note receives duration and real pitch.</td>
-<td align="left"><strong>play_duration</strong> Duration of the event in microseconds<br /><strong>play_pitch</strong> Pitch of the note in MIDI notes<br /><strong>play_bars</strong> Duration of note in bars.<br /><strong>play_notess</strong> Duration of the note in note lengths (e.g. 0.25=quaver)<br /><strong>play_bar_time</strong> Start time of note, as fraction of one measure.<br /></td>
+<td align="left"><strong>play_duration</strong> Duration of the event in microseconds<br /><strong>play_pitch</strong> Pitch of the note in MIDI notes<br /><strong>play_bars</strong> Duration of note in bars.<br /><strong>play_notes</strong> Duration of the note in note lengths (e.g. 0.25=quaver)<br /><strong>play_bar_time</strong> Start time of note, as fraction of one measure.<br /></td>
 </tr>
 <tr class="odd">
 <td align="left">rest</td>
 <td align="left">A rest -- just advances time.</td>
-<td align="left"><strong>play_duration</strong> Duration of rest in microseconds.<br /><strong>play_bars</strong> Duration of rest in bars.<br /><strong>play_units</strong> Duration of the note in rest lengths (e.g. 0.25=quaver)<br /><strong>play_bar_time</strong> Start time of rest, as fraction of one measure.<br /></td>
+<td align="left"><strong>play_duration</strong> Duration of rest in microseconds.<br /><strong>play_bars</strong> Duration of rest in bars.<br /><strong>play_notes</strong> Duration of the note in rest lengths (e.g. 0.25=quaver)<br /><strong>play_bar_time</strong> Start time of rest, as fraction of one measure.<br /></td>
 </tr>
 </tbody>
 </table>

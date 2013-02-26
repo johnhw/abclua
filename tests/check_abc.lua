@@ -18,17 +18,22 @@ function check_abc(fname)
    
    local nospace_songs = contents:gsub('%s', '')
    local nospace_abc = abc:gsub('%s', '')
+   
    if nospace_songs~=nospace_abc then
         print("Mismatch")
-        print("--- ORIGINAL ---")
-        print(contents)
-        print("\n\n")
-        print("--- REPRODUCED ---")
-        print(abc)
-        print("\n\n")
-        local error_location = first_difference_string(nospace_contents, nospace_abc)
-        print(string.sub(nospace_contents,1,error_location))
-        print(string.sub(nospace_contents,error_location,-1))
+        -- print("--- ORIGINAL ---")
+        -- print(contents)
+        -- print("\n\n")
+        -- print("--- REPRODUCED ---")
+        -- print(abc)
+        -- print("\n\n")
+        local error_location = first_difference_string(nospace_songs, nospace_abc)
+        
+        print(string.sub(nospace_songs,error_location-32,error_location))
+        print(string.rep(' ',33)..string.sub(nospace_songs,error_location+1,error_location+32))
+        print()
+        print(string.sub(nospace_abc,error_location-32,error_location))
+        print(string.rep(' ',33)..string.sub(nospace_abc,error_location+1,error_location+32))
         
  
     else

@@ -75,9 +75,11 @@ for i,v in ipairs(files) do
 end
 
 -- add in local definitions for functions
-for i,v in ipairs(functions) do
-    table.insert(result, 3, 'local '..v..'\n')
-end
+-- for i,v in ipairs(functions) do
+    -- table.insert(result, 3, 'local '..v..'\n')
+-- end
+
+table.insert(result, 3, 'module(...,package.seeall)')
 
 -- add in final return
 table.insert(result,'return abclua')

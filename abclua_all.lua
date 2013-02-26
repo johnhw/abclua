@@ -38,191 +38,7 @@
 --
 
 local re = require "re"
-local directive_set_bar_number
-local directive_enable_bar_warnings
-local directive_propagate_accidentals
-local directive_broken_ratio
-local directive_abc_include
-local directive_set_grace_note_length
-local parse_meter
-local get_simplified_meter
-local parse_length
-local parse_tempo
-local parse_note
-local make_note
-local canonicalise_note
-local canonicalise_accidental
-local canonicalise_duration
-local compile_tokens
-local parse_abc_fragment
-local parse_abc_file
-local parse_abc_multisong
-local parse_abc_song_iterator
-local parse_abc_coroutine
-local songbook_block_iterator
-local parse_and_compile
-local get_default_context
-local compile_abc
-local parse_abc
-local parse_abc_string
-local parse_abc_line
-local expand_macros
-local read_tune_segment
-local add_note_to_stream
-local parse_free_text
-local compile_token_stream
-local expand_token_stream
-local precompile_token_stream
-local start_new_voice
-local reset_bar_time
-local reset_timing
-local apply_voice_specifiers
-local finalise_song
-local apply_key
-local apply_repeats
-local is_compound_time
-local update_timing
-local get_bpm_from_tempo
-local printable_note_name
-local chord_case
-local canonical_note_name
-local get_note_number
-local transpose_note_name
-local midi_to_frequency
-local all_note_table
-local midi_note_from_note
-local get_semitone
-local parse_triplet
-local apply_triplet
-local update_tuplet_state
-local reset_triplet_state
-local push_triplet
-local update_triplet_ratio
-local validate_token_stream
-local swap_or_insert
-local diatonic_transpose
-local diatonic_transpose_note
-local abc_from_songs
-local emit_abc
-local abc_element
-local abc_note_element
-local abc_bar
-local abc_note
-local abc_chord
-local abc_note_def
-local abc_duration
-local abc_pitch
-local abc_accidental
-local abc_triplet
-local abc_field
-local abc_directive
-local abc_new_part
-local abc_voice
-local abc_lyrics
-local abc_note_length
-local abc_parts
-local abc_part_string
-local abc_key
-local abc_tempo
-local abc_meter
-local insert_note
-local advance_note_time
-local compile_note
-local expand_grace
-local compute_duration
-local compute_bar_length
-local compute_pitch
-local default_note_length
-local parse_bar
-local parse_range_list
-local parse_field
-local scan_metadata
-local continuation_token
-local macro_token
-local meter_token
-local parts_token
-local user_token
-local voice_token
-local instruction_token
-local words_token
-local tempo_token
-local length_token
-local key_token
-local text_token
-local expand_parts
-local parse_voice
-local parse_parts
-local parse_directive
-local inject_events
-local inject_tokens
-local register_directive
-local apply_directive
-local parse_macro
-local apply_macros
-local transpose_macro
-local transpose_note
-local make_midi
-local make_midi_from_stream
-local song_to_opus
-local stream_to_opus
-local merge_streams
-local get_chord_stream
-local note_stream_to_opus
-local time_stretch_stream
-local transpose_stream
-local trim_event_stream
-local render_grace_notes
-local zero_time_stream
-local start_time_stream
-local duration_stream
-local filter_event_stream
-local print_lyrics_notes
-local print_notes
-local get_note_stream
-local time_stream
-local test_chords
-local voice_chord
-local is_chord
-local transpose_chord
-local get_chord_notes
-local parse_chord
-local apply_inversion
-local chord_type_list
-local test_lyric_parsing
-local insert_lyrics
-local insert_lyrics_stream
-local parse_lyrics
-local compose_parts
-local expand_patterns
-local start_variant_part
-local append_with_copy
-local start_new_part
-local add_section
-local create_key_structure
-local parse_key
-local compute_mode
-local get_major_keys
-local get_major_key
-local nth_note_of_key
-local swap
-local find_first_match
-local warn
-local is_in
-local split
-local append_table
-local invert_table
-local table_print 
-local verbose_table_print 
-local rtrim
-local time_execution
-local deepcopy
-local copy_if_needed
-local copy_table
-local set_property
-local first_difference_string
-local gcd
-local repeat_string
-
+module(...,package.seeall)
 --
 -- From source file: utils.lua
 --
@@ -643,9 +459,9 @@ function create_key_structure(k)
                 key_mapping[major[i]] = v
         end        
         
-        key_mapping[1] = 1 -- C sharp
-        key_mapping[4] = 1 -- F sharp
-                    
+        key_mapping['c'] = 1 -- C sharp
+        key_mapping['g'] = 1 -- F sharp
+        return key_mapping  
     else
         -- find the matching key        
         local root = k.root
@@ -688,6 +504,7 @@ function create_key_structure(k)
                 else
                     -- we can use fractional accidentals in the key
                     key_mapping[v.note] = v.accidental.num / v.accidental.den
+                   
                 end
             end
         end
@@ -2112,7 +1929,6 @@ function expand_parts(parts)
 end
 
 
-
 function text_token(content, song, field_name)      
     return  {token='field_text', name=field_name, content=content} 
 end
@@ -2578,10 +2394,9 @@ function compute_duration(note, song)
     -- multiple > (e.g. >> or >>>) lengthens by 1.75 (0.25) or 1.875 (0.125) etc.
     if note.duration.broken then
         shift = math.pow(song.context.broken_ratio, math.abs(note.duration.broken))
-        
-        if shift<0 then
-            this_note = 1.0 / -shift
-            next_note = 1.0 + 1 - (1.0 / -shift)
+        if note.duration.broken<0 then
+            this_note = 1.0 / shift
+            next_note = 1.0 + 1 - (1.0 / shift)
         else
             this_note = 1.0 + 1 - (1.0 / shift)
             next_note = (1.0 / shift)
@@ -2799,6 +2614,7 @@ function abc_key(key)
     
     -- root and modal modifier
     local root = string.upper(string.sub(key.root,1,1)) .. string.sub(key.root,2,-1)    
+    root = root:gsub('s', '#')
     
     if key.mode then     
         root = root .. key.mode

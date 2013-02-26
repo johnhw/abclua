@@ -108,7 +108,6 @@ function expand_parts(parts)
 end
 
 
-
 function text_token(content, song, field_name)      
     return  {token='field_text', name=field_name, content=content} 
 end

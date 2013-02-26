@@ -15,6 +15,7 @@ cd ..
 copy readme.txt dist
 copy abclua.lua dist
 copy abc_to_midi.lua dist
+copy test_abclua.lua dist
 copy docs\abclua.txt dist\docs\abclua.txt
 copy docs\abclua.html dist\docs\abclua.html
 copy docs\abcluamidi.txt dist\docs\abcluamidi.txt

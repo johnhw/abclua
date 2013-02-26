@@ -159,9 +159,10 @@ function expand_macros(song, line)
     local iterations = 0
     local expanded_line
     
+    -- ignore blank lines
+    if string.len(line)==0 then return nil end
     expanded_line = apply_macros(song.parse.macros, line)
     expanded_line = apply_macros(song.parse.user_macros, expanded_line)
-     
     -- macros changed this line; must now re-parse the line
     match = tune_matcher:match(expanded_line)
     if not match then
@@ -386,8 +387,9 @@ function parse_abc_coroutine(str, options)
     
     -- remaining tunes
     tune_str = iterator()
-    if tune_str then
+    while tune_str do
         coroutine.yield(parse_and_compile(tune_str, options, deepcopy(default_context), deepcopy(default_metadata)))    
+        tune_str = iterator()
     end
 end
 
