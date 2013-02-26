@@ -36,6 +36,12 @@ end
 local variant_tag = 0
 
 
+function append_with_copy(a, b)
+    -- appends b to a, copy elements of a as it does so (if needed)
+    for i=1,#b do
+        table.insert(b, copy_if_needed(a))
+    end
+end
 
 function start_variant_part(song, bar)
     -- start a variant part. The variant specifier indicates the ranges that 
@@ -78,10 +84,10 @@ function expand_patterns(patterns)
         
         for i=1,v.repeats do
             -- repeated measures (including single repeats!)               
-            append_table(result, copy_if_needed(v.section))    
+            append_with_copy(result, v.section)            
             -- append variant endings
             if #v.variants>=i then                                
-                append_table(result, copy_if_needed(v.variants[i]))
+                append_with_copy(result,v.variants[i])
             end
         end
     end
@@ -105,8 +111,8 @@ function compose_parts(song)
         song.stream = {}        
         for c in song.context.part_sequence:gmatch"." do            
             if song.context.part_map[c] then 
-                local pattern = copy_if_needed(expand_patterns(song.context.part_map[c]))
-                append_table(song.stream, pattern)
+                local pattern = expand_patterns(song.context.part_map[c])
+                append_with_copy(song.stream, pattern)
                 
                 -- count repetitions of this part
                 if not variant_counts[c] then
@@ -120,8 +126,8 @@ function compose_parts(song)
                 if song.context.part_map[c].variants and song.context.part_map[c].variants[vc] then
                     -- find the name of this variant ending
                     local variant_part_name = song.context.part_map[c].variants[vc]
-                    pattern = copy_if_needed(expand_patterns(song.context.part_map[variant_part_name]))
-                    append_table(song.stream, pattern)
+                    pattern = expand_patterns(song.context.part_map[variant_part_name])
+                    append_with_copy(song.stream, pattern)
                 
                 end            
             end
