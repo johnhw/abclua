@@ -21,12 +21,6 @@ function check_abc(fname)
    
    if nospace_songs~=nospace_abc then
         print("Mismatch")
-        -- print("--- ORIGINAL ---")
-        -- print(contents)
-        -- print("\n\n")
-        -- print("--- REPRODUCED ---")
-        -- print(abc)
-        -- print("\n\n")
         local error_location = first_difference_string(nospace_songs, nospace_abc)
         
         print(string.sub(nospace_songs,error_location-32,error_location))

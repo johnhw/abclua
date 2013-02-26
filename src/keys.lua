@@ -161,7 +161,20 @@ function parse_key(original_k)
 end
 
 
-
+function notes_in_key(key)
+    -- return the semitone numbers of notes in this key
+    local in_key = {}
+    local major = get_major_key('c')
+    local key_structure = create_key_structure(key)
+    
+    local j = 1 
+    for i,v in pairs(key_structure) do
+        -- C major semitones + the flattening/sharpening
+        in_key[(major[j]+v)%12] = 1
+        j = j + 1
+    end
+    return in_key
+end
 
 function create_key_structure(k)
     -- Create a key structure, which lists each note as written (e.g. A or B)
