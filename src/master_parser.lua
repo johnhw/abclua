@@ -7,12 +7,12 @@ bar <- ( {:type: (('[') * ('|' / ':') + (']') *) :} ({:variant_range: (<range_se
 variant <- ({:type: '[' :} {:variant_range: <range_set> :})   -> {}
 range_set <- (range (',' range)*)
 range <- ([0-9] ('-' [0-9]) ?)
-complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: ({decoration} +)->{} :}) ?  (({:pitch: (note) :} / {:rest: (rest) :} / {:space: (space) :}/{:measure_rest: <measure_rest> :} ) {:duration: (duration ?)  :}  {:broken: (broken ?)  :})  (%s * {:tie: (tie)  :}) ? ) -> {} 
+complete_note <- (({:grace: (grace)  :}) ?  ({:chord: (chord)  :}) ?  ({:decoration: ({decoration} +)->{} :}) ?  (({:pitch: (note) :} / {:rest: (rest) :} / {:space: (space) :}/{:measure_rest: <measure_rest> :} ) {:duration: (duration)  :}?  {:broken: (<broken>)  :}?)  (%s * {:tie: (tie)  :}) ? ) -> {} 
 triplet <- ('(' {[1-9]} (':' {[1-9] ?}  (':' {[1-9]} ? ) ?) ?) -> {}
 grace <- ('{' full_note + '}') -> {}
 tie <- ('-')
 chord <- (["] {([^"] *)} ["])
-full_note <- ((({:pitch: (note) :} / {:rest: (rest) :} / {:space: (space) :}/{:measure_rest: <measure_rest> :} ) {:duration: (duration ?)  :}  {:broken: (broken ?)  :})) -> {}
+full_note <- ((({:pitch: (note) :} / {:rest: (rest) :} / {:space: (space) :}/{:measure_rest: <measure_rest> :} ){:duration: (duration)  :}?  {:broken: (<broken>)  :}?   )) -> {}
 rest <- ( 'z' / 'x' )
 space <- 'y'
 measure_rest <- (('Z' / 'X')  ) -> {}
@@ -60,9 +60,18 @@ function read_tune_segment(tune_data, song)
             if song.parse.cross_ref then
                  table.insert(song.token_stream, {token='cross_ref', at=v, line=song.parse.line})
             end
-        else                   
+        else
+            if v.top_note then                                            
+                -- add a note to the token stream
+                local cnote = parse_note(v.top_note)    
+                if cnote.free_text then
+                    local position, text = parse_free_text(cnote.free_text)                   
+                    table.insert(song.token_stream, {token='text', text=text, position = position})                            
+                    cnote.free_text = nil
+                end
+                table.insert(song.token_stream, {token='note', note=cnote})                      
             -- store annotations
-            if v.free_text then
+            elseif v.free_text then
                 -- could be a standalone chord
                 local chord = parse_chord(v.free_text.text)                                                
                 if chord then
@@ -71,78 +80,68 @@ function read_tune_segment(tune_data, song)
                     local position, text = parse_free_text(v.free_text.text)                   
                     table.insert(song.token_stream, {token='text', text=text, position = position})
                 end
-            end
             
             -- parse inline fields (e.g. [r:hello!])
-            if v.field then                
+            elseif v.field then                
                 -- this automatically writes it to the token_stream            
                 parse_field(v.field.contents, song, true)
-            end
+            
             
             -- deal with triplet definitions
-            if v.triplet then                                        
+            elseif v.triplet then                                        
                 table.insert(song.token_stream, {token='triplet', triplet=parse_triplet(v.triplet, song)})
                 
-            end
+            
             
             -- voice overlay
-            if v.overlay then
+            elseif v.overlay then
                 table.insert(song.token_stream, {token='overlay', bars=string.len(v.overlay)})
-            end
+            
             
             -- beam splits
-            if v.s then
+            elseif v.s then
                 table.insert(song.token_stream, {token='split'})
-            end
+            
             
             -- linebreaks
-            if v.linebreak then
+            elseif v.linebreak then
                 table.insert(song.token_stream, {token='split_line'})
-            end
             
-            if v.continue_line then
+            
+            elseif v.continue_line then
                 table.insert(song.token_stream, {token='continue_line'})
-            end
+            
                                         
             -- deal with bars and repeat symbols
-            if v.bar then   
+            elseif v.bar then   
                 local bar = parse_bar(v.bar)
                 if bar.type ~= 'variant' then
                     song.parse.measure = song.parse.measure + 1 -- record the measures numbers as written
                 end
                 bar.measure = song.parse.measure
                 table.insert(song.token_stream, {token='bar', bar=bar})               
-            end
+            
             
             -- chord groups
-            if v.chord_begin then            
+            elseif v.chord_begin then            
                 
                 table.insert(song.token_stream, {token='chord_begin'})                                
-            end
             
-            if v.chord_end then
+            
+            elseif v.chord_end then
                 table.insert(song.token_stream, {token='chord_end'})                                                
-            end
             
-            if v.slur_begin then
+            
+            elseif v.slur_begin then
                 table.insert(song.token_stream, {token='slur_begin'})
-            end
             
-            if v.slur_end then
+            
+            elseif v.slur_end then
                 table.insert(song.token_stream, {token='slur_end'})
+            
             end
             
-            -- if we have slur groups then there are some notes to parse...
-            if v.top_note then                            
-                -- add a note to the token stream
-                local cnote = parse_note(v.top_note)    
-                if cnote.free_text then
-                        local position, text = parse_free_text(cnote.free_text)                   
-                        table.insert(song.token_stream, {token='text', text=text, position = position})                            
-                        cnote.free_text = nil
-                end
-                table.insert(song.token_stream, {token='note', note=cnote})          
-            end
+            
         end
     end
     

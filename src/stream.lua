@@ -57,6 +57,7 @@ function time_stream(stream)
         if event.event=='chord_begin' then
             in_chord = true
             max_duration = 0
+            max_metric = 0
         end
         
         if event.event=='chord_end' then

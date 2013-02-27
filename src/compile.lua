@@ -235,7 +235,7 @@ function precompile_token_stream(token_stream, context)
         end
         
         if v.token=='chord' then  
-            v.chord.notes = get_chord_notes(v.chord, {}, song.contect.key)
+            v.chord.notes = get_chord_notes(v.chord, {}, song.context.key)
         end
         
         -- update key

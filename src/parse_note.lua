@@ -7,19 +7,13 @@ local function canonicalise_duration(duration)
     if duration.slashes and not duration.den then
          local den = 1
          local l = string.len(duration.slashes)
-         for i = 1,l do
-            den = den * 2
-         end
+         den = math.pow(2, l)         
          duration.den = den
     end
     
-    if not duration.num then
-        duration.num = 1
-    end
-    
-    if not duration.den then
-        duration.den = 1
-    end
+    duration.num = duration.num or 1
+    duration.den = duration.den or 1
+        
     duration.slashes = nil
 
 end
@@ -37,29 +31,15 @@ function canonicalise_accidental(accidental)
         fraction = accidental[2] 
     end
         
-    -- accidentals
-    if acc == '^' then
-       value = {num=fraction.num, den=fraction.den}
-    end
+    local values = {
+    ['^']={num=fraction.num, den=fraction.den},
+    ['^^']={num=2*fraction.num, den=fraction.den},
+    ['_']={num=-fraction.num, den=fraction.den},
+    ['__']={num=-2*fraction.num, den=fraction.den},
+    ['=']={num=0, den=0}}
     
-    if acc == '^^' then
-       value = {num=2*fraction.num, den=fraction.den}
-    end
+    return values[acc]
     
-    if acc == '_' then
-        value = {num=-fraction.num, den=fraction.den}
-    end
-    
-    if acc == '__' then
-        value = {num=-2*fraction.num, den=fraction.den}
-    end
-    
-    if acc == '=' then
-        value = {num=0, den=0}
-    end
-    
-    return value
-
 end
 
 local function canonicalise_note(note)
@@ -70,22 +50,12 @@ local function canonicalise_note(note)
     --  2 = twice, etc.)    
     canonicalise_duration(note.duration)
         
-    if note.broken then
-        local shift = 0
-        -- get the overall shift: negative means this note gets shortened
-        for c in note.broken:gmatch"." do
-            
-            if c == '>' then
-                shift = shift + 1
-            end
-            if c == '<' then
-                shift = shift - 1
-            end
-        end
-        note.broken = nil
-        note.duration.broken = shift
-    else
-        note.duration.broken = 0
+    note.duration.broken = 0
+    if note.broken then        
+        local l = string.len(note.broken)
+        local char = string.sub(note.broken, 1,1)        
+        if char==">" then note.duration.broken = l end
+        if char=="<" then note.duration.broken = -l end        
     end
   
   if note.pitch then
@@ -93,14 +63,19 @@ local function canonicalise_note(note)
       
         local octave = 0
         if note.pitch.octave then
-            for c in note.pitch.octave:gmatch"." do
-                if c == "'" then
-                    octave = octave + 1
-                end
-                if c==',' then 
-                    octave = octave - 1
-                end
-            end
+            local l = string.len(note.pitch.octave)
+            local char = string.sub(note.pitch.octave, 1,1)
+            if char=="'" then octave = l end
+            if char=="," then octave = -l end
+            
+            -- for c in note.pitch.octave:gmatch"." do
+                -- if c == "'" then
+                    -- octave = octave + 1
+                -- end
+                -- if c==',' then 
+                    -- octave = octave - 1
+                -- end
+            -- end
         end        
         -- +1 octave for lower case notes
         if note.pitch.note == string.lower(note.pitch.note) then
@@ -111,11 +86,6 @@ local function canonicalise_note(note)
         if note.pitch.accidental then
             note.pitch.accidental  =  canonicalise_accidental(note.pitch.accidental)
         end
-    end
-    
-    -- tied notes
-    if note.tie then
-        note.tie = true
     end
     
     -- parse chords

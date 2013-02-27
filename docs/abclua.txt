@@ -394,8 +394,13 @@ duration        Duration of the note.                      **num** numerator of 
 
 ## Event types
 
-After compiling, the event stream tokens are almost the same as the input tokens (with the `token` changed to `event`). Each event also receives a `t` field
-indicating the time of that event. The following additional/modified fields are also added:
+After compiling, the event stream tokens are almost the same as the input tokens (with the `token` changed to `event`). Each event also receives:
+
+*  a `t` field indicating the time of that event in microsends. 
+* a `metric_t` field indicating the time of that event in metric units (fraction of a bar). Starts at 1. Note that metric_t *always* advances by
+1 on every bar symbol encountered, even if the bar was not full -- if the ABC file has misformed bars, `metric_t` and `t` can drift apart.
+
+The following additional/modified fields are also added:
 
 -------------------------------------------------------------------------------------------------------------
 event           description                                fields
