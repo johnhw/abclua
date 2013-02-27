@@ -14,30 +14,31 @@ function time_stream(stream)
     local last_bar = 0    
     local event
     local metric_t = 1
+    local event_type
     for i=1,#stream do
         event = stream[i]
+        event_type = event.event
         event.t = t
         event.metric_t = metric_t
         
         -- record position of last bar
-        if event.event=='bar' and event.bar.type~='variant' then
+        if event_type=='bar' and event.bar.type~='variant' then
             last_bar = event.t
             measure = measure + 1
             written_measure = event.bar.meeasure
             event.bar.play_measure = measure
             metric_t = measure
         end
-        
-        
+                
         -- now, if we get an overlay, jump time
         -- back to the start of that bar
-        if event.event=='overlay' then
+        if event_type=='overlay' then
             t = last_bar
         end
         
         local duration = 0
         -- rests and notes
-        if event.event=='rest' or event.event=='note' then
+        if event_type=='rest' or event_type=='note' then
             duration = event.note.play_duration
             if not in_chord then
                 t = t + duration
@@ -54,13 +55,13 @@ function time_stream(stream)
         
         -- chord symbols       
         -- chord starts; stop advancing time
-        if event.event=='chord_begin' then
+        if event_type=='chord_begin' then
             in_chord = true
             max_duration = 0
             max_metric = 0
         end
         
-        if event.event=='chord_end' then
+        if event_type=='chord_end' then
             in_chord = false
             t = t + max_duration -- advance by longest note in chord
             metric_t = measure + max_metric

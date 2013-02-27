@@ -1,4 +1,4 @@
--- functions for dealing with lyrics
+-- functions for dealing with lyrics 
 
 function parse_lyrics(lyrics)
     -- Parse a lyric definition string

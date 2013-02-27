@@ -15,9 +15,8 @@ function get_semitone(key_mapping, pitch, accidental)
         base_pitch = base_pitch + accidental        
     else        
         -- apply key signature sharpening / flattening
-        if key_mapping then
-            accidental = key_mapping[string.lower(pitch)]
-            base_pitch = base_pitch + (accidental)
+        if key_mapping then            
+            base_pitch = base_pitch + key_mapping[pitch]
         end
     end        
     return base_pitch 

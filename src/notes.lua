@@ -1,20 +1,5 @@
 -- Functions for compiling notes in context (e.g. computing duration and pitch)
 
-function default_note_length(song)
-    -- return the default note length
-    -- if meter.num/meter.den > 0.75 then 1/8
-    -- else 1/16
-    if song.context.meter then
-        local ratio = song.context.meter.num / song.context.meter.num
-        if ratio>=0.75 then
-            return 8
-        else
-            return 16
-        end
-    end
-    return 8
-end
-
 function compute_pitch(note, song)
     -- compute the real pitch (in MIDI notes) of a note event
     -- taking into account: 
@@ -24,7 +9,8 @@ function compute_pitch(note, song)
     --  current key signature
     --  accidentals
     --  transpose and octave shift
-    
+    local context = song.context
+    local pitch = note.pitch
     -- -1 indicates a rest note
     if note.rest or note.measure_rest or note.space then
         return nil
@@ -34,36 +20,36 @@ function compute_pitch(note, song)
     
     -- in K:none mode or propagate-accidentals is off, 
     -- accidentals don't persist until the end of the bar. 
-    if song.context.key.none or song.context.propagate_accidentals=='not' then
+    if context.key.none or context.propagate_accidentals=='not' then
         -- must specify accidental as there is no key mapping
-        accidental = note.pitch.accidental or {num=0, den=0}
+        accidental = pitch.accidental or {num=0, den=0}
     else
         local accidental_key 
         -- in 'octave' mode, accidentals only propagate within an octave
         -- otherwise, they propagate to all notes of the same pitch class
-        if song.context.propagate_accidentals=='octave' then
-           accidental_key = note.pitch.octave..note.pitch.note
+        if context.propagate_accidentals=='octave' then
+           accidental_key = pitch.octave..pitch.note
         else
-           accidental_key = note.pitch.note
+           accidental_key = pitch.note
         end
         
         -- get the appropriate accidental
-        if note.pitch.accidental then
-            song.context.accidental[accidental_key] = note.pitch.accidental
-            accidental = note.pitch.accidental
+        if pitch.accidental then
+            context.accidental[accidental_key] = pitch.accidental
+            accidental = pitch.accidental
         else
-            accidental = song.context.accidental[accidental_key]
+            accidental = context.accidental[accidental_key]
         end            
     end    
     local base_pitch
-    base_pitch = midi_note_from_note(song.context.key_mapping, note, accidental)                
-    base_pitch = base_pitch + song.context.global_transpose + song.context.voice_transpose
+    base_pitch = midi_note_from_note(context.key_mapping, note, accidental)                
+    base_pitch = base_pitch + context.global_transpose + context.voice_transpose
     return base_pitch 
 end
 
 function compute_bar_length(song)
     -- return the current length of one bar
-    local note_length = song.context.note_length or default_note_length(song)
+    local note_length = song.context.note_length or song.context.default_note_length
     return (song.context.meter.num / song.context.meter.den) * note_length * song.context.timing.base_note_length * 1e6 
 end
 
@@ -77,17 +63,19 @@ function compute_duration(note, song)
     -- broken state
     -- duration field of the note itself
     -- bars for multi-measure rests  
-    
+    local timing = song.context.timing
+    local duration = note.duration
+    local meter = song.context.meter
     if note.space then return 0,0,0 end
     
     -- we are guaranteed to have filled out the num and den fields
-    local length = note.duration.num / note.duration.den
+    local length = duration.num / duration.den
         
     -- measure rest (duration is in bars, not unit lengths)
     if note.measure_rest then   
         -- one bar =  meter ratio * note length (e.g. 1/16 = 16)
         local bar = compute_bar_length(song) *  length 
-        return bar, length*song.context.meter.num, length
+        return bar, length*meter.num, length
     end
     
     
@@ -98,8 +86,8 @@ function compute_duration(note, song)
     local prev_note = 1
     
     -- take into account previous dotted note, if needed
-    if song.context.timing.prev_broken_note then
-        prev_note = song.context.timing.prev_broken_note
+    if timing.prev_broken_note then
+        prev_note = timing.prev_broken_note
     else
         prev_note = 1
     end
@@ -108,9 +96,9 @@ function compute_duration(note, song)
     -- a < shortens this note by 0.5, and increases the next by 1.5
     -- vice versa for >
     -- multiple > (e.g. >> or >>>) lengthens by 1.75 (0.25) or 1.875 (0.125) etc.
-    if note.duration.broken then
-        shift = math.pow(song.context.broken_ratio, math.abs(note.duration.broken))
-        if note.duration.broken<0 then
+    if duration.broken then
+        shift = math.pow(song.context.broken_ratio, math.abs(duration.broken))
+        if duration.broken<0 then
             this_note = 1.0 / shift
             next_note = 1.0 + 1 - (1.0 / shift)
         else
@@ -119,15 +107,15 @@ function compute_duration(note, song)
         end
         
         -- store for later
-        song.context.timing.prev_broken_note = next_note
+        timing.prev_broken_note = next_note
     else
-        song.context.timing.prev_broken_note = 1
+        timing.prev_broken_note = 1
     end
     
-    local beats = length * this_note * prev_note * song.context.timing.triplet_compress    
-    length = beats * song.context.timing.base_note_length * 1e6
-    local note_length = song.context.note_length or default_note_length(song)
-    local meter = song.context.meter
+    local beats = length * this_note * prev_note * timing.triplet_compress    
+    length = beats * timing.base_note_length * 1e6
+    local note_length = song.context.note_length or song.context.default_note_length
+
     local notes = beats/note_length
     local bars = notes*meter.den/meter.num
     
@@ -176,16 +164,14 @@ function compile_note(note, song)
     note.play_notes = notes
     note.play_bars = bars
     
-    note.play_bar_time = song.context.timing.bar_time     
-    return note
-end
-
-function advance_note_time(song, note)
-    -- advance time, update tuplet state
+    note.play_bar_time = song.context.timing.bar_time    
+        -- advance time, update tuplet state
     update_tuplet_state(song)   
     -- advance bar time (in fractions of a bar)
     song.context.timing.bar_time = song.context.timing.bar_time + note.play_bars
+    return note
 end
+
 
 function insert_note(note, song)
         -- insert a new note into the song
@@ -198,16 +184,23 @@ function insert_note(note, song)
             chord.chord.notes = get_chord_notes(chord.chord, {}, song.context.key)
             table.insert(song.opus, chord)
         end
+        
+       if note.text then
+            local chord = {event='text', text=note.text}            
+            table.insert(song.opus, chord)
+        end
       
+     
         -- insert the note events
         if note.play_pitch==nil then
             -- rest            (strip out 0-duration y rests)
             if note.play_duration>0 then
-                table.insert(song.opus, {event='rest', note=note})    
+                song.opus[#song.opus+1] = {event='rest', note=note}
+                
             end            
         else       
-            -- pitched note
-            table.insert(song.opus, {event='note', note = note})
+            -- pitched note            
+            song.opus[#song.opus+1] = {event='note', note=note}
         end
-        advance_note_time(song, note)        
+        --advance_note_time(song, note)        
 end

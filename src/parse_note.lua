@@ -1,6 +1,21 @@
 -- Functions for parsing and canonicalising notes
 
-local function canonicalise_duration(duration)
+local broken_table = {
+['<']=-1, 
+['<<']=-2, 
+['<<<']=-3, 
+['<<<<']=-4, 
+['<<<<<']=-5, 
+['<<<<<<']=-6, 
+['>']=1, 
+['>>']=2, 
+['>>>']=3, 
+['>>>>']=4, 
+['>>>>>']=5, 
+['>>>>>>']=6, 
+}
+
+local function canonicalise_duration(duration, broken)
     -- fill in duration field; remove slashes
     -- and fill in numerator and denominator
     
@@ -16,19 +31,29 @@ local function canonicalise_duration(duration)
         
     duration.slashes = nil
 
+    duration.broken = broken_table[broken] or 0
+    -- if broken then        
+        -- local l = string.len(broken)
+        -- local char = string.sub(broken, 1,1)        
+        -- if char==">" then duration.broken = l 
+        -- elseif char=="<" then duration.broken = -l end        
+    -- else
+        -- duration.broken = 0
+    -- end
 end
 
 function canonicalise_accidental(accidental)
     -- Transform string indicator to integer and record any fractional part
     -- (for microtonal tuning)
     local acc = accidental[1]
+    local frac_acc = accidental[2]
     local value
     local fraction = {num=1, den=1}
 
     -- fractional accidentals
-    if accidental[2] and (accidental[2].num or accidental[2].slashes) then
-        canonicalise_duration(accidental[2])
-        fraction = accidental[2] 
+    if frac_acc and (frac_acc.num or frac_acc.slashes) then
+        canonicalise_duration(frac_acc)
+        fraction = frac_acc 
     end
         
     local values = {
@@ -47,44 +72,32 @@ local function canonicalise_note(note)
     -- Remove slashes from the duration
     -- Fills in full duration field
     -- Replaces broken with an integer representing the dotted value (e.g. 0 = plain, 1 = once dotted,
-    --  2 = twice, etc.)    
-    canonicalise_duration(note.duration)
-        
-    note.duration.broken = 0
-    if note.broken then        
-        local l = string.len(note.broken)
-        local char = string.sub(note.broken, 1,1)        
-        if char==">" then note.duration.broken = l end
-        if char=="<" then note.duration.broken = -l end        
-    end
-  
-  if note.pitch then
+    --  2 = twice, etc.)        
+    canonicalise_duration(note.duration, note.broken)        
+    
+  local pitch = note.pitch
+  if pitch then
       -- add octave shifts  
       
         local octave = 0
-        if note.pitch.octave then
-            local l = string.len(note.pitch.octave)
-            local char = string.sub(note.pitch.octave, 1,1)
-            if char=="'" then octave = l end
-            if char=="," then octave = -l end
-            
-            -- for c in note.pitch.octave:gmatch"." do
-                -- if c == "'" then
-                    -- octave = octave + 1
-                -- end
-                -- if c==',' then 
-                    -- octave = octave - 1
-                -- end
-            -- end
+        if pitch.octave then            
+            for c in pitch.octave:gmatch"." do
+                if c == "'" then
+                    octave = octave + 1
+                end
+                if c==',' then 
+                    octave = octave - 1
+                end
+            end
         end        
         -- +1 octave for lower case notes
-        if note.pitch.note == string.lower(note.pitch.note) then
+        if pitch.note == string.lower(pitch.note) then
             octave = octave + 1           
         end        
-        note.pitch.note = string.lower(note.pitch.note)
-        note.pitch.octave = octave        
-        if note.pitch.accidental then
-            note.pitch.accidental  =  canonicalise_accidental(note.pitch.accidental)
+        pitch.note = string.lower(pitch.note)
+        pitch.octave = octave        
+        if pitch.accidental then
+            pitch.accidental  =  canonicalise_accidental(pitch.accidental)
         end
     end
     
@@ -95,7 +108,7 @@ local function canonicalise_note(note)
             note.chord = chord
         else
             -- store free text annotations
-            note.free_text = note.chord
+            note.text = parse_free_text(note.chord)
             note.chord = nil
         end
     end
@@ -108,8 +121,7 @@ local function canonicalise_note(note)
             end
         end        
     end
-    
-    note.duration.slashes = nil
+        
     return note        
 end
 

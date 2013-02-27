@@ -235,7 +235,8 @@ K:G
 
 check_reproduce([[X:1
 K:G
-"this is free"AB C "<text" A ">around" "@here" a b c]], 'Free text')
+"this is free"AB C "<text" A ">around"[ceg] "@here" a b ">and there"c"<there"]], 'Free text')
+
 
 
 check_reproduce([[X:1
@@ -384,7 +385,7 @@ check_reproduce([[
 X:1
 K:G
 DED | ABA | DED |
-{ed}DED | {fgA}ABA | {ed}DE{fA}D |]], 'Grace notes')
+{ed}DED | {fg2A}ABA | {e/d/2}DE{f>AA<f'z}D | {/f}a]], 'Grace notes')
 
 check_reproduce([[
 X:1

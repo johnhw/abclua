@@ -128,7 +128,7 @@ function score_chords(key)
                     penalty = penalty + 1
                 end
             end
-            penalty = math.pow(5, -penalty) * score 
+            penalty = math.pow(10, -penalty) * score 
             -- store the chord table
             in_key_chords[canonical_note_name(i)..name] = penalty
         end
@@ -137,19 +137,19 @@ function score_chords(key)
 end
 
 
-function score_bar_chords(notes, key_scores)
+function score_bar_chords(notes, key_scores, jazz)
     -- Take a bar full of notes, and work out new scores
     local in_bar = {}
     local chords = {}
-    local key_weight = 2 -- how much influence the key has
+    local key_weight = 1 -- how much influence the key has
     -- get semitones in this bar
     for i,v in ipairs(notes) do
         if v.play_pitch then 
             if i==1 then
                 -- upweight first note in bar
-                in_bar[v.play_pitch % 12] = 2
+                in_bar[v.play_pitch % 12] = 60
             else
-                in_bar[v.play_pitch % 12] = (in_bar[v.play_pitch]  or 1) + 0.5
+                in_bar[v.play_pitch % 12] = (in_bar[v.play_pitch]  or 10) + 5
             end
         end
     end
@@ -169,7 +169,7 @@ function score_bar_chords(notes, key_scores)
             
              -- weight by the key scoring
              local chord_name = canonical_note_name(i)..name
-             score = math.pow(score,2) *  (key_weight*key_scores[canonical_note_name(i)..name]) * math.pow(chord_weights[name],2)
+             score = (score *  (key_weight*key_scores[canonical_note_name(i)..name])) * math.pow(chord_weights[name],jazz)
             
              table.insert(chords, {root=canonical_note_name(i), chord_type=name, score=score})
         end
@@ -201,9 +201,9 @@ function random_select(t)
 end
 
 
-function bar_end(out, bar, notes, key_scores)
+function bar_end(out, bar, notes, key_scores, jazz)
     -- insert all of the events in this bar
-    local ranked = score_bar_chords(notes, key_scores)
+    local ranked = score_bar_chords(notes, key_scores, jazz)
     local top = random_select(ranked) 
     table.insert(out, {token='chord', chord={root=top.root, chord_type=top.chord_type}})
     for i,v in ipairs(bar) do
@@ -211,14 +211,19 @@ function bar_end(out, bar, notes, key_scores)
     end
 end
 
-function auto_chord(tokens)
+function auto_chord(tokens, jazz)
     -- find automatic fitting chords, given the key and the notes in a bar
     local current_key
     local key_scores 
     local out = {}
     local bar_notes = {}
-    local bar = {}
-    local in_header = true 
+    local bar = {}    
+    local in_header = true     
+    if jazz=='jazz' then
+        jazz = -1 -- favour complex chords
+    else
+        jazz = 4 -- favour simple chords
+    end
     precompile_token_stream(tokens) -- get semitones for all notes
     for i,token in ipairs(tokens) do
         if not in_header then
@@ -248,7 +253,7 @@ function auto_chord(tokens)
         -- end of bar found
         if token.token=='bar' then 
             -- copy out the events
-            bar_end(out, bar, bar_notes, key_scores)     
+            bar_end(out, bar, bar_notes, key_scores, jazz)     
             -- clear the bar buffer
             bar_notes = {}
             bar = {}
@@ -256,21 +261,21 @@ function auto_chord(tokens)
     end
     
     -- must keep any trailing notes
-    bar_end(out, bar, bar_notes, key_scores)
+    bar_end(out, bar, bar_notes, key_scores, jazz)
     
     return out    
 end
 
-function auto_chords(fname)
+function auto_chords(fname, jazz)
     local songs = parse_abc_file(fname)       
     -- transpose each song
     for i, song in ipairs(songs) do
-        print(emit_abc(auto_chord(song.token_stream)))
+        print(emit_abc(auto_chord(song.token_stream, jazz)))
     end            
 end
 
-if #arg~=1 then
-    print("Usage: auto_chords.lua <file.abc>")    
+if #arg<1 or #arg>2 then
+    print("Usage: auto_chords.lua <file.abc> [jazz]")    
 else
-    auto_chords(arg[1])
+    auto_chords(arg[1], arg[2])
 end

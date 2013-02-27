@@ -16,7 +16,7 @@ function test_performance(test_file)
     local precompile_time = 0
     local compile_time = 0
     local n = 0
-    local times = 10
+    local times = 1
     local parsed, original_parsed
     local scan_time = 0
     -- time each of the stages

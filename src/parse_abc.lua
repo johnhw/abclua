@@ -25,33 +25,22 @@ function parse_abc_line(line, song)
     -- Parse one line of ABC, updating the song
     -- datastructure. Temporary state is held in
     -- information from line to line
-        
-    -- strip whitespace from start and end of line
-    line = line:gsub('^%s*', '')
-    line = line:gsub('%s*$', '')
-    
-    -- remove any backquotes
-    line = line:gsub('`', '')
-    
+    line = line:gsub('^[%s]*', '')
+                
     -- replace stylesheet directives with I: information fields
     line = line:gsub("^%%%%", "I:")    
+    local field_parsed
     
-    -- strip comments
-    line = line:gsub("%%.*", "")
     
-    --
-    -- read header or metadata
-    --       
-    -- read metadata fields
-    local field_parsed = parse_field(line, song)
-      
-   
-    -- check if we've read the complete header; terminated on a key
-    if song.parse.found_key and song.parse.in_header then
-        song.parse.in_header = false
-        table.insert(song.token_stream, {token='header_end'})
+    -- read metadata fields    
+    if song.parse.in_header or string.sub(line,2,2)==':' then
+        field_parsed = parse_field(line, song)
+        if song.parse.found_key and song.parse.in_header then
+            song.parse.in_header = false
+            table.insert(song.token_stream, {token='header_end'})
+        end    
     end
-          
+         
     --
     -- read tune
     --
@@ -65,8 +54,7 @@ function parse_abc_line(line, song)
                 
         -- if it was a tune line, then parse it
         -- (if not, it should be a metadata field)
-        if match then            
-                               
+        if match then                                           
             -- we found tune notes; this isn't a file header
             song.parse.has_notes = true
             
@@ -79,25 +67,26 @@ function parse_abc_line(line, song)
             
             read_tune_segment(match, song)
         end
-    end
-    
-    
+    end        
 end    
 
+
+local line_splitter = re.compile([[
+lines <- (%nl* ({[^%nl]+} %nl*)+) -> {}
+]])
 
 function parse_abc_string(song, str)    
     -- parse an ABC file and fill in the song structure
     -- this is a separate method so that recursive calls can be made to it 
-    -- to include subfiles
-    
-    
-    local lines = split(str, "[\r\n]")
-    for i,line in pairs(lines) do        
-        song.parse.line = i
-        --parse_abc_line( line, song)
-        local success, err = pcall(parse_abc_line, line, song)
-        if not success then
-            warn('Parse error reading line '  .. line.. '\n'.. err)
+    -- to include subfiles            
+    local lines = line_splitter:match(str)    
+    if lines then
+        for i=1,#lines do        
+            song.parse.line = i        
+            local success, err = pcall(parse_abc_line, lines[i], song)
+            if not success then
+                warn('Parse error reading line '  .. lines[i].. '\n'.. err)
+            end
         end
     end
 end
@@ -141,6 +130,7 @@ function get_default_context()
     accidental = {},
     directives = {},
     broken_ratio=2,
+    default_note_length = 8,
     write_abc_events = false
     }
 end
@@ -334,13 +324,14 @@ return abclua
 
 -- add tune matcher example
 -- Text string encodings
--- More assertions / test cases
 -- Make automatic tune reproduce tester
--- Improve auto chord generator example
--- Split out grammar from main file
 -- ABCLint -> check abc files for problems
--- Test for chords
+-- Add symbol line handling
+-- Test lyrics
+-- Allow nilling user macros
 
+
+-- MIDI error on repeats with chords (doubles up chords)
 -- transposing macros don't work when octave modifiers and ties are applied
 
 

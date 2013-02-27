@@ -70,8 +70,7 @@ end
 
 
 function test_header(str, index, test)
-    local found_index = header_end_index(parse_abc_fragment(str))
-    
+    local found_index = header_end_index(parse_abc_fragment(str))    
     assert(found_index==index, test)
     print(test.." passed OK")
 end

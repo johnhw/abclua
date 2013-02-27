@@ -559,6 +559,9 @@ function abc_note(note)
     -- grace notes (e.g. {gabE}e)
     if note.grace then
         note_str = note_str .. '{'
+        if note.grace.acciacatura then
+            note_str = note_str .. '/'
+        end
         for i,v in ipairs(note.grace) do
             note_str = note_str .. abc_note_def(v)
         end
@@ -569,6 +572,12 @@ function abc_note(note)
     if note.chord then
         note_str = note_str .. '"' .. abc_chord(note.chord) .. '"'
     end
+    
+    -- text annotations (e.g ">hello")
+    if note.text then
+        note_str = note_str .. abc_text(note.text)
+    end
+    
     
     -- decorations (e.g. . for legato)
     if note.decoration then        
@@ -586,6 +595,11 @@ function abc_note(note)
     return note_str
 end
 
+
+
+function abc_text(text)
+    return '"' .. (text.position or '').. text.text .. '"'
+end
 
 
 function abc_bar(bar)
@@ -646,7 +660,6 @@ function abc_bar(bar)
     return bar_str
 end
 
-
 local note_elements = {split=' ', split_line='\n', continue_line='\\\n', chord_begin='[', chord_end=']', slur_end=')', slur_begin='('}
 
 function abc_note_element(element)
@@ -668,7 +681,7 @@ function abc_note_element(element)
     end
         
     if element.token=='text' then     
-        return '"' .. (element.position or '').. element.text .. '"'
+        return abc_text(element.text)
     end
     
     if element.token=='triplet' then
