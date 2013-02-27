@@ -7,14 +7,17 @@ function time_stream(stream)
     
     local t 
     local in_chord = false
-    local max_duration 
+    local max_duration, max_metric
     local measure = 1
     local written_measure = 1
     t = 0    
     local last_bar = 0    
-    
-    for i,event in ipairs(stream) do        
+    local event
+    local metric_t = 1
+    for i=1,#stream do
+        event = stream[i]
         event.t = t
+        event.metric_t = metric_t
         
         -- record position of last bar
         if event.event=='bar' and event.bar.type~='variant' then
@@ -22,6 +25,7 @@ function time_stream(stream)
             measure = measure + 1
             written_measure = event.bar.meeasure
             event.bar.play_measure = measure
+            metric_t = measure
         end
         
         
@@ -37,10 +41,12 @@ function time_stream(stream)
             duration = event.note.play_duration
             if not in_chord then
                 t = t + duration
+                metric_t = metric_t + event.note.play_bars
             else
                 -- record maximum time in chord; this is how much we will advance by
                 if duration > max_duration then
                     max_duration = duration
+                    max_metric = event.note.play_bars
                 end
             end                                    
         end
@@ -56,6 +62,7 @@ function time_stream(stream)
         if event.event=='chord_end' then
             in_chord = false
             t = t + max_duration -- advance by longest note in chord
+            metric_t = measure + max_metric
         end
        
     end

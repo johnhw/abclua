@@ -43,15 +43,6 @@ function copy_table(orig)
     return copy   
 end
 
-local __copy_table = {}
-
-function copy_if_needed(obj)
-    -- return the given object if it's the first
-    -- time we've tried to copy it; else return a copy
-    if __copy_table[obj] then return deepcopy(obj) end
-    __copy_table[obj] = true
-    return obj
-end
 
 -- copy a table completely (excluding metatables)
 -- don't copy keys, just values

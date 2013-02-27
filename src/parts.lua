@@ -35,11 +35,22 @@ end
 -- variant tag
 local variant_tag = 0
 
+local __copy_table = {}
+
+function copy_if_needed(obj)
+    -- return the given object if it's the first
+    -- time we've tried to copy it; else return a copy
+    if __copy_table[obj] then return copy_table(obj) end
+    __copy_table[obj] = true
+    return obj
+end
 
 function append_with_copy(a, b)
-    -- appends b to a, copy elements of a as it does so (if needed)    
+    -- appends b to a, copy elements of a as it does so (if needed)   
+    local j=#a+1
     for i=1,#b do
-        table.insert(a, copy_if_needed(b[i]))
+        a[j] = copy_if_needed(b[i])
+        j = j + 1
     end
 end
 

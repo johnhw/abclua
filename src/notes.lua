@@ -194,7 +194,9 @@ function insert_note(note, song)
         
         -- extract any chords into a separate event
         if note.chord then
-            table.insert(song.opus, {event='chord', chord=note.chord})
+            local chord = {event='chord', chord=note.chord}
+            chord.chord.notes = get_chord_notes(chord.chord, {}, song.context.key)
+            table.insert(song.opus, chord)
         end
       
         -- insert the note events

@@ -234,6 +234,10 @@ function precompile_token_stream(token_stream, context)
             update_timing(song)  
         end
         
+        if v.token=='chord' then  
+            v.chord.notes = get_chord_notes(v.chord, {}, song.contect.key)
+        end
+        
         -- update key
         if v.token=='key' then            
             song.context.key = v.key
@@ -263,6 +267,10 @@ function expand_token_stream(song)
            insert_note(v.note, song)                                         
         end
        
+        if v.token=='chord' then  
+            v.chord.notes = get_chord_notes(v.chord, {}, song.context.key)
+        end
+        
         -- end of header; store metadata so far
         if v.token=='header_end' then
             song.header_metadata = deepcopy(song.metadata)

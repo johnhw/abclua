@@ -67,25 +67,25 @@ function parse_bar(bar, song)
     if type_info.mid_repeat then
         type_info.end_reps = type_info.mid_repeat[2]-type_info.mid_repeat[1]
         type_info.start_reps = type_info.mid_repeat[4]-type_info.mid_repeat[3]
-    end
     
-    if type_info.end_repeat then
+    
+    elseif type_info.end_repeat then
         type_info.end_reps = type_info.end_repeat[2]-type_info.end_repeat[1]        
-    end
+    
     
     -- thick bars work like repeats with a count of one
-    if type_info.thickthin or type_info.thinthick or type_info.double then
+    elseif type_info.thickthin or type_info.thinthick or type_info.double then
         type_info.end_reps = 0
         type_info.end_repeat = true
-    end
     
-    if type_info.start_repeat then
+    
+    elseif type_info.start_repeat then
         type_info.start_reps = type_info.start_repeat[2]-type_info.start_repeat[1]        
-    end        
+           
     
     -- for a colon sequence, interpret :: as one start end repeat, :::: as two start, two end, etc.
     -- odd colon numbers without a bar symbol don't make sense!
-    if type_info.just_colons then
+    elseif type_info.just_colons then
         local colons = type_info.just_colons[2]-type_info.just_colons[1]
         assert(colons%2==0, "Bad number of colons in :: repeat bar.")
         type_info.start_reps = colons / 2
@@ -101,7 +101,8 @@ function parse_bar(bar, song)
     local parsed_bar = {}
     
     -- set type field
-    for i,v in ipairs(bar_types) do
+    for i=1,#bar_types  do
+        local v = bar_types[i]
         if type_info[v] then
             parsed_bar.type = v
         end

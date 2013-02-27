@@ -102,7 +102,12 @@ function apply_inversion(inversion, root, chord_offsets)
     if inversion then 
         -- numerical inversion
         if tonumber(inversion) then
-            inversion = (chord_offsets[tonumber(inversion)]+base_pitch) % 12
+            if inversion < #chord_offsets then 
+                inversion = (chord_offsets[tonumber(inversion)+1]+base_pitch) % 12
+            else
+                inversion = nil -- not a real inversion
+            end
+            
         else
             -- note name inversion
             inversion = get_note_number(inversion) 
@@ -129,22 +134,23 @@ end
 
 local chord_matcher = re.compile([[
         chord <- ({:root: root :} ({:type: [^/%s] +:}) ? ('/' {:inversion: (<root>/[1-3]) :}) ?) -> {}
-        root <- (([a-g] ('b' / 's') ?) / (<numeral>))
-        numeral <- ('iii' / 'ii' / 'iv' / 'vii' 'vi' / 'v' / 'i') 
+        root <- (([a-g] ('b' / '#') ?) / (<numeral>))
+        numeral <- ('iii' / 'ii' / 'iv' / 'vii' / 'vi' / 'v' / 'i') 
     ]])
     
 function parse_chord(chord)
     -- Matches chord definitions, returning the root note
     -- the chord type, and the inversion
     -- convert sharp signs to s and lowercase
-    chord = chord:gsub('#', 's')
+    
     chord = string.lower(chord)
-           
+    
     local match = chord_matcher:match(chord)
     if not match or not match.root then
         return nil
-    end
+    end    
     
+    match.root = match.root:gsub('#', 's')
   
     local inversion        
     -- get inversion pitch
@@ -164,23 +170,27 @@ local numerals = {iii=3, ii=2, i=1, iv=4, v=5, vi=6, vii=7}
 function get_chord_notes(chord, custom_table, key)
     -- get the notes in a chord
      local chord_type
-     local root
+     local root, tonic
+     local base_pitch
+     local semis
      -- deal with numeral chords
-     if numerals[chord.root] then
-        root = numerals[chord.root]-1
-        base_pitch = (get_note_number(key.root)+root) % 12
-        root = canonical_note_name(base_pitch)
+     if numerals[chord.root] then 
+        -- work out which root note this is
+        tonic = numerals[chord.root]
+        semis = key_semitones(key)        
+        root = canonical_note_name(semis[tonic])
+        
         
         -- decide whether major or minor
-        if chord.root == 2 or chord.root==3 or chord.root==6 then
+        if tonic == 2 or tonic==3 or tonic==6 then            
             chord_type = chord.original_type or 'min'
-            if chord_type=='7' then chord.chord_type='m7' end
-            if chord_type=='9' then chord.chord_type='m9' end
+            if chord_type=='7' then chord_type='m7' end
+            if chord_type=='9' then chord_type='m9' end
             
-        elseif chord.root == 7  then
+        elseif tonic == 7  then
             chord_type = chord.original_type or 'dim'
-            if chord_type=='7' then chord.chord_type='dim7' end
-            if chord_type=='9' then chord.chord_type='dim9' end
+            if chord_type=='7' then chord_type='dim7' end
+            if chord_type=='9' then chord_type='dim9' end
          
         else
             chord_type = chord.original_type or 'maj' 

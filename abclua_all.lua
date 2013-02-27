@@ -435,7 +435,20 @@ function parse_key(original_k)
 end
 
 
-
+function notes_in_key(key)
+    -- return the semitone numbers of notes in this key
+    local in_key = {}
+    local major = get_major_key('c')
+    local key_structure = create_key_structure(key)
+    
+    local j = 1 
+    for i,v in pairs(key_structure) do
+        -- C major semitones + the flattening/sharpening
+        in_key[(major[j]+v)%12] = 1
+        j = j + 1
+    end
+    return in_key
+end
 
 function create_key_structure(k)
     -- Create a key structure, which lists each note as written (e.g. A or B)
@@ -951,49 +964,6 @@ local chords =
 ["maj9s5"] = { 0, 4, 8, 11, 14, },
 }
 
-local common_chords = 
-{
-["aug"] = { 0, 4, 8, },
-["dim"] = { 0, 3, 6, },
-["dim5"] = { 0, 4, 6, },
-["maj"] = { 0, 4, 7, },
-["min"] = { 0, 3, 7, },
-["sus2"] = { 0, 2, 7, },
-["sus4"] = { 0, 6, 7, },
-["6"] = { 0, 4, 7, 9, },
-["7"] = { 0, 4, 7, 10, },
-["7sus2"] = { 0, 2, 7, 10, },
-["7sus4"] = { 0, 6, 7, 10, },
-["add2"] = { 0, 2, 4, 7, },
-["add4"] = { 0, 4, 6, 7, },
-["add9"] = { 0, 4, 7, 14, },
-["dim7"] = { 0, 3, 6, 9, },
-["madd9"] = { 0, 3, 7, 14, },
-["mmaj7"] = { 0, 3, 7, 11, },
-["m6"] = { 0, 3, 7, 9, },
-["m7"] = { 0, 3, 7, 10, },
-["m7#5"] = { 0, 3, 8, 10, },
-["m7b5"] = { 0, 3, 6, 10, },
-["maj7"] = { 0, 4, 7, 11, },
-["maj7#5"] = { 0, 4, 8, 11, },
-["maj7b5"] = { 0, 4, 6, 11, },
-["9"] = { 0, 4, 7, 10, 14, },
-["mmaj9"] = { 0, 3, 7, 11, 14, },
-["m6/7"] = { 0, 3, 7, 9, 10, },
-["m6/9"] = { 0, 3, 7, 9, 14, },
-["m7/11"] = { 0, 3, 7, 10, 18, },
-["m7add4"] = { 0, 3, 6, 7, 10, },
-["m9"] = { 0, 3, 7, 10, 14, },
-["m9/11"] = { 0, 3, 10, 14, 18, },
-["m9b5"] = { 0, 3, 6, 10, 14, },
-["maj9"] = { 0, 4, 7, 11, 14, },
-}
-
-
-function chord_type_list()
-    -- return the list of all chord forms
-    return chords
-end    
     
 function apply_inversion(inversion, root, chord_offsets)
     -- apply the inversion
@@ -1037,7 +1007,6 @@ local chord_matcher = re.compile([[
 function parse_chord(chord)
     -- Matches chord definitions, returning the root note
     -- the chord type, and the inversion
-  
     -- convert sharp signs to s and lowercase
     chord = chord:gsub('#', 's')
     chord = string.lower(chord)
@@ -1057,6 +1026,7 @@ function parse_chord(chord)
             inversion = canonical_note_name(get_note_number(match.inversion))
         end       
     end
+   
     return {chord_type=match.type or 'maj', root=match.root,inversion=inversion, original_type=match.type}   
 end
 
@@ -3216,7 +3186,7 @@ function abc_from_songs(songs, creator)
         table.insert(out, '%abc-2.1\n')
         table.insert(out, '%%abc-creator '..creator..'\n')
     end
-    
+   
     -- each song segment separated by two newlines
     for i,v in ipairs(songs) do
         table.insert(out, emit_abc(v.token_stream))
@@ -4210,9 +4180,10 @@ function expand_macros(song, line)
     local iterations = 0
     local expanded_line
     
+    -- ignore blank lines
+    if string.len(line)==0 then return nil end
     expanded_line = apply_macros(song.parse.macros, line)
     expanded_line = apply_macros(song.parse.user_macros, expanded_line)
-     
     -- macros changed this line; must now re-parse the line
     match = tune_matcher:match(expanded_line)
     if not match then
@@ -4437,8 +4408,9 @@ function parse_abc_coroutine(str, options)
     
     -- remaining tunes
     tune_str = iterator()
-    if tune_str then
+    while tune_str do
         coroutine.yield(parse_and_compile(tune_str, options, deepcopy(default_context), deepcopy(default_metadata)))    
+        tune_str = iterator()
     end
 end
 

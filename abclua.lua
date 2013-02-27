@@ -17,6 +17,7 @@ require "src/meter_tempo"
 require "src/compile"
 require "src/tools"
 require "src/emit_abc"
+require "src/master_parser"
 abclua = require "src/parse_abc"
 require "src/register_directives"
 return abclua

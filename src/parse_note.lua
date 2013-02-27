@@ -1,6 +1,6 @@
 -- Functions for parsing and canonicalising notes
 
-function canonicalise_duration(duration)
+local function canonicalise_duration(duration)
     -- fill in duration field; remove slashes
     -- and fill in numerator and denominator
     
@@ -62,7 +62,7 @@ function canonicalise_accidental(accidental)
 
 end
 
-function canonicalise_note(note)
+local function canonicalise_note(note)
     -- Canonicalise a note, filling in the full duration field. 
     -- Remove slashes from the duration
     -- Fills in full duration field
@@ -143,7 +143,7 @@ function canonicalise_note(note)
     return note        
 end
 
-function make_note(note)
+function parse_note(note)
     -- Clean up a note structure. 
     -- Clean up the duration and pitch of notes and any grace notes
     -- Replace the decoration string with a sequence of decorators
@@ -159,11 +159,5 @@ function make_note(note)
     return note    
 end
 
-function parse_note(note)
-    -- move note def into the note itself
-    --table_print(note)    
-    return make_note(note)
-    
-end
 
 

@@ -131,17 +131,42 @@ function validate_token_stream(tokens)
         
     swap_or_insert(tokens, {token='field_text', name='ref'}, 1, {token='field_text', name='ref', content='1', is_field=true})    
     swap_or_insert(tokens, {token='field_text', name='title'}, 2, {token='field_text', name='title', content='untitled', is_field=true})
-        
+                
     local first_note = 1
     -- find first non-field element
-    for i,v in ipairs(tokens) do                                               
-        if not v.is_field then
+    for i,v in ipairs(tokens) do                                                       
+        if not v.is_field  then       
             break
         end        
-        first_note = i        
+        first_note = i                
+    end    
+        
+    if first_note>#tokens then
+        first_note = #tokens
     end
-            
-    -- make sure last element before a note is a key
-    swap_or_insert(tokens, {token='key'}, first_note+1, {token='key', key={root='c'}})    
+
+
+    -- make sure last element before a note is a key  
+    local ref = find_first_match(tokens, {token='key'}) 
+    if not ref then
+        table.insert(tokens, first_note+1, {token='key', key={root='c'}})                               
+    else
+        local elt = tokens[ref]
+        table.remove(tokens, ref)
+        ref = find_first_match(tokens, {token='key'}) 
+        table.insert(tokens, first_note, elt)
+    end
+    
+    
     return tokens
+end
+
+
+function header_end_index(tokens)
+    -- Return the index of the end of the header
+    -- returns nil if there is only header
+    for i,v in ipairs(tokens) do
+        if not v.is_field then return i end
+    end
+    return nil
 end

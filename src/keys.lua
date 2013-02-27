@@ -176,6 +176,20 @@ function notes_in_key(key)
     return in_key
 end
 
+function key_semitones(key)
+    -- return each semitone in this key, in order.     
+    local key_structure = create_key_structure(key)
+    local semis = {}
+    local k = 0
+    local cmajor = get_major_key('c')    
+    -- go through each key in scale...
+    for i,v in ipairs(major) do
+        k = cmajor[i] + key_structure[v]
+        table.insert(semis, k)
+    end
+    return semis
+end
+
 function create_key_structure(k)
     -- Create a key structure, which lists each note as written (e.g. A or B)
     -- and maps it to the correct semitone in the interval

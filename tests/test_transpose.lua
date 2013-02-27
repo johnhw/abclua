@@ -41,7 +41,7 @@ function test_transposed_scales(scale_str, test)
     for i=1,12 do
         diatonic_transpose(scale,-1)            
     end
-    print(emit_abc(scale))
+
     assert(emit_abc(scale)==start,test)
     print(test.." repeated transpose passed OK")
 end
