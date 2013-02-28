@@ -17,22 +17,23 @@ function update_timing(song)
     -- Returns a timing state update event to be inserted into the output stream
     local rate = 0    
     local note_length = song.context.note_length or song.context.default_note_length
+    local timing = song.context.timing
     
     rate = get_bpm_from_tempo(song.context.tempo)
-    song.context.timing.base_note_length = rate / note_length
+    timing.base_note_length = rate / note_length
     
-    song.context.timing.grace_note_length = rate / (song.context.grace_length.den/song.context.grace_length.num)
+    timing.grace_note_length = rate / (song.context.grace_length.den/song.context.grace_length.num)
     
     -- deal with unmetered time; one "bar" becomes one whole note
     if song.context.meter.num==0 then
-         song.context.timing.bar_length = rate*1e6
+         timing.bar_length = rate*1e6
     else
-        song.context.timing.bar_length = compute_bar_length(song)
+        timing.bar_length = compute_bar_length(song)
     end
     
         
-    table.insert(song.opus, {event='timing_change', timing={base_note_length=song.context.timing.base_note_length*1e6, bar_length=song.context.timing.bar_length,
-    beats_in_bar = song.context.meter.num, note_length=note_length, beat_length = song.context.timing.bar_length/song.context.meter.num}})
+    table.insert(song.opus, {event='timing_change', timing={base_note_length=timing.base_note_length*1e6, bar_length=timing.bar_length,
+    beats_in_bar = song.context.meter.num, note_length=note_length, beat_length = timing.bar_length/song.context.meter.num}})
 end    
 
 function is_compound_time(song)
@@ -252,13 +253,14 @@ function expand_token_stream(song)
     local token
     local context = song.context
     local insert_note = insert_note
+    local opus = song.opus
     
     for i=1,#song.token_stream do
         v = song.token_stream[i]
         token = v.token
         if context.write_abc_events then
             -- write in the ABC notation event as a string
-            table.insert(song.opus, {event='abc', abc=abc_element(v)})
+            table.insert(opus, {event='abc', abc=abc_element(v)})
         end
         
         local event
@@ -267,7 +269,7 @@ function expand_token_stream(song)
            event = copy_table(v)
            event.event = event.token
            event.token = nil           
-           table.insert(song.opus, event)
+           table.insert(opus, event)
         else
            insert_note(v.note, song)                                         
         end
@@ -348,7 +350,7 @@ function expand_token_stream(song)
         
         
         elseif token=='words' then         
-            table.insert(song.opus, {event='lyric_align'}) 
+            table.insert(opus, {event='lyric_align'}) 
             table.insert(context.lyrics, v.lyrics)
         
             
