@@ -101,6 +101,8 @@ local function canonicalise_note(note)
         end
     end
     
+   
+    
     -- parse chords
     if note.chord then        
         local chord = parse_chord(note.chord) 
@@ -112,25 +114,41 @@ local function canonicalise_note(note)
             note.chord = nil
         end
     end
-        
+               
+    return note        
+end
+
+function parse_note(note, user_macro)
+    -- Clean up a note structure. 
+    -- Clean up the duration and pitch of notes and any grace notes
+    -- Replace the decoration string with a sequence of decorators
+    -- fix the note itself
+         
     if note.decoration then        
         -- clean up decorations (replace +xxx+ with !xxx!)    
         for i,v in ipairs(note.decoration) do            
             if string.sub(v,1,1)=='+'  then
                 note.decoration[i] = '!'..string.sub(v,2,-2)..'!'
             end
+            
+            -- apply user macro
+            if v:match('^[h-wH-W.~]$') then 
+                if user_macro[v] then
+                    if string.sub(user_macro[v],1,1)=='"' then
+                        -- set free text/chord -- should really append this instead of overwriting
+                        note.chord = user_macro[v]
+                    else
+                        note.decoration[i] = user_macro[v]
+                    end
+                end
+                
+            end
         end        
     end
-        
-    return note        
-end
-
-function parse_note(note)
-    -- Clean up a note structure. 
-    -- Clean up the duration and pitch of notes and any grace notes
-    -- Replace the decoration string with a sequence of decorators
-    -- fix the note itself
+    
     canonicalise_note(note)
+    
+    
     
     -- and the grace notes
     if note.grace then

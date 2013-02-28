@@ -10,9 +10,8 @@ function add_section(song, repeats)
     else
         table.insert(song.context.pattern_map[#song.context.pattern_map].variants, song.opus)
     end
-    
-    song.temp_part = {}
-    song.opus = song.temp_part
+        
+    song.opus = {}
     
 end
 
@@ -26,9 +25,8 @@ function start_new_part(song, name)
     song.context.pattern_map = {}
     song.context.current_part = name
     song.context.in_variant = nil
-    song.temp_part = {}
-    reset_timing(song)
-    song.opus = song.temp_part   
+    song.opus = {}
+    reset_timing(song)    
 end
 
 

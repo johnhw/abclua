@@ -22,7 +22,7 @@ function time_stream(stream)
         event.metric_t = metric_t
         
         -- record position of last bar
-        if event_type=='bar' and event.bar.type~='variant' then
+        if event_type=='bar'  then
             last_bar = event.t
             measure = measure + 1
             written_measure = event.bar.meeasure

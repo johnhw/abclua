@@ -171,7 +171,7 @@ note <- (                           -- note with a pitch
 decoration <- (                         -- Note decorations
                 ('!' ([^!] *) '!') /    -- !xyz! style    
                 ('+' ([^+] *) '+') /    -- +xyz+ style
-                '.' / [~] / 'H' / 'L' / 'M' / 'O' / 'P' / 'S' / 'T' / 'u' / 'v'  -- or a predefined decoration
+                ([h-wH-W] / '~' / '.')              -- or a predefined decoration
                 )
                 
 octave <- (
@@ -236,8 +236,9 @@ function read_tune_segment(tune_data, song)
             end
         else
             if v.top_note then                                            
-                -- add a note to the token stream
-                local cnote = parse_note(v.top_note)                    
+                -- add a note to the token stream                
+                local cnote = parse_note(v.top_note, song.parse.user_macros)          
+                
                 insert(token_stream, {token='note', note=cnote})                      
             -- store annotations
             elseif v.free_text then

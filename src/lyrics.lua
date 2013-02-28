@@ -20,7 +20,7 @@ function parse_lyrics(lyrics)
     lyrics = lyrics:gsub('\\\\-', '`')
 
     local lyrics_pattern = [[
-    lyrics <- ( (({:syl: <syllable> :} {:br: <break> :}) -> {} *)  {:syl: (<syllable>)  :} -> {} ) -> {}
+    lyrics <- ( %s* (({:syl: <syllable> / '-' :} ? {:br: <break> :}) -> {} *)  {:syl: (<syllable>)  :} -> {} ) -> {}
     break <- ( ( %s +)  / ('-')  )
     
     syllable <- ( ([^%s-] +) )        
@@ -33,37 +33,36 @@ function parse_lyrics(lyrics)
     end
     
     local lyric_sequence = {}
-    
+    local note_count
+    local advance
     local next_advance = 1 -- always start on first note of the song
     
     -- construct the syllable sequence
     for i,syllable in ipairs(match) do
-        local syl = syllable.syl
+        
+        local syl = syllable.syl        
+        
         -- fix backquotes
         syl = syl:gsub('`', '-')
         -- note advance on trailing underscore
-        local note_count = 1
+        note_count = 1
         for c in syl:gmatch"_" do
             note_count = note_count + 1
         end
         
-        local advance = next_advance
-        
         -- bar advance
         if string.sub(syl,-1)=='|' then
-            next_advance = 'bar'
+            advance = 'bar'
         else
-            next_advance = note_count
-        end
-        
+            advance = note_count
+        end        
         -- remove _, ~ and | from the display syllables
-        for i,v in ipairs(match) do
-            syl = syl:gsub('|', '')        
-            syl = syl:gsub('_', '')        
-            syl = syl:gsub('~', ' ')        
-        end
-                
-        table.insert(lyric_sequence, {syllable=syl, advance=advance, br=syllable.br})
+        syl = syl:gsub('|', '')        
+        syl = syl:gsub('_', '')        
+        syl = syl:gsub('~', ' ')        
+        
+        table.insert(lyric_sequence, {syllable=syl, advance=next_advance, br=syllable.br})        
+        next_advance = advance
     end
     return lyric_sequence
 end
@@ -77,54 +76,63 @@ function insert_lyrics_stream(lyrics, stream, new_stream, stream_index)
     
     local note_wait 
     local advance = false
-    
+    local bar_advance = false
     -- determine where to wait for the first lyric
     if lyrics[lyric_index] then
         note_wait = lyrics[lyric_index].advance
     else
         note_wait = 'end'
     end
-    
+     
     local v
+    
     while stream_index<#stream do    
         v = stream[stream_index]
         
-        -- insert original event
-        table.insert(new_stream, v)
-        
-        -- if waiting for a bar, reset on next bar symbol
-        if v.event == 'bar' then         
-            if note_wait == 'bar' then
-                advance = true                
-            end
-        end
         
         -- note; decrement wait if we're not looking for a bar
         if v.event=='note' then
+            if bar_advance then                
+                bar_advance = false                
+                note_wait = 1
+            end
+            
             if note_wait ~= 'end' and note_wait ~= 'bar' then
                 note_wait = note_wait - 1                
+                
                 -- wait hit zero; insert the lyric syllable
                 if note_wait == 0 then
                     advance = true                                        
                 end                
             end            
         end
-            
+        
+        
+        -- if waiting for a bar, reset on next bar symbol
+        if v.event == 'bar' then         
+            if note_wait == 'bar' then                
+                bar_advance = true                                
+            end                    
+        end
+        
         -- if we've waited long enough, insert the lyric symbol into the stream
-        if advance then
-            
-            table.insert(new_stream, {event='lyric', syllable=lyrics[lyric_index].syllable})
+        if advance then            
+            if  lyrics[lyric_index].syllable~='-' and  lyrics[lyric_index].syllable~='*' then
+                table.insert(new_stream, {event='lyric', syllable=lyrics[lyric_index].syllable})
+            end
             lyric_index = lyric_index + 1                    
             -- move on the lyric pointer
             if lyric_index > #lyrics then
                 note_wait = 'end'
             else
                 note_wait = lyrics[lyric_index].advance                
-            end
-            
+            end            
             advance = false
-        end
-        
+        end        
+                       
+        -- insert original event
+        table.insert(new_stream, v)
+                   
         -- if we get an align event then return and start on the next lyric segment
         if v.event=='lyric_align' then
             return stream_index
@@ -146,7 +154,7 @@ function insert_lyrics(lyrics, stream)
     local new_stream = {}
     
     -- insert each lyric line in turn
-    for i,v in ipairs(lyrics) do
+    for i,v in ipairs(lyrics) do        
         index = insert_lyrics_stream(v, stream, new_stream, index)+1
     end
     -- copy in any left over events 

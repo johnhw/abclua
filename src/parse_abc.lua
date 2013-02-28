@@ -8,8 +8,7 @@ function expand_macros(song, line)
     
     -- ignore blank lines
     if string.len(line)==0 then return nil end
-    expanded_line = apply_macros(song.parse.macros, line)
-    expanded_line = apply_macros(song.parse.user_macros, expanded_line)
+    expanded_line = apply_macros(song.parse.macros, line)    
     -- macros changed this line; must now re-parse the line
     match = abc_body_parser(expanded_line)
     if not match then
@@ -33,7 +32,7 @@ function parse_abc_line(line, song)
     
     
     -- read metadata fields    
-    if song.parse.in_header or string.sub(line,2,2)==':' then
+    if song.parse.in_header or string.sub(line,2,2)==':' then        
         field_parsed = parse_field(line, song)
         if song.parse.found_key and song.parse.in_header then
             song.parse.in_header = false
@@ -46,7 +45,7 @@ function parse_abc_line(line, song)
     --
     if not field_parsed and not song.parse.in_header then
         local match
-        if not song.parse.no_expand and (#song.parse.macros>0 or #song.parse.user_macros>0)  then               
+        if not song.parse.no_expand and (#song.parse.macros>0)  then               
             match = expand_macros(song, line)                
         else
             match = abc_body_parser(line)
@@ -91,19 +90,37 @@ function parse_abc_string(song, str)
     end
 end
     
+function default_user_macros()
+    -- return the set of default user macros
+    return 
+    {
+      ['~'] = '!roll!',
+      ['.'] = '!staccato!',
+      H = '!fermata!',
+      L = '!accent!',
+      M = '!lowermordent!',
+      O = '!coda!',
+      P = '!uppermordent!',
+      S = '!segno!',
+      T = '!trill!',
+      u = '!upbow!',
+      v = '!downbow!'
+    }   
+        
+end
 
 function parse_abc(str, options, in_header)
     -- parse and ABC file and return a song with a filled in token_stream field
     -- representing all of the tokens in the stream    
-    local song = {}    
-    
+    local song = {}        
     song.token_stream = {}
-    options = options or {}    
+    options = options or {}        
     -- default to being in the header
     if in_header==nil then
         in_header = true
     end
-    song.parse = {in_header=in_header, has_notes=false, macros={}, user_macros={}, measure = options.measure or 1, no_expand=options.no_expand or false, cross_ref=options.cross_ref or false}    
+    
+    song.parse = {in_header=in_header, has_notes=false, macros={}, user_macros=default_user_macros(), measure = options.measure or 1, no_expand=options.no_expand or false, cross_ref=options.cross_ref or false}    
     parse_abc_string(song, str)
      
     return song 
@@ -254,8 +271,8 @@ end
 
 function parse_abc_fragment(str, options)
     -- Parse a short abc fragment, and return the token stream table    
-    options = options or {}
-    local song = parse_abc(str, options, false)
+    options = options or {}    
+    local song = parse_abc(str, options, options.in_header or false)
     return song.token_stream
 end
 
@@ -322,14 +339,13 @@ version=0.2,
 return abclua
 -- TODO:
 
--- add tune matcher example
 -- Text string encodings
 -- Make automatic tune reproduce tester
 -- ABCLint -> check abc files for problems
 -- Add symbol line handling
--- Test lyrics
--- Allow nilling user macros
+-- Fix lyrics in repeats/parts
 
+-- allow multiple annotations/chords per note
 
 -- MIDI error on repeats with chords (doubles up chords)
 -- transposing macros don't work when octave modifiers and ties are applied

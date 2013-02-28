@@ -173,20 +173,20 @@ function compile_note(note, song)
 end
 
 
-function insert_note(note, song)
+function insert_note(note, song, token_index)
         -- insert a new note into the song
        
         note = compile_note(note, song)
         
         -- extract any chords into a separate event
         if note.chord then
-            local chord = {event='chord', chord=note.chord}
+            local chord = {event='chord', chord=note.chord, token_index=token_index}
             chord.chord.notes = get_chord_notes(chord.chord, {}, song.context.key)
             table.insert(song.opus, chord)
         end
         
        if note.text then
-            local chord = {event='text', text=note.text}            
+            local chord = {event='text', text=note.text, token_index=token_index}            
             table.insert(song.opus, chord)
         end
       
@@ -195,12 +195,12 @@ function insert_note(note, song)
         if note.play_pitch==nil then
             -- rest            (strip out 0-duration y rests)
             if note.play_duration>0 then
-                song.opus[#song.opus+1] = {event='rest', note=note}
+                song.opus[#song.opus+1] = {event='rest', note=note, token_index=token_index}
                 
             end            
         else       
             -- pitched note            
-            song.opus[#song.opus+1] = {event='note', note=note}
+            song.opus[#song.opus+1] = {event='note', note=note, token_index=token_index}
         end
         --advance_note_time(song, note)        
 end

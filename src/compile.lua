@@ -99,12 +99,12 @@ function finalise_song(song)
     
     -- clear temporary data
     song.opus = nil
-    song.temp_part = nil 
+    
  
     -- time the stream and add lyrics    
-   
-    time_stream(song.stream)   
     song.stream = insert_lyrics(song.context.lyrics, song.stream)
+    time_stream(song.stream)       
+    
 end
 
 
@@ -184,9 +184,8 @@ function start_new_voice(song, voice, specifiers)
     song.context.part_map = {}
     song.context.pattern_map = {}
     
-    song.context.voice = voice
-    song.temp_part = {}
-    song.opus = song.temp_part
+    song.context.voice = voice    
+    song.opus = {}
     reset_timing(song)
             
 end
@@ -266,9 +265,10 @@ function expand_token_stream(song)
            event = copy_table(v)
            event.event = event.token
            event.token = nil           
+           event.token_index = i
            table.insert(opus, event)
         else
-           insert_note(v.note, song)                                         
+           insert_note(v.note, song, i)                                         
         end
        
         if token=='chord' then  

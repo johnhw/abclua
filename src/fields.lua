@@ -163,11 +163,19 @@ function voice_token(content, song)
 end
 
 function user_token(content, song)
-    -- user macro (not transposable)
+    -- user macro for decorations etc.
     if song.parse.no_expand then
         return {token='field_text', name='user', content=content}                   
-    else       
-        table.insert(song.parse.user_macros, parse_macro(content))
+    else               
+        local macro = parse_macro(content)
+        if macro then
+            -- allow macros to be cleared using !nil!
+            if macro.rhs=='!nil!' then
+                macro.rhs =nil
+            end
+            -- assign the macro
+            song.parse.user_macros[macro.lhs] = macro.rhs
+        end
     end      
 end
 

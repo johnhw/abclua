@@ -3,6 +3,7 @@ local abclua = require "abclua"
 
 function test_validate(str, result, test)
     local validated = emit_abc(validate_token_stream(parse_abc_fragment(str)))    
+    
     assert(validated:gsub('%s','')==result:gsub('%s',''), test)
     print(test.." passed OK")
 end
@@ -70,7 +71,9 @@ end
 
 
 function test_header(str, index, test)
-    local found_index = header_end_index(parse_abc_fragment(str))    
+    local found_index = header_end_index(parse_abc_fragment(str, {in_header=true}))    
+    print(str)
+    print(found_index)
     assert(found_index==index, test)
     print(test.." passed OK")
 end
@@ -79,7 +82,7 @@ function test_header_end()
     -- test header index finding
     test_header([[X:1
     T:Title
-    K:G]], nil, 'Header index: No tune body')
+    K:G]], 4, 'Header index: No tune body')
     
     
     test_header([[X:1
@@ -95,7 +98,7 @@ function test_header_end()
     T:Title    
     K:G
     abc
-    ]], 5, 'Header index: bare lines')
+    ]], 6, 'Header index: bare lines')
     
     
     
@@ -104,10 +107,7 @@ function test_header_end()
     ]], 1, 'Header index: No header')
     
     
-    test_header([[
-    abcdef
-    K:G
-    ]], 1, 'Header index: No header, following fields')
+    
     
 end
 
