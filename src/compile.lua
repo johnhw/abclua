@@ -68,10 +68,7 @@ function apply_repeats(song, bar)
             end            
         end
         
-        -- part variant; if we see this we go into a new part
-        if bar.type=='variant' then
-            start_variant_part(song, bar)
-        end        
+        
 end
 
 function apply_key(song, key) 
@@ -295,7 +292,9 @@ function expand_token_stream(song)
             apply_repeats(song, v.bar)  
             context.accidental = {} -- clear any lingering accidentals             
         
-        
+        elseif token=='variant' then
+               -- part variant; if we see this we go into a new part            
+                start_variant_part(song, v.variant)        
             
         -- text fields
         elseif token=='field_text'  then       

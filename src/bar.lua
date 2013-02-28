@@ -1,56 +1,47 @@
-local range_matcher = re.compile([[
-    range_list <- ((<range>) (',' <range>) *) -> {}
-    range <- (   <range_id> / <number> ) -> {}
-    range_id <- (<number> '-' <number>)
-    number <- ({ [0-9]+ }) 
-    ]])
-
 function parse_range_list(range_list)
     -- parses a range identifier
     -- as a comma separated list of numbers or ranges
     -- (e.g. "1", "1,2", "2-3", "1-3,5-6")
     -- Returns each value in this range
     
-    local matches = range_matcher:match(range_list)    
+    local matches = range_list
     assert(#matches>0, "Range could not be parsed in bar variant.")
     
     local sequence = {}    
+    local present = {}
+    local j
     -- append each element of the range list
     for i,v in ipairs(matches) do
         -- single number
         if #v==1 then
-            table.insert(sequence, v[1]+0)
+            j = tonumber(v[1])
+            if not present[j] then
+                table.insert(sequence,j)
+                present[j] = true -- avoid adding duplicates
+            end
         end
         
         -- range of values
         if #v==2 then            
             for j=v[1]+0,v[2]+0 do
-                table.insert(sequence, j)
+                if not present[j] then
+                    table.insert(sequence, j)
+                    present[j] = true  -- avoid adding duplicates
+                end
             end
         end    
-    end
+    end        
     
-    
+    table.sort(sequence) -- sort sequence
     return sequence
-
 end
 
 
-local bar_matcher = re.compile([[bar <- (  
-        {:mid_repeat: <mid_repeat> :} /  {:end_repeat: <end_repeat> :}  / {:start_repeat: <start_repeat> :} / {:double: <double> :}
-        /  {:thickthin: <thickthin> :} / {:thinthick: <thinthick> :} /  {:plain: <plain> :} / {:variant: <variant> :} / {:just_colons: <just_colons> :} ) -> {}        
-        mid_repeat <- ({}<colons> {}(<plain>+){} <colons>{}) -> {}
-        start_repeat <- (<plain> {} <colons> {} ) -> {}
-        end_repeat <- ({}<colons> {} <plain> ) -> {}
-        just_colons <- ({} ':' <colons>  {}) -> {}
-        plain <- ('|')
-        thickthin <- (('[' / ']') '|')
-        thinthick <- ('|' ('[' / ']') )
-        double <- ('|' '|')
-        
-        variant <- ('[')
-        colons <- (':' +) 
-]])
+function parse_variant(variant, song)
+    -- variant markers [range    
+    variant.variant_range = parse_range_list(variant.variant_range)
+    return variant
+end
 
 function parse_bar(bar, song)
 -- Parse a bar symbol and repeat/variant markers. Bars can be
@@ -59,10 +50,9 @@ function parse_bar(bar, song)
 -- repeat begin (|:)
 -- repeat end (:|)
 -- repeat middle (:||: or :: or :|:)
--- variant markers [range
-   local type_info = bar_matcher:match(bar.type)
     
-    assert(type_info~=nil, "Bar could not be parsed.")
+   local type_info = bar 
+    
     -- compute number of colons around bar (which is the number of repeats of this section)
     if type_info.mid_repeat then
         type_info.end_reps = type_info.mid_repeat[2]-type_info.mid_repeat[1]

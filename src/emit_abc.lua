@@ -464,7 +464,7 @@ function abc_duration(note_duration)
     -- get the string representation of the duration of the note
     -- e.g. as a fraction (A/4 or A2/3 or A>)
 
-    local duration = ''
+    local duration 
  
    
     -- work out the duration form
@@ -472,11 +472,14 @@ function abc_duration(note_duration)
     -- just a if fraction is a/1
     -- just /b if fraction is 1/a
     -- a/b otherwise
-    if note_duration.num~=1 then
-        duration = duration .. note_duration.num
-    end
-    if note_duration.den~=1 then
-        duration = duration .. '/' .. note_duration.den
+    if note_duration.num==1 and note_duration.den==1 then  
+        duration = ''
+    elseif note_duration.num~=1 and note_duration.den==1 then
+        duration = note_duration.num   
+    elseif note_duration.num==1 and note_duration.den~=1 then
+        duration = string.format('/%d', note_duration.den)
+    else
+        duration = string.format('%d/%d', note_duration.num, note_duration.den)
     end
     
     -- special case: /2 becomes just / 
@@ -487,16 +490,13 @@ function abc_duration(note_duration)
     -- add broken rhythm symbols (< and >)
     -- broken, this note shortened
     if note_duration.broken < 0 then
-        for i=1,-note_duration.broken do
-            duration = duration..'<'
-        end
-    end
+        duration = duration..string.rep('<',-note_duration.broken)
+        
+   end
    
     -- broken, this note lengthened
     if note_duration.broken > 0 then
-        for i=1,note_duration.broken do
-            duration = duration..'>'
-        end
+        duration = duration..string.rep('>', note_duration.broken)        
     end
    
     return duration
@@ -547,7 +547,7 @@ function abc_chord(chord)
    if chord.inversion then
         chord_str = chord_str .. '/' .. chord_case(chord.inversion)
     end    
-    return chord_str
+    return string.format('"%s"', chord_str)
 end
 
 function abc_note(note)
@@ -570,7 +570,7 @@ function abc_note(note)
     
     -- chords (e.g. "Cm")
     if note.chord then
-        note_str = note_str .. '"' .. abc_chord(note.chord) .. '"'
+        note_str = note_str  .. abc_chord(note.chord) 
     end
     
     -- text annotations (e.g ">hello")
@@ -611,13 +611,11 @@ function abc_bar(bar)
     -- |] double thin-thick bar
     -- |: start repeat
     -- :| end repeat
-    -- :|: mid repeat
-    -- [n start variant
+    -- :|: mid repeat    
     
     local bar_str = ''
     
-    local type_symbols = {plain='|', double='||', thickthin='[|', thinthick='|]',
-    variant='['}
+    local type_symbols = {plain='|', double='||', thickthin='[|', thinthick='|]'}
     
     for i,v in pairs(type_symbols) do
         if bar.type==i then 
@@ -637,34 +635,39 @@ function abc_bar(bar)
         bar_str= repeat_string(':', bar.end_reps) .. '|' .. repeat_string(':', bar.start_reps)
     end
     
-    if bar.type=='variant' then 
-        bar_str = '[' 
-    end
     
-    -- variant indicators (e.g. for parts [4 or for repeats :|1 x x x :|2 x x x ||)
-    if bar.variant_range then
-      
+    -- variant indicators (e.g. for  repeats :|1 x x x :|2 x x x ||)
+    if bar.variant_range then      
         -- for part variants, can have multiple indicators
-        if bar.type=='variant' then
-            for i,v in ipairs(bar.variant_range) do
-                bar_str = bar_str .. v .. ','
-            end
-            -- remove last comma
-            bar_str = string.sub(bar_str, 1, -2)
-        else
-            -- can only have one variant indicator
-            bar_str = bar_str .. bar.variant_range[1]
+        for i,v in ipairs(bar.variant_range) do
+            bar_str = bar_str .. v .. ','
         end
+        -- remove last comma
+        bar_str = string.sub(bar_str, 1, -2)
     end
     
     return bar_str
+end
+
+
+function abc_variant(variant)
+    -- ABC representation of a part varaint [4 or [2,3,4-5
+    
+    local var_str = '['
+    -- for part variants, can have multiple indicators
+    for i,v in ipairs(variant.variant_range) do
+        var_str = var_str .. v .. ','
+    end
+    -- remove last comma
+    var_str = string.sub(var_str, 1, -2) 
+    return var_str
 end
 
 local note_elements = {split=' ', split_line='\n', continue_line='\\\n', chord_begin='[', chord_end=']', slur_end=')', slur_begin='('}
 
 function abc_note_element(element)
     -- Return a string representing a note element 
-    -- can be a note, rest, bar symbol
+    -- can be a note, rest, bar symbol, variant
     -- chord group, slur group, triplet/tuplet
     -- line break, beam break or some inline text
     
@@ -673,7 +676,7 @@ function abc_note_element(element)
     if static_element then return static_element end
     
     if element.token=='chord' and element.chord then
-            return '"' .. abc_chord(element.chord) .. '"'
+            return  abc_chord(element.chord) 
     end
     
     if element.token=='overlay' then
@@ -694,6 +697,10 @@ function abc_note_element(element)
     
     if element.token=='bar' then
         return abc_bar(element.bar)
+    end
+ 
+    if element.token=='variant' then
+        return abc_variant(element.variant)
     end
  
     

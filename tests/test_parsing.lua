@@ -107,6 +107,19 @@ K:G
 "G"d2 B/G/|B2A|"C"G2 E|"G"D2 D|"Em"G2 (3 B/A/G/|"D"B2 A|("G"G3G2)||]], 'Slurs')
 
 
+
+check_result([[X:1
+K:G
+D E D | A B :|
+|:: A A A ::|1 B B B :|2 c c c :|3 d d d |] D D D |: e e e :::: f f f :|
+|: d e d :|: A B c :|1 g ||]],
+[[X:1
+K:G
+D E D | A B :|
+|:: A A A ::|1 B B B :|2 c c c :|3 d d d |] D D D |: e e e ::|:: f f f :|
+|: d e d :|: A B c :|1 g ||]],'Repeats')
+
+
 check_reproduce(
 [[X:1
 M:3/4
@@ -132,17 +145,28 @@ A A A A z A>A A>A z A<A A<A z Z a a a Z2 a a a]], 'Note durations')
 
 
 
-check_reproduce(
+check_result(
 [[X:1
 P:ABABA2(CAC)2
 M:3/4
 K:G
 P:A
-D E D [1 G |] [2 E F |] [5,6 A,, |]
+D E D [1 G |] [2-4 E F |] [2-4,3-8 E F |] [5,6 A,, |]
 P:B
 d e d
 P:C
-a a a [2 a']],  'Multi-parts')
+a a a [2 a']],
+[[X:1
+P:ABABA2(CAC)2
+M:3/4
+K:G
+P:A
+D E D [1 G |] [2,3,4 E F |] [2,3,4,5,6,7,8 E F |] [5,6 A,, |]
+P:B
+d e d
+P:C
+a a a [2 a']],
+'Multi-parts')
 
 
 check_reproduce(
@@ -297,17 +321,6 @@ D D D
 E E E]],
 'Line breaks and continue')
 
-
-check_result([[X:1
-K:G
-D E D | A B :|
-|:: A A A ::|1 B B B :|2 c c c :|3 d d d |] D D D |: e e e :::: f f f :|
-|: d e d :|: A B c :|1 g ||]],
-[[X:1
-K:G
-D E D | A B :|
-|:: A A A ::|1 B B B :|2 c c c :|3 d d d |] D D D |: e e e ::|:: f f f :|
-|: d e d :|: A B c :|1 g ||]],'Repeats')
 
 
 check_result([[X:1
@@ -506,4 +519,35 @@ Z:no one in particular
 K:G]], 'All fields')
 
 
-
+check_result([[
+X:18009
+T:Roddy McCorley
+T:Sean South
+R:March
+C:Trad. Song
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=120
+K:G
+GA|"G"B2ABD2GA|B3AG3D|"C"E2G2G2A2|"G"G4-G2Bc|
+d2d2d2Bd|"C"e2e2"G"d3B|"Em"G2E2"Am"c2B2|"D"A4-A2Bc|
+"G"d2d2d2Bd|"C"e2e2"G"d3B|"Em"G2E2"Am"c2B2|"D"A4-A2GA|
+"G"B2ABD2GA|B3AG2DD|"C"E2G2G2-"Am"GA|"G"G4-G2:|]
+]],
+[[
+X:18009
+T:Roddy McCorley
+T:Sean South
+R:March
+C:Trad. Song
+O:Ireland
+M:4/4
+L:1/8
+Q:1/4=120
+K:G
+GA|"G"B2ABD2GA|B3AG3D|"C"E2G2G2A2|"G"G4-G2Bc|
+d2d2d2Bd|"C"e2e2"G"d3B|"Em"G2E2"Am"c2B2|"D"A4-A2Bc|
+"G"d2d2d2Bd|"C"e2e2"G"d3B|"Em"G2E2"Am"c2B2|"D"A4-A2GA|
+"G"B2ABD2GA|B3AG2DD|"C"E2G2G2-"Am"GA|"G"G4-G2:|]], 'Sean South'
+)

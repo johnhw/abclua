@@ -253,7 +253,7 @@ function produce_midi_opus(song)
                 
             end
             
-            if event.event=='bar' and event.bar.type~='variant' then                                            
+            if event.event=='bar' then                                            
                 if midi_state.last_chord then insert_midi_chord(midi_state.last_chord, midi_state) end
                 midi_state.last_bar_time = event.t/1e3
                 midi_state.t = event.t/1e3
