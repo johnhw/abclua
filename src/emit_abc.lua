@@ -30,6 +30,21 @@ local field_tags = {key = 'K'
 ,continuation =  '+'
 }
 
+local default_macros =  invert_table({
+      ['~'] = '!roll!',
+      ['.'] = '!staccato!',
+      H = '!fermata!',
+      L = '!accent!',
+      M = '!lowermordent!',
+      O = '!coda!',
+      P = '!uppermordent!',
+      S = '!segno!',
+      T = '!trill!',
+      u = '!upbow!',
+      v = '!downbow!'
+    }   
+)
+
 function abc_meter(meter)
     -- return the string representation of a meter
     -- e.g. {num=3, den=4} becomes 'M:3/4'
@@ -239,6 +254,29 @@ function abc_new_part(part)
     return 'P:'..part
 end
 
+function abc_symbol_line(symbol_line)
+    -- return the abc string for a symbol line
+    -- e.g. s:* * "@here" * * !trill!
+    local symbols = {}
+    
+    for i,v in ipairs(symbol_line) do
+        -- get representation of each symbol
+        if v.type=='spacer' then
+            table.insert(symbols, '*')
+        elseif v.type=='bar' then
+            table.insert(symbols, '|')
+        elseif v.type=='decoration' then
+            table.insert(symbols, v.decoration)
+        elseif v.type=='chord_text' then
+            table.insert(symbols, v.chord_text)
+        end
+        table.insert(symbols, ' ')
+    end
+    
+    -- strip trailing whitespace
+    return 's:'..string.sub(table.concat(symbols), 1, -2)
+end
+
 
 function abc_directive(directive, inline)
     -- Return the ABC notation for a directive (I: or %%)
@@ -310,6 +348,10 @@ function abc_field(v, inline)
     
     if v.token=='new_part' then
         str = abc_new_part(v.part)
+    end
+    
+    if v.token=='symbol_line' then
+        str = abc_symbol_line(v.symbol_line)
     end
     
     
@@ -550,6 +592,16 @@ function abc_chord(chord)
     return string.format('"%s"', chord_str)
 end
 
+function abc_decoration(decoration)
+    -- return the string of decoration for a note, replacing standard decorations like
+    -- !roll! with the default user macro replacements
+    local decorations = {}
+    for i,v in ipairs(decoration) do
+        table.insert(decorations,default_macros[string.lower(v)] or v)
+    end
+    return table.concat(decorations)
+end
+
 function abc_note(note)
     -- abc a note out
     -- Return the string version of the note definition
@@ -581,7 +633,7 @@ function abc_note(note)
     
     -- decorations (e.g. . for legato)
     if note.decoration then        
-        note_str = note_str ..  table.concat(note.decoration)        
+        note_str = note_str ..  abc_decoration(note.decoration)
     end
     
     -- pitch and duration
@@ -597,8 +649,16 @@ end
 
 
 
-function abc_text(text)
+function abc_text_element(text)
     return '"' .. (text.position or '').. text.text .. '"'
+end
+
+function abc_text(text)
+    text_table = {}
+    for i,v in ipairs(text) do
+        table.insert(text_table, abc_text_element(v))
+    end
+    return table.concat(text_table)
 end
 
 
@@ -684,7 +744,7 @@ function abc_note_element(element)
     end
         
     if element.token=='text' then     
-        return abc_text(element.text)
+        return abc_text_element(element.text)
     end
     
     if element.token=='triplet' then

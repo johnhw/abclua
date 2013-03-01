@@ -67,6 +67,29 @@ function canonicalise_accidental(accidental)
     
 end
 
+function add_chord_or_annotation_note(note, text)
+    -- Take a text string; if it's a an annotation, 
+    -- add it to the annotations; otherwise, set the chord for this note
+    -- Note: each note can only have one chord. Setting a new chord
+    -- overwrites the old one.    
+    local chord = parse_chord(text) 
+        
+    if chord then
+        -- update chord for this note (only one chord per note)
+        note.chord = chord
+    else
+        -- store free text annotations            
+        table.insert(note.text, parse_free_text(text))                
+    end
+end
+
+function add_decoration_note(note, decoration)
+    -- Add a text string as a decoration to a note
+    note.decoration = note.decoration or {}
+    table.insert(note.decoration, decoration)    
+end
+
+
 local function canonicalise_note(note)
     -- Canonicalise a note, filling in the full duration field. 
     -- Remove slashes from the duration
@@ -101,20 +124,18 @@ local function canonicalise_note(note)
         end
     end
     
-   
     
+    note.text = {}
+    local note_chord = note.chord
+    note.chord = nil
     -- parse chords
-    if note.chord then        
-        local chord = parse_chord(note.chord) 
-        if chord then
-            note.chord = chord
-        else
-            -- store free text annotations
-            note.text = parse_free_text(note.chord)
-            note.chord = nil
+    
+    if note_chord then        
+        for i,v in ipairs(note_chord) do           
+            add_chord_or_annotation_note(note, v)            
         end
     end
-               
+         
     return note        
 end
 
@@ -134,9 +155,8 @@ function parse_note(note, user_macro)
             -- apply user macro
             if v:match('^[h-wH-W.~]$') then 
                 if user_macro[v] then
-                    if string.sub(user_macro[v],1,1)=='"' then
-                        -- set free text/chord -- should really append this instead of overwriting
-                        note.chord = user_macro[v]
+                    if string.sub(user_macro[v],1,1)=='"' then                        
+                        table.insert(note.chord, user_macro[v])
                     else
                         note.decoration[i] = user_macro[v]
                     end
@@ -146,9 +166,7 @@ function parse_note(note, user_macro)
         end        
     end
     
-    canonicalise_note(note)
-    
-    
+    canonicalise_note(note)        
     
     -- and the grace notes
     if note.grace then

@@ -1,6 +1,6 @@
 -- concatenates entire source into one lua file
 
-local files = {"utils", "keys", "parts",  "lyrics", "chords", "stream", "macro", "directives", "fields", "bar", "notes", "emit_abc", "tools", "tuplets", "pitches", "compile","master_parser","parse_abc", "parse_note", "meter_tempo", "register_directives"}
+local files = {"utils", "keys", "parts",  "lyrics", "chords", "stream", "macro", "directives", "fields", "bar", "notes", "emit_abc", "tools", "tuplets", "pitches", "compile","master_parser","parse_abc", "parse_note", "meter_tempo", "register_directives", "symbol_line"}
 
 
 
@@ -14,7 +14,7 @@ table.insert(result, [[
 -- subset of ABC and generate tables representing the song structure.
 --
 -- Requires: 
---     Lua 5.2.1 http://www.lua.org
+--     Lua 5.1+ http://www.lua.org
 --     LPeg http://www.inf.puc-rio.br/~roberto/lpeg/
 --
 -- License: BSD 3 clause license

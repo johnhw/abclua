@@ -98,7 +98,7 @@ number <- ({ [0-9]+ })
 complete_note <- (
                 -- A full note definition
                 ({:grace: (grace)  :}) ?  -- Grace notes as a sequence in braces {df} 
-                ({:chord: (chord)  :}) ?  -- Chord or text annotation "Cm7"
+                ({:chord: (chord +)->{}  :}) ?  -- Chord or text annotation "Cm7"
                 ({:decoration: ({decoration} +)->{} :}) ?  -- Sequence of decorations
                 (
                     (
@@ -235,10 +235,9 @@ function read_tune_segment(tune_data, song)
                  insert(token_stream, {token='cross_ref', at=v, line=song.parse.line})
             end
         else
-            if v.top_note then                                            
+            if v.top_note then                         
                 -- add a note to the token stream                
-                local cnote = parse_note(v.top_note, song.parse.user_macros)          
-                
+                local cnote = parse_note(v.top_note, song.parse.user_macros)                          
                 insert(token_stream, {token='note', note=cnote})                      
             -- store annotations
             elseif v.free_text then

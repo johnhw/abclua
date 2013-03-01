@@ -260,7 +260,10 @@ chord           Written chord (e.g. "Cm7")                 `"Cm7"`       **base_
 text            Free quoted text (e.g. "This is free")     `"hello"`     **text** text inside the quotes (without position annotation)\
                                                                          **position** position of the text:\
                                                                          can be `<`, `>`, `_`, `^` or `@`
+                                                                        
+header_end      End of the header in the original notation               Does not appear in the output and is not required -- just a convenience.
 
+                                                                         
 overlay         Voice overlay begins.                      `\`                 
                
 chord_begin     Start of a chord group                      `[`
@@ -411,8 +414,6 @@ The following additional/modified fields are also added:
 -------------------------------------------------------------------------------------------------------------
 event           description                                fields
 --------------- ------------------------------------------ --------------------------------------------------------
-header_end      End of the header in the original notation
-
 abc             A string of abc notation, representing the 
                 next event in the stream. Only generated if
                 the *write_abc_events* option is specified 

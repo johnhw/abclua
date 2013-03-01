@@ -26,7 +26,7 @@ local field_tags = {key = 'K'
 ,rhythm =   'R'
 ,remark =  'r'
 ,source =   'S'
-,symbolline =   's'
+,symbol_line =   's'
 ,user =   'U'
 ,voice =   'V'
 ,words =  'w'
@@ -230,16 +230,33 @@ function macro_token(content, song)
     end    
 end
     
+function symbol_line_token(content, song)
+    -- parse a symbol line    
+    return {token='symbol_line', symbol_line = parse_symbol_line(content)}
+end    
+    
 function continuation_token(content, song)
-     local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'macro', 'user', 'voice', 'instruction'} -- those fields we parse individually    
+     local parsable = {'length', 'tempo', 'parts', 'meter', 'words', 'key', 'symbol_line', 'macro', 'user', 'voice', 'instruction'} -- those fields we parse individually    
+     
      if song.parse.last_field then
         -- append plain text if necessary
         if not is_in(song.parse.last_field, parsable) then        
             return {token='append_field_text', name=song.parse.last_field, content=content}                
         end
-        
+         -- need to fix this:
+         -- w:abc
+         -- w:def
+         -- is not the same as:
+         -- w:abc
+         -- +:def
+         -- also must apply for symbol_line
+         
          if song.parse.last_field=='words' then
-            return words_token('words', content, song)                
+            return words_token(content, song)                
+         end
+         
+         if song.parse.last_field=='symbol_line' then            
+            return symbol_line_token(content, song)                
          end
      end                 
 end
@@ -266,7 +283,7 @@ end
 ,rhythm =   text_token
 ,remark =  text_token
 ,source =   text_token
-,symbolline =   text_token
+,symbol_line =   symbol_line_token
 ,user =   user_token
 ,voice =   voice_token
 ,words =  words_token

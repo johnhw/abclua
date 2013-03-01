@@ -82,10 +82,10 @@ C D ~F T~.G +fermata+D !legato!G
 {cg}"Cm7"+fermata+~=D
 G]],[[X:1
 K:G
-C D !roll!F !trill!!roll!!staccato!G !fermata!D !legato!G
+C D ~F T~.G HD !legato!G
 {cg}D {ab}C {f2fe}G
 "Cm7"C G "D"D A D
-{cg}"Cm7"!fermata!!roll!=D
+{cg}"Cm7"H~=D
 G]], 'Decorations and chord names')
 
 check_reproduce(
@@ -446,6 +446,16 @@ check_reproduce([[X:1
 K:G
 A A A z | (3 A A A A z | (3::2 A A A z | (5:3:4 A A A A A z | (3:4:2 D D D]],'Tuplets')
 
+
+check_reproduce([[X:1
+K:G
+s:* * * *
+s:| * | * |
+s:"<space" * "*lace" "Cm7"
+s:!trill! !fermata! * !trill! | | | !trill!
+s:]]
+,'Symbol lines')
+
 check_result([[
 X:1
 T:My song
@@ -483,7 +493,7 @@ P:AB(CA)2B2
 Q:1/4=120
 R:remarkable
 S:a source
-s:g ^ = a
+s:* * "<note" * !trill!
 w:oh the-se are so-me words to~a song
 W:Th-ese app-ear at the end
 Z:no one in particular
@@ -512,7 +522,7 @@ P:AB(CA)2B2
 Q:1/4=120
 R:remarkable
 S:a source
-s:g ^ = a
+s:* * "<note" * !trill!
 w:oh the-se are so-me words to~a song
 W:Th-ese app-ear at the end
 Z:no one in particular

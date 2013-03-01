@@ -133,6 +133,42 @@ function table_print (tt, indent, done)
   end
 end
 
+
+-- Print anything - including nested tables
+function table_str (tt, indent, done)
+  if tt==nil then
+    return('nil')    
+  end
+  local result = {}
+  local done = done or {}
+  local indent = indent or 0
+  if type(tt) == "table" then
+    table.insert(result, '{')
+    
+    -- enforce consistent key ordering
+    local keys = {}
+    for i,v in pairs(tt) do
+        table.insert(keys, i)
+    end
+    table.sort(keys)
+    
+    
+    for i,key in ipairs (keys) do            
+      local value = tt[key]
+      if type (value) == "table" and not done [value] then
+        done [value] = true        
+        table.insert(result, string.format("%s=%s,", tostring (key), table_str(value,0,done)))        
+      else
+        table.insert(result, string.format("%s=%s,", tostring (key), tostring(value)))
+      end      
+    end
+    table.insert(result, '}')
+    return table.concat(result)
+  else
+    return tostring(value)
+  end
+end
+
 function invert_table(t)
     -- invert a table so that values map to keys
     local n = {}

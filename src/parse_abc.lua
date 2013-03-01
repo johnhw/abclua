@@ -345,10 +345,11 @@ return abclua
 -- Add symbol line handling
 -- Fix lyrics in repeats/parts
 
--- allow multiple annotations/chords per note
-
 -- MIDI error on repeats with chords (doubles up chords)
 -- transposing macros don't work when octave modifiers and ties are applied
 
-
+-- Q:
+-- multiple chords on one note
+-- state changes in repeats/parts
+-- user macros in symbol lines
 
