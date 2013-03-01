@@ -34,13 +34,11 @@ function verify_decorators(str, result, apply_merge, test)
     -- verify that the symbol line decorators are applied correctly
     local songs = abclua.parse_abc_multisong(str)          
     local stream = songs[1].token_stream        
-    
     -- apply the symbol line if requested
     if apply_merge then
         merge_symbol_line(stream)
     end
     local decorators = get_decorators(stream)        
-    table_print(decorators)
     for i, v in ipairs(result) do                
         local decorator = decorators[i]        
         assert(v==decorator)        
@@ -116,8 +114,9 @@ function test_symbol_line()
         '()()(T)',       
         '()("<annotation")()'
     }, true, 'Symbol line, no existing decorations, applied')
-
-            
+    
+    
+    
     verify_decorators([[X:1
     K:G
     abc
@@ -133,7 +132,7 @@ function test_symbol_line()
         '()()(~)',       
         '()("hello")()'
     }, true, 'Multiple symbol lines')
-
+    
     verify_decorators([[X:1
     K:G
     abc
@@ -150,8 +149,7 @@ function test_symbol_line()
         '()("hello")()'
     }, true, 'Multiple symbol lines with break')
 
-    
-        
+                          
     verify_decorators([[X:1
     K:G
     "Dm"~a ~b "stuff".c
@@ -177,6 +175,31 @@ function test_symbol_line()
         '()()(T)',
         '()()()'
     }, true, 'Symbol line, continuation')
+    
+        verify_decorators([[X:1
+    K:G
+    a a
+    s:"Cm7" "Cm7" "Cm7"    
+    ]], 
+    {
+        '("Cm7")()()',
+        '("Cm7")()()',            
+    }, true, 'Symbol line, excessive symbols')
+
+    verify_decorators([[X:1
+    K:G
+    a a a a | a a a 
+    s:* "Cm7" | * "D"
+    ]], 
+    {
+        '()()()',
+        '("Cm7")()()',            
+        '()()()',
+        '()()()',
+        '()()()',
+        '("D")()()',            
+        '()()()',        
+    }, true, 'Symbol line, bar alignment')
 
 
     verify_decorators([[X:1

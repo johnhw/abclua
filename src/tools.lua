@@ -165,7 +165,6 @@ end
 function header_end_index(tokens)
     -- Return the index of the end of the header
     -- returns nil if there is only header
-    table_print(tokens)
     for i,v in ipairs(tokens) do        
         if v.token=='header_end' then return i end
     end

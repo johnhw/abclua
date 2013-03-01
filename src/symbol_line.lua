@@ -9,10 +9,10 @@ function parse_symbol_line(symbols)
     local symbol, advance
     for i,v in ipairs(symbol_list) do       
         symbol = nil
-        if v=='|' then symbol = {type='bar'} end
-        if v=='*' then symbol = {type='spacer'} end
-        if v:match('![^!]+!') then symbol = {type='decoration', decoration=v} end
-        if v:match('"[^"]+"') then symbol = {type='chord_text', chord_text=v} end        
+        if v=='|' then symbol = {type='bar', advance='bar'} end
+        if v=='*' then symbol = {type='spacer', advance='note'} end
+        if v:match('![^!]+!') then symbol = {type='decoration', decoration=v, advance='note'} end
+        if v:match('"[^"]+"') then symbol = {type='chord_text', chord_text=v, advance='note'} end        
         if symbol then
             table.insert(all_symbols, symbol)
         end
@@ -31,53 +31,47 @@ function merge_symbol_line(tokens)
     local note_index = 0 -- index of each note in the token stream
     local all_symbols = {}
     
-    local last_line_index = 1
-    -- combine all symbols into one single array
-    for i,v in ipairs(tokens) do                        
-        if v.token=='symbol_line' then            
-            local symbols = v.symbol_line or {}                       
-            for i,v in ipairs(symbols) do                
-                table.insert(all_symbols, v)
-            end            
-            last_line_index = #all_symbols
+    
+    local token_ptr = 1
+    local last_symbol_index, last_ptr
+    
+    -- move along to the next matching token in the stream
+    local function advance_token_ptr(sym)
+        while token_ptr<=#tokens do
+            local t = tokens[token_ptr].token
+            token_ptr = token_ptr + 1
+            if t==sym.advance then return tokens[token_ptr-1] end                    
         end
+        return nil -- ran over end of the token list
     end
     
-
-    local symbol_index = 1
-    local wait = 'note'
-    if all_symbols[symbol_index] and all_symbols[symbol_index].type=='bar' then
-        wait = 'bar'
-    end
-    
-    -- apply each symbol to each note
-    for i,v in ipairs(tokens) do        
-        
-                
-        if v.token=='note' and wait=='note' then
-            
-            -- keep a track of the current note number            
-                if symbol_index<=#all_symbols then
-                    symbol = all_symbols[symbol_index]
-                    
-                    -- add a decoration to this note
-                    if symbol.type=='decoration' then add_decoration_note(v.note, symbol.decoration) end
-                    
+    -- run through all symbols
+    for ix,token in ipairs(tokens) do                        
+        if token.token=='symbol_line' then            
+            local symbols = token.symbol_line or {}                       
+            -- stacked symbols!
+            if last_symbol_index==ix-1 then
+                token_ptr = last_ptr
+            else
+                -- in case we need to go back here with stacked lines
+                last_ptr = token_ptr 
+            end
+           
+            -- run through each symbol
+            for i,v in ipairs(symbols) do                                                         
+                token = advance_token_ptr(v)               
+                if token and token.token=='note' then
+                    if v.type=='decoration' then add_decoration_note(token.note, v.decoration) end                    
                     -- add annotation / change chord (removing quotes)
-                    if symbol.type=='chord_text' then add_chord_or_annotation_note(v.note, string.sub(symbol.chord_text,2,-2)) end
-                    
-                    -- wait for next note, or for a bar, if this is a bar symbol
-                    if symbol.type=='bar' then wait='bar' else wait='note' end                                        
-                else
-                    wait = nil
+                    if v.type=='chord_text' then add_chord_or_annotation_note(token.note, string.sub(v.chord_text,2,-2)) end                                                   
                 end
-                symbol_index = symbol_index + 1
+                
+            end 
+            last_symbol_index = ix
+            -- advance to this symbol line
+            if token_ptr<ix then token_ptr=ix end 
+            
         end
-        
-        -- got a bar symbol, move on to the next symbol if we were waiting for one
-        if v.token=='bar' and wait=='bar' then        
-            wait = 'note'            
-            symbol_index = symbol_index+1                            
-        end
-    end        
+    end
+    
 end

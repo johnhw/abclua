@@ -110,9 +110,11 @@ function insert_midi_chord(event, midi_state)
     -- (because they are custom chords), but have been
     -- defined since then
     if event.event=='text' then       
-        event.chord = parse_chord(event.text)
-        -- if can't parse as a chord, then return
-        
+        -- see if any of the text could be a chord
+        for i,v in ipairs(event.text) do
+            event.chord = parse_chord(v)
+        end
+        -- if can't parse as a chord, then return        
         if not event.chord then return end
     end
        

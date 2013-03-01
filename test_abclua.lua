@@ -16,6 +16,10 @@ print()
 print("Testing pitches")
 require "tests/test_pitches"
 print()
+print("Testing symbol lines")
+require "tests/test_symbols"
+print()
+
 print("Testing repeats")
 require "tests/test_repeats"
 print()
@@ -27,3 +31,6 @@ require "tests/test_abc_silent"
 print()
 print "Creating test MIDI files..."
 require "midi/test_midi"
+print()
+print "Testing all keys"
+require "tests/test_all_keys"

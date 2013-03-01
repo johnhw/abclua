@@ -232,7 +232,9 @@ end
     
 function symbol_line_token(content, song)
     -- parse a symbol line    
-    return {token='symbol_line', symbol_line = parse_symbol_line(content)}
+    -- we may need to append to this later, if we get a continuation field
+    song.parse.last_symbol_line = parse_symbol_line(content)
+    return {token='symbol_line', symbol_line = song.parse.last_symbol_line}
 end    
     
 function continuation_token(content, song)
@@ -255,8 +257,13 @@ function continuation_token(content, song)
             return words_token(content, song)                
          end
          
+         -- append to a symbol line
          if song.parse.last_field=='symbol_line' then            
-            return symbol_line_token(content, song)                
+            -- we are guaranteed that song.parse.last_symbol line is set
+            local appended_symbols = parse_symbol_line(content)
+            for i,v in ipairs(appended_symbols) do
+                table.insert(song.parse.last_symbol_line, v)
+            end
          end
      end                 
 end

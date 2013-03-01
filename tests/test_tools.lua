@@ -72,8 +72,6 @@ end
 
 function test_header(str, index, test)
     local found_index = header_end_index(parse_abc_fragment(str, {in_header=true}))    
-    print(str)
-    print(found_index)
     assert(found_index==index, test)
     print(test.." passed OK")
 end
