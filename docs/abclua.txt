@@ -146,6 +146,7 @@ stored in the table `song.token_stream`. Options can be
     * `no_expand` if **true**, then don't expand macros or include files; instead pass through references unchanged.
     * `cross_ref` if **true**, then insert cross reference tokens into the stream which indicate the line and character at
     which each parsed event happened.
+    * `strict` if **true**, then produce warnings for various malformed abc files.
         
 * `compile_abc(song)` Compile a song. Converts the sequence of tokens in a song into an event stream
 which is stored in song.stream.

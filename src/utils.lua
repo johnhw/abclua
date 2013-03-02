@@ -34,6 +34,17 @@ function set_property(t, key, value)
     end
 end
 
+function warn(msg, token)
+    -- print a warning; if a token with a cross reference is provided
+    -- then the corresponding cross reference is included
+    if token and token.cross_ref then
+        local cr = token.cross_ref
+         print(cr.file..':'..cr.line..' ('..cr.at..')  Warning: '..msg)
+    else
+        print("Warning: "..msg)
+    end
+end
+
 function copy_array(orig)
     -- copy an array (only integer keys are copied)
     local copy = {}
@@ -227,11 +238,6 @@ function is_in(str, tab)
     return false
 end
 
-
-function warn(message)
--- print a warning message
-    print(message)
-end
 
 function find_first_match(t, match)
     -- Find the first element of t, where all of the given field=value pairs match

@@ -78,6 +78,9 @@ function set_property(t, key, value)
     end
 end
 
+function aligned_warning()
+end
+
 function copy_array(orig)
     -- copy an array (only integer keys are copied)
     local copy = {}
@@ -4486,7 +4489,7 @@ function read_tune_segment(tune_data, song)
         if type(v) == 'number' then
             -- insert cross refs, if they are enabled
             if song.parse.cross_ref then
-                 last_cross_ref =  {at=v, line=song.parse.line, tune_line=song.parse.tune_line, tune=song.parse.tune}
+                 last_cross_ref =  {at=v, line=song.parse.line, tune_line=song.parse.tune_line, tune=song.parse.tune, file=song.parse.filename}
             end
         else
             if v.top_note then                         
@@ -4582,7 +4585,6 @@ end
 -- From source file: parse_abc.lua
 --
 -- Grammar for parsing tune definitions
-
 function expand_macros(song, line)
     -- expand any macros in a line   
     local converged = false
@@ -4620,7 +4622,7 @@ function parse_abc_line(line, song)
         if field_token then
             -- add cross reference
             if song.parse.cross_ref then
-                field_token.cross_ref = {at=1, line=song.parse.line, tune_line=song.parse.tune_line, tune=song.parse.tune}
+                field_token.cross_ref = {at=1, line=song.parse.line, tune_line=song.parse.tune_line, tune=song.parse.tune, file=song.parse.filename}
             end
            
             table.insert(song.token_stream, field_token)
@@ -4732,6 +4734,8 @@ function parse_abc(str, options, in_header)
         line=options.line or 1, 
         tune=options.tune or 1, 
         linebreaks={eol=true},
+        strict=options.strict or false,
+        filename=options.filename or 'fragment'
         }    
     parse_abc_string(song, str)
      
@@ -4899,6 +4903,9 @@ function parse_abc_file(filename, options)
     local f = io.open(filename, 'r')
     assert(f, "Could not open file "..filename)
     local contents = f:read('*a')
+    
+    -- store filename for later
+    options.filename=filename
     return parse_abc_multisong(contents, options)
 end
 

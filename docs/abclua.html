@@ -242,138 +242,144 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 <td align="left"><strong>text</strong> text inside the quotes (without position annotation)<br /><strong>position</strong> position of the text:<br />can be <code>&lt;</code>, <code>&gt;</code>, <code>_</code>, <code>^</code> or <code>@</code></td>
 </tr>
 <tr class="even">
+<td align="left">header_end</td>
+<td align="left">End of the header in the original notation</td>
+<td align="left"></td>
+<td align="left">Does not appear in the output and is not required -- just a convenience.</td>
+</tr>
+<tr class="odd">
 <td align="left">overlay</td>
 <td align="left">Voice overlay begins.</td>
 <td align="left"><code>\</code></td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">chord_begin</td>
 <td align="left">Start of a chord group</td>
 <td align="left"><code>[</code></td>
 <td align="left"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">chord_end</td>
 <td align="left">End of a chord group</td>
 <td align="left"><code>]</code></td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">slur_begin</td>
 <td align="left">Start of a slur group</td>
 <td align="left"><code>(</code></td>
 <td align="left"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">slur_end</td>
 <td align="left">End of a slur group</td>
 <td align="left"><code>)</code></td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">field_text</td>
 <td align="left">Metadata field</td>
 <td align="left">T:title</td>
 <td align="left"><strong>name</strong> name of the field<br /><strong>content</strong> content of the field</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">split</td>
 <td align="left">Beam split in the score</td>
 <td align="left"><whitespace></td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">split_line</td>
 <td align="left">Line break in the notation</td>
 <td align="left"><newline></td>
 <td align="left"></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">continue_line</td>
 <td align="left">Line continuation in the notation</td>
 <td align="left"><code>\</code><newline></td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">note</td>
 <td align="left">A note definition</td>
 <td align="left"><code>g'2-</code></td>
 <td align="left">See <a href="#note_table">note table</a>.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">bar</td>
 <td align="left">Some form of bar line</td>
 <td align="left"><code>| |: [n,n</code></td>
 <td align="left"><strong>type</strong> type of the bar as a text field<br /><strong>type</strong> can be:<br />=&gt; <strong>plain</strong> regular bar <code>|</code><br />=&gt; <strong>double</strong> double bar <code>||</code><br />=&gt; <strong>thickthin</strong> <code>[|</code><br />=&gt; <strong>thinthick</strong> <code>|]</code><br />=&gt; <strong>start_repeat</strong> <code>|:</code><br />=&gt; <strong>end_repeat</strong> <code>:|</code><br />=&gt; <strong>mid_repeat</strong> <code>:|:</code><br />=&gt; <strong>variant</strong> <code>[n</code><br /><br /><strong>start_repeats</strong> number of repeats (colons before bar)<br /><strong>end_repeats</strong> number of repeats (colons after bar)<br /><strong>variant_range</strong> list of variants<br />(e.g. [1-3,6 would become {1,2,3,6})<br /><strong>measure</strong> number of this bar (starts at 1; no special accounting for anacrusis)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">words</td>
 <td align="left">Aligned lyrics</td>
 <td align="left"><code>w:oh th-is</code></td>
 <td align="left"><strong>lyrics</strong> syllable table. Each element<br />of the table has the following fields:<br />=&gt; <strong>syllable</strong> text of the syllable<br />=&gt; <strong>advance</strong> notes to hold for or 'bar'<br />=&gt; <strong>br</strong> original separator: ' ' or '-'<br /></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">note_length</td>
 <td align="left">Length of unadorned notes.</td>
 <td align="left"><code>L:1/8</code></td>
 <td align="left"><strong>note_length</strong> integer representing denominator</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">instruction</td>
 <td align="left">Directive.</td>
 <td align="left"><code>%%MIDI arg</code></td>
 <td align="left"><strong>directive</strong> which has subfields<br />=&gt; <strong>directive</strong> the ID of the directive<br />=&gt; <strong>arguments</strong> list of space separated arguments</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">voice_def</td>
 <td align="left">Header voice definition</td>
 <td align="left"><code>V:ID nm=id</code></td>
 <td align="left"><strong>id</strong> ID of the voice<br /><strong>specifiers</strong> list of specifiers. Each specifier has fields:<br />=&gt; <strong>lhs</strong> Left hand side of the assignment<br />=&gt; <strong>rhs</strong> Right hand side of the assignment</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">voice_change</td>
 <td align="left">Change of voice (in tune body)</td>
 <td align="left"><code>V:ID nm=id</code></td>
 <td align="left"><strong>id</strong> ID of the voice<br /><strong>specifiers</strong> list of specifiers. Each specifier has fields:<br />=&gt; <strong>lhs</strong> Left hand side of the assignment<br />=&gt; <strong>rhs</strong> Right hand side of the assignment</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">parts</td>
 <td align="left">Parts indicator in the header.</td>
 <td align="left"><code>P:A2(BC)3</code></td>
 <td align="left"><strong>parts</strong> which is a table. Each element has:<br />=&gt; <strong>repeat</strong> repeat count of this part<br />=&gt; <strong>[1]</strong> the part itself<br /><strong>part</strong> new part to start.<br /></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">meter</td>
 <td align="left">Meter definition.</td>
 <td align="left"><code>M:3/4</code></td>
 <td align="left"><strong>meter</strong> which has subfields:<br /><strong>num</strong> total numerator of the meter<br /><strong>den</strong> total denominator of the meter<br /><strong>emphasis</strong> beats to emphasise ({0} if simple meter)<br /></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">key</td>
 <td align="left">Key definition</td>
 <td align="left"><code>K:C dor</code></td>
 <td align="left"><strong>key</strong> which has subfields:<br /><strong>root</strong> root of the key (as lowercase letter)<br />[<strong>mode</strong>] mode of the key<br />[<strong>accidentals</strong>] accidentals of the key as a table of strings (e.g. '^c')<br />[<strong>clef</strong>] a subfield describing the clef, which can have subfields:<br /><strong>transpose</strong>, <strong>octave</strong>, <strong>middle</strong>, <strong>clef</strong>, <strong>stafflines</strong></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">tempo</td>
 <td align="left">Tempo of the song.</td>
 <td align="left"><code>Q:1/4=120</code></td>
 <td align="left"><strong>tempo</strong> which has subfields:<br />=&gt; <strong>tempo_rate</strong> number of units per minute<br />=&gt; [n]<br />=&gt; <strong>num</strong> numerator of units<br />=&gt; <strong>den</strong> denominator of units<br />e.g. <code>Q:1/4 1/4=140</code> becomes<br /><code>{tempo_rate=140, [1]={num=1,den=4}, [2]={num=1,den=4}}</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">triplet</td>
 <td align="left">Tuplet: following notes to be compressed.</td>
 <td align="left"><code>(3 (3:2:3</code></td>
 <td align="left"><strong>triplet</strong> triplet definition <strong>triplet.p</strong><br /><strong>triplet.q</strong> compresses notes by <code>p/q</code><br /><strong>triplet.r</strong> for the next <code>r</code> notes</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">append_text _field</td>
 <td align="left">Appending to the previous text field.</td>
 <td align="left"><code>+:more</code></td>
 <td align="left"><strong>name</strong> name of the field we are appending to (i.e. previous field in the source)<br /><strong>content</strong> content to be appended</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">cross_ref</td>
 <td align="left">Cross reference to the ABC source. Only generated if the <em>cross_ref</em> option is used when parsing.</td>
 <td align="left"></td>
@@ -427,7 +433,7 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 <tr class="odd">
 <td align="left">[text]</td>
 <td align="left">Text writen before note (&quot;&gt;Annotate&quot;)</td>
-<td align="left">See <strong>text</strong> token.</td>
+<td align="left">Array of text elements. See <strong>text</strong> token.</td>
 </tr>
 <tr class="even">
 <td align="left">[grace]</td>
@@ -447,6 +453,7 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 <ul>
 <li>a <code>t</code> field indicating the time of that event in microsends.</li>
 <li>a <code>metric_t</code> field indicating the time of that event in metric units (fraction of a bar). Starts at 1. Note that metric_t <em>always</em> advances by 1 on every bar symbol encountered, even if the bar was not full -- if the ABC file has misformed bars, <code>metric_t</code> and <code>t</code> can drift apart.</li>
+<li>a <code>token_index</code> field, indicating the token that generated this event. This is useful to determine where repeats, voices parts etc. came from.</li>
 </ul>
 <p>The following additional/modified fields are also added:</p>
 <table>
@@ -463,26 +470,21 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">header_end</td>
-<td align="left">End of the header in the original notation</td>
-<td align="left"></td>
-</tr>
-<tr class="even">
 <td align="left">abc</td>
 <td align="left">A string of abc notation, representing the next event in the stream. Only generated if the <em>write_abc_events</em> option is specified in the <em>options</em> to compile.</td>
 <td align="left"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">timing_change</td>
 <td align="left">New timing information. There is always one of these at the start of a song.</td>
 <td align="left"><strong>base_note_length</strong> length of unit note length in microseconds<br /><strong>bar_length</strong> length of one measure in microseconds<br /><strong>beats_in_bar</strong> number of beats in each bar<br /><strong>note_length</strong> length of unit note (8=1/8th, 4=1/4 etc.)<br /><strong>beat_length</strong> length of one beat in microseconds<br /></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">note</td>
 <td align="left">Note receives duration and real pitch.</td>
-<td align="left"><strong>play_duration</strong> Duration of the event in microseconds<br /><strong>play_pitch</strong> Pitch of the note in MIDI notes<br /><strong>play_bars</strong> Duration of note in bars.<br /><strong>play_notes</strong> Duration of the note in note lengths (e.g. 0.25=quaver)<br /><strong>play_bar_time</strong> Start time of note, as fraction of one measure.<br /></td>
+<td align="left"><strong>play_duration</strong> Duration of the event in microseconds<br /><strong>play_pitch</strong> Pitch of the note in MIDI notes<br /><strong>play_bars</strong> Duration of note in bars.<br /><strong>play_notes</strong> Duration of the note in note lengths (e.g. 0.25=quaver)<br /><strong>play_bar_time</strong> Start time of note, as fraction of one measure.<br /><strong>lyrics</strong> List of lyrics that apply to this note (one for each repeat/verse)<br /></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">rest</td>
 <td align="left">A rest -- just advances time.</td>
 <td align="left"><strong>play_duration</strong> Duration of rest in microseconds.<br /><strong>play_bars</strong> Duration of rest in bars.<br /><strong>play_notes</strong> Duration of the note in rest lengths (e.g. 0.25=quaver)<br /><strong>play_bar_time</strong> Start time of rest, as fraction of one measure.<br /></td>

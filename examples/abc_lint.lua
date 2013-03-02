@@ -1,0 +1,10 @@
+-- "Lint" for ABC
+-- Checks for problems in ABC files
+-- Checks:
+-- X:, T: and K: are present, and in the right place (first, second, and first before body)
+-- Bar timing is correct (every bar is filled with notes or rests)
+-- Matching start and end repeats (with equal numbers of repeats)
+-- Repeat variants are all reachable 
+-- No state changes in repeated part variant or repeat variants (e.g. [K:C#] |: abc :|1 [K:C] d e f :| e f g :|)
+-- All symbols are aligned in symbol lines;
+-- All lyrics are aligned

@@ -236,7 +236,7 @@ function read_tune_segment(tune_data, song)
         if type(v) == 'number' then
             -- insert cross refs, if they are enabled
             if song.parse.cross_ref then
-                 last_cross_ref =  {at=v, line=song.parse.line, tune_line=song.parse.tune_line, tune=song.parse.tune}
+                 last_cross_ref =  {at=v, line=song.parse.line, tune_line=song.parse.tune_line, tune=song.parse.tune, file=song.parse.filename}
             end
         else
             if v.top_note then                         

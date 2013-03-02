@@ -139,15 +139,15 @@ function reset_timing(song)
 end
 
 
-function reset_bar_time(song)
+function reset_bar_time(v, song)
     -- if warnings are enabled, mark underfull and overfull bars
-    if song.context.bar_warnings then    
+    if song.context.bar_warnings or song.context.strict then    
         if song.context.timing.bar_time>1 then
-            warn('Overfull bar')
+            warn('Overfull bar', v)
         end
         
         if song.context.timing.bar_time<1 then
-            warn('Underfull bar')
+            warn('Underfull bar', v)
         end
     end    
     song.context.timing.bar_time = 0
@@ -221,7 +221,7 @@ function precompile_token_stream(token_stream, context, merge)
         
         -- deal with bars and repeat symbols
         if v.token=='bar' then
-            reset_bar_time(song)
+            reset_bar_time(v, song)
             song.context.accidental = {} -- clear any lingering accidentals             
         end
           
@@ -307,7 +307,7 @@ function expand_token_stream(song)
             
             -- deal with bars and repeat symbols
             elseif token=='bar' then
-                reset_bar_time(song)
+                reset_bar_time(v, song)
                 apply_repeats(song, v.bar)  
                 context.accidental = {} -- clear any lingering accidentals             
             
@@ -332,7 +332,9 @@ function expand_token_stream(song)
                     last = last..' '..v.content
                     song.metadata[v.name][#song.metadata[v.name]]  = last                
                 else
-                    warn("Continuing a field with +: that doesn't exist.")
+                    if song.context.strict then
+                        warn("Continuing a field with +: that doesn't exist.")
+                    end
                 end          
                     
             

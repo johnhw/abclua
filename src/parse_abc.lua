@@ -1,5 +1,4 @@
 -- Grammar for parsing tune definitions
-
 function expand_macros(song, line)
     -- expand any macros in a line   
     local converged = false
@@ -37,7 +36,7 @@ function parse_abc_line(line, song)
         if field_token then
             -- add cross reference
             if song.parse.cross_ref then
-                field_token.cross_ref = {at=1, line=song.parse.line, tune_line=song.parse.tune_line, tune=song.parse.tune}
+                field_token.cross_ref = {at=1, line=song.parse.line, tune_line=song.parse.tune_line, tune=song.parse.tune, file=song.parse.filename}
             end
            
             table.insert(song.token_stream, field_token)
@@ -145,10 +144,12 @@ function parse_abc(str, options, in_header)
         user_macros=default_user_macros(), 
         measure = options.measure or 1, 
         no_expand=options.no_expand or false, 
-        cross_ref=options.cross_ref or false, 
+        cross_ref=(options.cross_ref or false) or options.strict, 
         line=options.line or 1, 
         tune=options.tune or 1, 
         linebreaks={eol=true},
+        strict=options.strict or false,
+        filename=options.filename or 'fragment'
         }    
     parse_abc_string(song, str)
      
@@ -250,6 +251,9 @@ function parse_abc_coroutine(str, options)
     local default_metadata = {}
     local default_context = get_default_context()
     
+    -- pass on strict warnings to the context
+    default_context.strict = options.strict
+    
     local tune_str 
     tune_str = iterator()
     
@@ -316,6 +320,10 @@ function parse_abc_file(filename, options)
     local f = io.open(filename, 'r')
     assert(f, "Could not open file "..filename)
     local contents = f:read('*a')
+    
+    options = options or {}
+    -- store filename for later
+    options.filename=filename
     return parse_abc_multisong(contents, options)
 end
 
