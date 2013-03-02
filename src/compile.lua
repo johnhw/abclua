@@ -190,19 +190,24 @@ function start_new_voice(song, voice, specifiers)
 end
 
 
-function precompile_token_stream(token_stream, context)
+function precompile_token_stream(token_stream, context, merge)
     -- run through a token stream, giving duration and pitches to all notes
     -- splitting off chord symbols. Does not expand repeats/parts/voices/etc.
     -- One-to-one mapping of original token stream (no tokens added or removed)
+    -- If merge is true, then symbol lines and lyrics are merged into the notes
+    -- (which changes the tokens); this is disabled by default.
     local song = {context=context or get_default_context(), opus={}}
     reset_timing(song)
 
     
     -- merge in lyrics and symbol lines
-    merge_symbol_line(token_stream)
-    merge_lyrics(token_stream)
+    if merge then
+        merge_symbol_line(token_stream)
+        merge_lyrics(token_stream)
+    end
     
-    for i,v in ipairs(token_stream) do
+    for i=1,#token_stream do
+        local v = token_stream[i]
         -- notes
         if v.token=='note' then 
            compile_note(v.note, song)           
@@ -257,7 +262,7 @@ function expand_token_stream(song)
     local opus = song.opus
     
     -- this needs to be more efficient
-    local token_stream = deepcopy(song.token_stream)
+    local token_stream = copy_array(song.token_stream)
    
     -- merge in lyrics and symbol lines
     merge_symbol_line(token_stream)
@@ -275,137 +280,136 @@ function expand_token_stream(song)
         
         local event
         -- copy in standard events that don't change the context state
-        if token ~= 'note' then
-           -- event = copy_table(v)
-           event = v
+        if token == 'note' then
+           insert_note(v.note, song, i, abc)
+        else
+           event = copy_table(v)
            event.event = event.token
            event.token = nil           
            event.token_index = i
            event.abc = abc
-           table.insert(opus, event)
-        else
-           insert_note(v.note, song, i, abc)                                         
-        end
-       
-        if token=='chord' then  
-            v.chord.notes = get_chord_notes(v.chord, {}, context.key)
-        
-        -- end of header; store metadata so far
-        elseif token=='header_end' then
-            song.header_metadata = deepcopy(song.metadata)
-            song.header_context = deepcopy(context) 
-        
-       
-        -- deal with triplet definitions
-        elseif token=='triplet' then                
-            -- update the context tuplet state so that timing is correct for the next notes
-            apply_triplet(song, v.triplet)
-        
-        
-        -- deal with bars and repeat symbols
-        elseif token=='bar' then
-            reset_bar_time(song)
-            apply_repeats(song, v.bar)  
-            context.accidental = {} -- clear any lingering accidentals             
-        
-        elseif token=='variant' then
-               -- part variant; if we see this we go into a new part            
-                start_variant_part(song, v.variant)        
+           opus[#opus+1] = event
+                                                        
+            if token=='chord' then  
+                v.chord.notes = get_chord_notes(v.chord, {}, context.key)
             
-        -- text fields
-        elseif token=='field_text'  then       
-            if song.metadata[v.name] then
-                table.insert(song.metadata[v.name], v.content)
-            else            
-                song.metadata[v.name] =  {v.content}
-            end
-                       
-        
-        -- append fields
-        elseif token=='append_field_text' then
-            local last
-            if song.metadata[v.name] then
-                last = song.metadata[v.name][#song.metadata[v.name]] 
-                last = last..' '..v.content
-                song.metadata[v.name][#song.metadata[v.name]]  = last                
-            else
-                warn("Continuing a field with +: that doesn't exist.")
-            end          
+            -- end of header; store metadata so far
+            elseif token=='header_end' then
+                song.header_metadata = deepcopy(song.metadata)
+                song.header_context = deepcopy(context) 
+            
+           
+            -- deal with triplet definitions
+            elseif token=='triplet' then                
+                -- update the context tuplet state so that timing is correct for the next notes
+                apply_triplet(song, v.triplet)
+            
+            
+            -- deal with bars and repeat symbols
+            elseif token=='bar' then
+                reset_bar_time(song)
+                apply_repeats(song, v.bar)  
+                context.accidental = {} -- clear any lingering accidentals             
+            
+            elseif token=='variant' then
+                   -- part variant; if we see this we go into a new part            
+                    start_variant_part(song, v.variant)        
                 
-        
-        
-        -- new voice
-        elseif token=='voice_change' then
-            start_new_voice(song, v.voice.id, v.voice.specifiers)
-        
-        
-        elseif token=='voice_def' then
-            -- store any voice specific settings for later
-            song.voice_specifiers[v.voice.id] = v.voice.specifiers
-        
-        
-        elseif token=='instruction' then
-            if v.directive then
-                apply_directive(song, v.directive.directive, v.directive.arguments)
-            end
-        
-         
-        
-        elseif token=='note_length' then
-             context.note_length = v.note_length
-             update_timing(song)
-         
-        
-        elseif token=='tempo' then
-            context.tempo = v.tempo
-            update_timing(song)
-             -- store tempo string in metadata
-            song.metadata.tempo = string.sub(abc_tempo(v.tempo),3)
-   
-        
-        
-        
+            -- text fields
+            elseif token=='field_text'  then       
+                if song.metadata[v.name] then
+                    table.insert(song.metadata[v.name], v.content)
+                else            
+                    song.metadata[v.name] =  {v.content}
+                end
+                           
             
-        elseif token=='parts' then
-            context.part_structure = v.parts
-            context.part_sequence = expand_parts(context.part_structure)      
-        
-        
-        elseif token=='new_part' then
-            -- can only start a new part if the parts have been defined.
-            if context.part_structure then
-                song.in_variant_part = nil -- clear the variant flag
-                start_new_part(song, v.part)    
-            end
-        
-        
-        elseif token=='meter' then  
-            context.meter = v.meter
-            update_timing(song)  
-            -- store key string in metadata
-            song.metadata.meter = string.sub(abc_meter(v.meter),3)
+            -- append fields
+            elseif token=='append_field_text' then
+                local last
+                if song.metadata[v.name] then
+                    last = song.metadata[v.name][#song.metadata[v.name]] 
+                    last = last..' '..v.content
+                    song.metadata[v.name][#song.metadata[v.name]]  = last                
+                else
+                    warn("Continuing a field with +: that doesn't exist.")
+                end          
+                    
             
+            
+            -- new voice
+            elseif token=='voice_change' then
+                start_new_voice(song, v.voice.id, v.voice.specifiers)
+            
+            
+            elseif token=='voice_def' then
+                -- store any voice specific settings for later
+                song.voice_specifiers[v.voice.id] = v.voice.specifiers
+            
+            
+            elseif token=='instruction' then
+                if v.directive then
+                    apply_directive(song, v.directive.directive, v.directive.arguments)
+                end
+            
+             
+            
+            elseif token=='note_length' then
+                 context.note_length = v.note_length
+                 update_timing(song)
+             
+            
+            elseif token=='tempo' then
+                context.tempo = v.tempo
+                update_timing(song)
+                 -- store tempo string in metadata
+                song.metadata.tempo = string.sub(abc_tempo(v.tempo),3)
+       
+            
+            
+            
+                
+            elseif token=='parts' then
+                context.part_structure = v.parts
+                context.part_sequence = expand_parts(context.part_structure)      
+            
+            
+            elseif token=='new_part' then
+                -- can only start a new part if the parts have been defined.
+                if context.part_structure then
+                    song.in_variant_part = nil -- clear the variant flag
+                    start_new_part(song, v.part)    
+                end
+            
+            
+            elseif token=='meter' then  
+                context.meter = v.meter
+                update_timing(song)  
+                -- store key string in metadata
+                song.metadata.meter = string.sub(abc_meter(v.meter),3)
+                
 
-            --set the default note length
-            -- if meter.num/meter.den > 0.75 then 1/8
-            -- else 1/16    
-    
-            local ratio = song.context.meter.num / song.context.meter.num
-            if ratio>=0.75 then
-                context.default_note_length = 8
-            else
-                context.default_note_length = 16
-            end        
+                --set the default note length
+                -- if meter.num/meter.den > 0.75 then 1/8
+                -- else 1/16    
         
-        -- update key
-        elseif token=='key' then            
-            context.key = v.key
-            apply_key(song, context.key)
+                local ratio = song.context.meter.num / song.context.meter.num
+                if ratio>=0.75 then
+                    context.default_note_length = 8
+                else
+                    context.default_note_length = 16
+                end        
             
-            -- store key string in metadata
-            song.metadata.key = string.sub(abc_key(v.key),3)
-        end     
-    end
+            -- update key
+            elseif token=='key' then            
+                context.key = v.key
+                apply_key(song, context.key)
+                
+                -- store key string in metadata
+                song.metadata.key = string.sub(abc_key(v.key),3)
+            end     
+        end
+  end
     
 end
 

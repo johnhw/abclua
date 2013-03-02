@@ -12,7 +12,6 @@ function get_crossrefs(tokens, refs)
    
 end
 
-
 function verify_crossrefs(str, result, test)
     -- verify that the pitches match the expected values
     local songs = abclua.parse_abc_multisong(str, {cross_ref=true})
@@ -21,7 +20,7 @@ function verify_crossrefs(str, result, test)
         tokens = v.token_stream
         get_crossrefs(tokens, refs)
     end
-    table_print(refs)
+    -- table_print(refs)
     for i, v in ipairs(result) do
         assert(refs[i]==result[i], test)
     end

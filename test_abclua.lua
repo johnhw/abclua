@@ -1,3 +1,5 @@
+-- Run each test suite in sequence
+
 print()
 print("Testing parser/emitter")
 require "tests/test_parsing"
@@ -22,6 +24,12 @@ print()
 print("Testing lyrics")
 require "tests/test_lyrics"
 print()
+print("Testing cross refs")
+require "tests/test_crossref"
+print()
+print("Testing linebreaks")
+require "tests/test_linebreak"
+print()
 print("Testing repeats")
 require "tests/test_repeats"
 print()
@@ -36,3 +44,7 @@ require "midi/test_midi"
 print()
 print "Testing all keys"
 require "tests/test_all_keys"
+print()
+print("***************************")
+print("All tests passed OK!")
+print("***************************")

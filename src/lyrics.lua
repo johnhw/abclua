@@ -128,7 +128,7 @@ function merge_lyrics(tokens)
                 token = advance_token_ptr(v)           
                 -- attach decorations and text to notes
                 if token and token.token=='note' then
-                    -- token.note = copy_table(token.note)
+                    token.note = copy_table(token.note)
                     local syl = v.syllable
                     if syl and syl~='*' and syl~='-' then add_lyric_note(token.note, syl) end
                 end                

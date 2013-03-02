@@ -73,12 +73,31 @@ end
 function directive_set_bar_number(song, directive, arguments)
     -- set the current (or first) bar number
     song.parse.measure = tonumber(arguments[1])
+end
+
+function directive_linebreak(song, directive, arguments)
+    -- set the linebreak symbol
+    -- can be list of elements: '$' '!' <EOL>
+    -- or can be '<none>'
+    if #arguments==1 and arguments[1]:lower()=='<none>' then 
+        song.parse.linebreaks = {}
+        return
+    end
+    
+    song.parse.linebreaks = {}
+    for i,v in ipairs(arguments) do
+        local arg = v:lower()
+        if arg=='<eol>' then song.parse.linebreaks.eol = true end
+        if arg=='$' then song.parse.linebreaks.dollar = true end
+        if arg=='!' then song.parse.linebreaks.exclamation = true end       
+    end
     
 end
 
 register_directive('enable-bar-warnings', directive_enable_bar_warnings)
 register_directive('gracenote', directive_set_grace_note_length)
 register_directive('abc-include', directive_abc_include, true)
+register_directive('linebreak', directive_linebreak, true)
 register_directive('broken-ratio', directive_broken_ratio)
 
 register_directive('propagate-accidentals', directive_propagate_accidentals)

@@ -1,4 +1,4 @@
-set ABCLUA_VERSION=0.2.2
+set ABCLUA_VERSION=0.2.3
 del /Q /S dist
 mkdir dist
 mkdir dist\src
@@ -27,6 +27,7 @@ lua make_abclua.lua
 copy abclua_all.lua dist\abclua_all_original.lua
 copy make_abclua.lua dist\make_abclua.lua
 xcopy /E midi\*.* dist\midi
+xcopy /E examples\*.* dist\examples
 lua squish --minify --gzip
 copy abclua_small.lua.gzipped dist\abclua_all.lua
 cd dist

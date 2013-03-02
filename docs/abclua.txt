@@ -37,6 +37,8 @@ Extended features include:
 * Nested tuplets (e.g. `(7:5:7 A A (3 A A A A A`)
 * Ratio for broken rhythm can be set with directive `%%set-broken-ratio`
 
+
+
 See `tests/test_abc.lua` for examples of these in use.
 
 ABCLua comes with a package which performs most of the operations of abc2midi (chords, drums, accentuation etc.)
@@ -391,7 +393,7 @@ duration        Duration of the note.                      **num** numerator of 
 
 [chord]         Chord written before note ("Dmaj")         See **chord** token.
 
-[text]          Text writen before note (">Annotate")      See **text** token.
+[text]          Text writen before note (">Annotate")      Array of text elements. See **text** token.
 
 [grace]         Grace notes before this note               List of grace notes; each has a pitch and duration, just as a regular note.
 
@@ -408,6 +410,7 @@ After compiling, the event stream tokens are almost the same as the input tokens
 *  a `t` field indicating the time of that event in microsends. 
 * a `metric_t` field indicating the time of that event in metric units (fraction of a bar). Starts at 1. Note that metric_t *always* advances by
 1 on every bar symbol encountered, even if the bar was not full -- if the ABC file has misformed bars, `metric_t` and `t` can drift apart.
+* a `token_index` field, indicating the token that generated this event. This is useful to determine where repeats, voices parts etc. came from.
 
 The following additional/modified fields are also added:
 
@@ -429,7 +432,8 @@ note            Note receives duration and real pitch.      **play_duration** Du
                                                             **play_pitch**    Pitch of the note in MIDI notes\
                                                             **play_bars**     Duration of note in bars.\
                                                             **play_notes**   Duration of the note in note lengths (e.g. 0.25=quaver)\
-                                                            **play_bar_time**      Start time of note, as fraction of one measure.\                                                                          
+                                                            **play_bar_time**      Start time of note, as fraction of one measure.\
+                                                            **lyrics**      List of lyrics that apply to this note (one for each repeat/verse)\
                                                             
                                                             
 rest            A rest -- just advances time.               **play_duration**  Duration of rest in microseconds.\

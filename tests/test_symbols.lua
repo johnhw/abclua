@@ -35,9 +35,6 @@ function verify_decorators(str, result, apply_merge, test)
     local songs = abclua.parse_abc_multisong(str)          
     local stream = songs[1].token_stream        
     -- apply the symbol line if requested
-    if apply_merge then
-        merge_symbol_line(stream)
-    end
     local decorators = get_decorators(stream)        
     for i, v in ipairs(result) do                
         local decorator = decorators[i]        
@@ -92,16 +89,16 @@ function test_symbol_line()
     },true, 'Symbol line applied with no symbols')
     
     
-    verify_decorators([[X:1
-    K:G
-    abc
-    s:"Cm7" !trill! "<annotation"
-    ]], 
-    {
-        '()()()',
-        '()()()',       
-        '()()()'
-    }, false, 'Symbol line, no existing decorations, not applied')
+    -- verify_decorators([[X:1
+    -- K:G
+    -- abc
+    -- s:"Cm7" !trill! "<annotation"
+    -- ]], 
+    -- {
+        -- '()()()',
+        -- '()()()',       
+        -- '()()()'
+    -- }, false, 'Symbol line, no existing decorations, not applied')
 
         
     verify_decorators([[X:1

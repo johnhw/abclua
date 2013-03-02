@@ -22,7 +22,8 @@ element <- (
     {:s: %s+ :}  /                      -- Space (splits beams in notes)
     {:continuation: '\' :} /            -- End of line continuation character
     '`' /                               -- backquote (ignored)
-    comment                             -- comment line '% this is a comment' (ignored)
+    comment  /                           -- comment line '% this is a comment' (ignored)
+    {:linebreak_maybe: [$] :}             -- possible newline
     ) -> {}
     
     
@@ -307,8 +308,14 @@ function read_tune_segment(tune_data, song)
             
             elseif v.slur_end then
                 token = {token='slur_end'}
-            
-            end
+                
+            elseif v.linebreak_maybe then
+                -- dollar/exclamation linebreak symbols
+                -- (enabled by I:linebreak)    
+                if song.parse.linebreaks.dollar or song.parse.linebreaks.exclamation then
+                    token = {token='split_line'}
+                end
+           end
                       
             -- insert token and set the cross reference
             if token then

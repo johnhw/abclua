@@ -53,6 +53,12 @@ function parse_abc_line(line, song)
     --
     if not field_token and not song.parse.in_header then
         local match
+        
+        -- make I:linebreak ! work
+        if song.parse.linebreaks.exclamation then
+            line = line:gsub('!', '$')
+        end
+        
         if not song.parse.no_expand and (#song.parse.macros>0)  then               
             match = expand_macros(song, line)                
         else
@@ -66,10 +72,13 @@ function parse_abc_line(line, song)
             song.parse.has_notes = true
             
             -- insert linebreaks if there is not a continuation symbol
-            if  not match[#match].continuation then
-                table.insert(match, {linebreak=''})    
-            else
-                table.insert(match, {continue_line=''})    
+            -- (only if <eol> is set in the linebreaks (as it is by default))
+            if song.parse.linebreaks.eol then
+                if  not match[#match].continuation then
+                    table.insert(match, {linebreak=''})    
+                else
+                    table.insert(match, {continue_line=''})    
+                end
             end
             
             read_tune_segment(match, song)
@@ -129,7 +138,18 @@ function parse_abc(str, options, in_header)
         in_header = true
     end
     
-    song.parse = {in_header=in_header, has_notes=false, macros={}, user_macros=default_user_macros(), measure = options.measure or 1, no_expand=options.no_expand or false, cross_ref=options.cross_ref or false, line=options.line or 1, tune=options.tune or 1}    
+    -- set the default parse options (copying in options from <options>)
+    song.parse = {in_header=in_header, 
+        has_notes=false, 
+        macros={}, 
+        user_macros=default_user_macros(), 
+        measure = options.measure or 1, 
+        no_expand=options.no_expand or false, 
+        cross_ref=options.cross_ref or false, 
+        line=options.line or 1, 
+        tune=options.tune or 1, 
+        linebreaks={eol=true},
+        }    
     parse_abc_string(song, str)
      
     return song 
@@ -372,10 +392,6 @@ return abclua
 -- Text string encodings
 -- Make automatic tune reproduce tester
 -- ABCLint -> check abc files for problems
--- Test cross reference
--- Support I:linebreak
--- Merge adding ABC notation into event tokens
--- Making merging symbol lines/lyrics more efficient
 
 -- MIDI error on repeats with chords (doubles up chords)
 -- transposing macros don't work when octave modifiers and ties are applied

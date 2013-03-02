@@ -62,6 +62,7 @@ function merge_symbol_line(tokens)
                 
                 -- attach decorations and text to notes
                 if token and token.token=='note' then
+                    token.note = copy_table(token.note)
                     if v.type=='decoration' then add_decoration_note(token.note, v.decoration) end                    
                     -- add annotation / change chord (removing quotes)
                     if v.type=='chord_text' then add_chord_or_annotation_note(token.note, string.sub(v.chord_text,2,-2)) end                                                   

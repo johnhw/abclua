@@ -34,6 +34,15 @@ function set_property(t, key, value)
     end
 end
 
+function copy_array(orig)
+    -- copy an array (only integer keys are copied)
+    local copy = {}
+    for i=1,#orig do
+        copy[i] = orig[i]
+    end
+    return copy
+end
+
 function copy_table(orig)
     -- shallow copy a table (does not copy the contents)
     local copy = {}
