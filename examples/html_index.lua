@@ -166,7 +166,11 @@ function make_html_index(dir)
 end
 
 -- entry point
-local html = make_html_index('tests')
-local f = io.open('index.html', 'w')
-f:write(html)
-f:close()
+if #arg~=1 then
+    print("Usage: html_index <dirname>")
+else
+    local html = make_html_index(arg[1])
+    local f = io.open('index.html', 'w')
+    f:write(html)
+    f:close()
+end

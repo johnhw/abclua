@@ -293,11 +293,7 @@ function expand_token_stream(song)
             if token=='chord' then  
                 v.chord.notes = get_chord_notes(v.chord, {}, context.key)
             
-            -- end of header; store metadata so far
-            elseif token=='header_end' then
-                song.header_metadata = deepcopy(song.metadata)
-                song.header_context = deepcopy(context) 
-            
+               
            
             -- deal with triplet definitions
             elseif token=='triplet' then                
@@ -409,6 +405,12 @@ function expand_token_stream(song)
                 
                 -- store key string in metadata
                 song.metadata.key = string.sub(abc_key(v.key),3)
+                
+                -- store the header metadata if this is the first key in the file
+                if not song.header_metadata then
+                    song.header_metadata = deepcopy(song.metadata)
+                    song.header_context = deepcopy(context) 
+                end
             end     
         end
   end

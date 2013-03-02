@@ -24,7 +24,7 @@ function transpose_instrument(instrument, offset)
     -- of semitones. e.g. transpose_instrument_score(d_whistle, -2)
     -- returns a high c whistle definition
     local transposed = {}
-    for i,v in pairs(instrument)
+    for i,v in pairs(instrument) do
         transposed[i+offset] = v 
     end
     return transposed
@@ -93,7 +93,7 @@ function make_whistle()
 end
 
 if #arg~=1 then
-    print("Usage: match_whistle <file.abc>")
+    print("Usage: instrument_matching <file.abc>")
 else
     local whistle = make_whistle()
     songs = parse_abc_file(arg[1])

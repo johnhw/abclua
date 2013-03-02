@@ -333,6 +333,9 @@ function parse_field(f, song, inline, at)
      if not match then
         -- in the header, treat lines without a tag as continuations
         if song.parse.in_header then
+            if song.parse.strict then
+                warn("Bare metadata line in header.")
+            end
             field_name = 'continuation' 
             content = f                
         else
