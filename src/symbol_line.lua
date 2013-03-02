@@ -25,21 +25,18 @@ end
 function merge_symbol_line(tokens)
     -- Merge a symbol lines in a token stream in place.
     -- Adds decorations, chord symbols and free text to note events in the sequence.
-    
-    local note_align = 0 -- current note alignment
-    local last_note_align = 0 -- previous note alignment
-    local note_index = 0 -- index of each note in the token stream
-    local all_symbols = {}
-    
-    
-    local token_ptr = 1
-    local last_symbol_index, last_ptr
+        
+    local token_ptr = 1     -- index of the current position at which we look for notes to align to
+    local last_symbol_index -- index of the last symbol_line token in the stream (use this to check for stacked symbol lines)
+    local last_ptr          -- the token_ptr used by the previous symbol_line definition (so we can jump back)
     
     -- move along to the next matching token in the stream
+    -- we call this every time we see a symbol in a symbol line
     local function advance_token_ptr(sym)
         while token_ptr<=#tokens do
             local t = tokens[token_ptr].token
             token_ptr = token_ptr + 1
+            -- if we match, return the matching token
             if t==sym.advance then return tokens[token_ptr-1] end                    
         end
         return nil -- ran over end of the token list
@@ -49,28 +46,31 @@ function merge_symbol_line(tokens)
     for ix,token in ipairs(tokens) do                        
         if token.token=='symbol_line' then            
             local symbols = token.symbol_line or {}                       
-            -- stacked symbols!
+            -- deal with stacked symbols.
             if last_symbol_index==ix-1 then
-                token_ptr = last_ptr
+                -- last token was also a symbol_line; this is te
+                -- second, third,... nth line of a stack
+                token_ptr = last_ptr                
             else
-                -- in case we need to go back here with stacked lines
+                -- this is not a stack, or is the first line, so remember
+                -- the alignment position
                 last_ptr = token_ptr 
             end
            
             -- run through each symbol
             for i,v in ipairs(symbols) do                                                         
-                token = advance_token_ptr(v)               
+                token = advance_token_ptr(v)           
+                
+                -- attach decorations and text to notes
                 if token and token.token=='note' then
                     if v.type=='decoration' then add_decoration_note(token.note, v.decoration) end                    
                     -- add annotation / change chord (removing quotes)
                     if v.type=='chord_text' then add_chord_or_annotation_note(token.note, string.sub(v.chord_text,2,-2)) end                                                   
-                end
-                
+                end                
             end 
             last_symbol_index = ix
-            -- advance to this symbol line
-            if token_ptr<ix then token_ptr=ix end 
-            
+            -- advance the pointer to this symbol line
+            if token_ptr<ix then token_ptr=ix end             
         end
     end
     

@@ -6,6 +6,7 @@ function get_lyrics(stream)
     local notes = {}
     for i,v in ipairs(stream) do        
         if v.event=='lyric' then
+            
             table.insert(notes, {v.syllable, v.t/1e6})
         end
     end
@@ -15,10 +16,12 @@ end
 
 function verify_lyrics(str, result, test)
     -- verify that the lyric timings match the expected values
-    local songs = abclua.parse_abc_multisong(str)          
+    local songs = abclua.parse_abc_multisong(str) 
+    
     local stream = songs[1].voices['default'].stream
-    local lyrics = get_lyrics(stream)        
-    table_print(lyrics)
+
+    local lyrics = get_lyrics(stream)       
+    
     for i, v in ipairs(result) do        
         assert(v[1]==lyrics[i][1], test..' syllable')
         assert(v[2]==lyrics[i][2], test..' time')        

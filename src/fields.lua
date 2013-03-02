@@ -131,6 +131,7 @@ end
 
 function words_token(content, song) 
         local lyrics = parse_lyrics(content)
+        song.parse.last_lyrics = lyrics
         if lyrics then
             return {token='words', lyrics=lyrics}          
         end
@@ -245,16 +246,14 @@ function continuation_token(content, song)
         if not is_in(song.parse.last_field, parsable) then        
             return {token='append_field_text', name=song.parse.last_field, content=content}                
         end
-         -- need to fix this:
-         -- w:abc
-         -- w:def
-         -- is not the same as:
-         -- w:abc
-         -- +:def
-         -- also must apply for symbol_line
          
+         -- append lyrics
          if song.parse.last_field=='words' then
-            return words_token(content, song)                
+               -- we are guaranteed that song.parse.last_lyrics line is set
+            local appended_lyrics = parse_lyrics(content)
+            for i,v in ipairs(appended_lyrics) do
+                table.insert(song.parse.last_lyrics, v)
+            end 
          end
          
          -- append to a symbol line

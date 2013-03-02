@@ -100,9 +100,9 @@ function finalise_song(song)
     -- clear temporary data
     song.opus = nil
     
- 
+    
     -- time the stream and add lyrics    
-    song.stream = insert_lyrics(song.context.lyrics, song.stream)
+    song.stream = new_insert_lyrics(song.stream)
     time_stream(song.stream)       
     
 end
@@ -179,7 +179,6 @@ function start_new_voice(song, voice, specifiers)
     
     -- reset song state
     -- set up context state
-    song.context.lyrics = {}
     song.context.current_part = 'default'
     song.context.part_map = {}
     song.context.pattern_map = {}
@@ -241,6 +240,11 @@ function precompile_token_stream(token_stream, context)
             apply_key(song, song.context.key)
         end
     end
+    
+    -- merge in lyrics and symbol lines
+    merge_symbol_line(song.token_stream)
+    merge_lyrics(song.token_stream)
+    
 end
 
 function expand_token_stream(song)
@@ -250,6 +254,12 @@ function expand_token_stream(song)
     local context = song.context
     local insert_note = insert_note
     local opus = song.opus
+    
+    
+    -- merge in lyrics and symbol lines
+    merge_symbol_line(song.token_stream)
+    merge_lyrics(song.token_stream)
+    
     
     for i=1,#song.token_stream do
         v = song.token_stream[i]
@@ -348,9 +358,6 @@ function expand_token_stream(song)
    
         
         
-        elseif token=='words' then         
-            table.insert(opus, {event='lyric_align'}) 
-            table.insert(context.lyrics, v.lyrics)
         
             
         elseif token=='parts' then

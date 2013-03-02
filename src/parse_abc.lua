@@ -342,8 +342,10 @@ return abclua
 -- Text string encodings
 -- Make automatic tune reproduce tester
 -- ABCLint -> check abc files for problems
--- Add symbol line handling
 -- Fix lyrics in repeats/parts
+-- Cross ref: change to adding field to tokens and make index from start of file in block mode
+-- Support I:linebreak
+-- Merge adding ABC notation into event tokens
 
 -- MIDI error on repeats with chords (doubles up chords)
 -- transposing macros don't work when octave modifiers and ties are applied

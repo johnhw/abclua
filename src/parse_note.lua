@@ -78,7 +78,8 @@ function add_chord_or_annotation_note(note, text)
         -- update chord for this note (only one chord per note)
         note.chord = chord
     else
-        -- store free text annotations            
+        -- store free text annotations 
+        note.text = note.text or {}
         table.insert(note.text, parse_free_text(text))                
     end
 end
@@ -88,6 +89,13 @@ function add_decoration_note(note, decoration)
     note.decoration = note.decoration or {}
     table.insert(note.decoration, decoration)    
 end
+
+function add_lyric_note(note, lyric)
+    -- Add a lyric syllable to a note
+    note.lyrics = note.lyrics or {}
+    table.insert(note.lyrics, lyric)    
+end
+
 
 
 local function canonicalise_note(note)
@@ -125,7 +133,7 @@ local function canonicalise_note(note)
     end
     
     
-    note.text = {}
+
     local note_chord = note.chord
     note.chord = nil
     -- parse chords
