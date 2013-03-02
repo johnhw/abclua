@@ -28,22 +28,30 @@ function parse_abc_line(line, song)
                 
     -- replace stylesheet directives with I: information fields
     line = line:gsub("^%%%%", "I:")    
-    local field_parsed
+    local field_token
     
     
     -- read metadata fields    
     if song.parse.in_header or string.sub(line,2,2)==':' then        
-        field_parsed = parse_field(line, song)
+        field_token = parse_field(line, song)
+        if field_token then
+            -- add cross reference
+            if song.parse.cross_ref then
+                field_token.cross_ref = {at=1, line=song.parse.line, tune_line=song.parse.tune_line, tune=song.parse.tune}
+            end
+           
+            table.insert(song.token_stream, field_token)
+        end
         if song.parse.found_key and song.parse.in_header then
             song.parse.in_header = false
-            table.insert(song.token_stream, {token='header_end'})
+            -- table.insert(song.token_stream, {token='header_end'})
         end    
     end
          
     --
     -- read tune
     --
-    if not field_parsed and not song.parse.in_header then
+    if not field_token and not song.parse.in_header then
         local match
         if not song.parse.no_expand and (#song.parse.macros>0)  then               
             match = expand_macros(song, line)                
@@ -81,11 +89,12 @@ function parse_abc_string(song, str)
     local lines = line_splitter:match(str)    
     if lines then
         for i=1,#lines do        
-            song.parse.line = i        
+            song.parse.tune_line = i
             local success, err = pcall(parse_abc_line, lines[i], song)
             if not success then
                 warn('Parse error reading line '  .. lines[i].. '\n'.. err)
             end
+            song.parse.line = song.parse.line + 1
         end
     end
 end
@@ -120,7 +129,7 @@ function parse_abc(str, options, in_header)
         in_header = true
     end
     
-    song.parse = {in_header=in_header, has_notes=false, macros={}, user_macros=default_user_macros(), measure = options.measure or 1, no_expand=options.no_expand or false, cross_ref=options.cross_ref or false}    
+    song.parse = {in_header=in_header, has_notes=false, macros={}, user_macros=default_user_macros(), measure = options.measure or 1, no_expand=options.no_expand or false, cross_ref=options.cross_ref or false, line=options.line or 1, tune=options.tune or 1}    
     parse_abc_string(song, str)
      
     return song 
@@ -210,6 +219,11 @@ function parse_abc_coroutine(str, options)
     -- as it saves memory.
     -- split file into sections
    
+    options = options or {}
+    -- set the current line number, for cross referencing
+    options.line = 1
+    options.tune = 1
+    
     local iterator = songbook_block_iterator(str, options)
         
     -- set defaults for the whole tune
@@ -238,11 +252,27 @@ function parse_abc_coroutine(str, options)
     -- return the first tune
     coroutine.yield(first_tune)
     
+    local tune_number = 2
+    
+    local line 
+    if first_tune then
+        line = first_tune.parse.line
+    end
+    
     -- remaining tunes
     tune_str = iterator()
     while tune_str do
-        coroutine.yield(parse_and_compile(tune_str, options, deepcopy(default_context), deepcopy(default_metadata)))    
+        options.tune = tune_number  
+        options.line = line
+        
+        -- parse/compile the tune
+        local tune = parse_and_compile(tune_str, options, deepcopy(default_context), deepcopy(default_metadata))
+        coroutine.yield(tune)    
         tune_str = iterator()
+        
+        -- need to keep track of lines across songs for cross referencing
+        line = tune.parse.line
+        tune_number = tune_number + 1      
     end
 end
 
@@ -342,10 +372,10 @@ return abclua
 -- Text string encodings
 -- Make automatic tune reproduce tester
 -- ABCLint -> check abc files for problems
--- Fix lyrics in repeats/parts
--- Cross ref: change to adding field to tokens and make index from start of file in block mode
+-- Test cross reference
 -- Support I:linebreak
 -- Merge adding ABC notation into event tokens
+-- Making merging symbol lines/lyrics more efficient
 
 -- MIDI error on repeats with chords (doubles up chords)
 -- transposing macros don't work when octave modifiers and ties are applied

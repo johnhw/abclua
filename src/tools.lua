@@ -166,7 +166,7 @@ function header_end_index(tokens)
     -- Return the index of the end of the header
     -- returns nil if there is only header
     for i,v in ipairs(tokens) do        
-        if v.token=='header_end' then return i end
+        if not v.is_field then return i end
     end
-    return 1
+    return #tokens+1
 end

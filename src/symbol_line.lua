@@ -41,7 +41,6 @@ function merge_symbol_line(tokens)
         end
         return nil -- ran over end of the token list
     end
-    
     -- run through all symbols
     for ix,token in ipairs(tokens) do                        
         if token.token=='symbol_line' then            

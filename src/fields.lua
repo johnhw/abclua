@@ -323,7 +323,7 @@ function scan_metadata(str)
     return meta    
 end
 
-function parse_field(f, song, inline)
+function parse_field(f, song, inline, at)
     -- parse a metadata field, of the form X: stuff
     -- (either as a line on its own, or as an inline [x:stuff] field
      local name, field, field_name
@@ -337,7 +337,7 @@ function parse_field(f, song, inline)
             content = f                
         else
             -- otherwise it was probably a tune line
-            return false
+            return 
         end
      else
         field_name = field_names[match]
@@ -350,10 +350,10 @@ function parse_field(f, song, inline)
         if field_name~='continuation' then song.parse.last_field = field_name end        
         token.inline = inline
         token.is_field = true
-        table.insert(song.token_stream, token)
+        
     end
     
-    return true
+    return token
  
 end
 

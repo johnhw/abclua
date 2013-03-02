@@ -17,11 +17,8 @@ end
 function verify_lyrics(str, result, test)
     -- verify that the lyric timings match the expected values
     local songs = abclua.parse_abc_multisong(str) 
-    
     local stream = songs[1].voices['default'].stream
-
     local lyrics = get_lyrics(stream)       
-    
     for i, v in ipairs(result) do        
         assert(v[1]==lyrics[i][1], test..' syllable')
         assert(v[2]==lyrics[i][2], test..' time')        
@@ -145,37 +142,64 @@ function test_lyrics()
     ]], {{'oh',8}, {'yes',9}, {'we',10},{'do',11}
     }, 'Aligned with blank w: not on start')
     
-    -- doesn't work
     
-    -- verify_lyrics([[
-    -- X:1
-    -- K:C
-    -- Q:1/4=60
-    -- L:1/4
-    -- C D E F
-    -- G A B C
-    -- w:oh there we go    
-    -- w:away again to there
-    -- ]], {
-    -- {'oh',0}, {'there',1}, {'we',2}, {'go',3},
-    -- {'away',4}, {'again',5}, {'to',6}, {'there',7}
-    -- }, 'Lyrics in repeats')
+    verify_lyrics([[
+    X:1
+    K:C
+    Q:1/4=60
+    L:1/4
+    C D E F
+    w:oh there we go
+    G A B C
+    w:away again to there
+    ]], {
+    {'oh',0}, {'there',1}, {'we',2}, {'go',3},
+    {'away',4}, {'again',5}, {'to',6}, {'there',7}
+    }, 'Lyrics in separate lines')
     
-    -- verify_lyrics([[
-    -- X:1
-    -- P:A2
-    -- Q:1/4=60
-    -- L:1/4
-    -- K:C
-    -- p:A
-    -- C D E F
-    -- G A B C
-    -- w:oh there we go    
-    -- w:away again to there
-    -- ]], {
-    -- {'oh',0}, {'there',1}, {'we',2}, {'go',3},
-    -- {'away',4}, {'again',5}, {'to',6}, {'there',7}
-    -- }, 'Lyrics in repeated parts')
+    verify_lyrics([[
+    X:1
+    K:C
+    Q:1/4=60
+    L:1/4
+    |: C D E F :|
+    w:oh there we go
+    w:away again to there
+    ]], {
+    {'oh',0}, {'there',1}, {'we',2}, {'go',3},
+    {'away',4}, {'again',5}, {'to',6}, {'there',7}
+    }, 'Lyrics in repeat bars lines')
+    
+    verify_lyrics([[
+    X:1
+    K:C
+    Q:1/4=60
+    L:1/4
+    |:: C D E F ::|
+    w:oh there we go   
+    w:
+    w:away again to there
+    ]], {
+    {'oh',0}, {'there',1}, {'we',2}, {'go',3},
+    {'away',4}, {'again',5}, {'to',6}, {'there',7}
+    }, 'Lyrics in triple repeats with blank lines')
+    
+    
+    
+    verify_lyrics([[
+    X:1
+    P:A2
+    Q:1/4=60
+    L:1/4
+    K:C
+    P:A
+    C D E F
+    w:oh there we go    
+    w:away again to there
+    ]], {
+    {'oh',0}, {'there',1}, {'we',2}, {'go',3},
+    {'away',4}, {'again',5}, {'to',6}, {'there',7}
+    }, 'Lyrics in repeated parts')
     
     
     

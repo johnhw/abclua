@@ -173,7 +173,7 @@ function compile_note(note, song)
 end
 
 
-function insert_note(note, song, token_index)
+function insert_note(note, song, token_index, abc)
         -- insert a new note into the song
        
         note = compile_note(note, song)
@@ -195,12 +195,12 @@ function insert_note(note, song, token_index)
         if note.play_pitch==nil then
             -- rest            (strip out 0-duration y rests)
             if note.play_duration>0 then
-                song.opus[#song.opus+1] = {event='rest', note=note, token_index=token_index}
+                song.opus[#song.opus+1] = {event='rest', note=note, token_index=token_index, abc=abc}
                 
             end            
         else       
             -- pitched note            
-            song.opus[#song.opus+1] = {event='note', note=note, token_index=token_index}
+            song.opus[#song.opus+1] = {event='note', note=note, token_index=token_index, abc=abc}
         end
-        --advance_note_time(song, note)        
+       
 end

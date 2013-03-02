@@ -102,7 +102,7 @@ function finalise_song(song)
     
     
     -- time the stream and add lyrics    
-    song.stream = new_insert_lyrics(song.stream)
+    song.stream = insert_lyrics(song.stream)
     time_stream(song.stream)       
     
 end
@@ -197,6 +197,11 @@ function precompile_token_stream(token_stream, context)
     local song = {context=context or get_default_context(), opus={}}
     reset_timing(song)
 
+    
+    -- merge in lyrics and symbol lines
+    merge_symbol_line(token_stream)
+    merge_lyrics(token_stream)
+    
     for i,v in ipairs(token_stream) do
         -- notes
         if v.token=='note' then 
@@ -241,10 +246,6 @@ function precompile_token_stream(token_stream, context)
         end
     end
     
-    -- merge in lyrics and symbol lines
-    merge_symbol_line(song.token_stream)
-    merge_lyrics(song.token_stream)
-    
 end
 
 function expand_token_stream(song)
@@ -255,30 +256,35 @@ function expand_token_stream(song)
     local insert_note = insert_note
     local opus = song.opus
     
-    
+    -- this needs to be more efficient
+    local token_stream = deepcopy(song.token_stream)
+   
     -- merge in lyrics and symbol lines
-    merge_symbol_line(song.token_stream)
-    merge_lyrics(song.token_stream)
+    merge_symbol_line(token_stream)
+    merge_lyrics(token_stream)
     
-    
-    for i=1,#song.token_stream do
-        v = song.token_stream[i]
+    local abc
+    for i=1,#token_stream do
+        v = token_stream[i]
         token = v.token
+        
         if context.write_abc_events then
             -- write in the ABC notation event as a string
-            table.insert(opus, {event='abc', abc=abc_element(v)})
+            abc = abc_element(v)
         end
         
         local event
         -- copy in standard events that don't change the context state
         if token ~= 'note' then
-           event = copy_table(v)
+           -- event = copy_table(v)
+           event = v
            event.event = event.token
            event.token = nil           
            event.token_index = i
+           event.abc = abc
            table.insert(opus, event)
         else
-           insert_note(v.note, song, i)                                         
+           insert_note(v.note, song, i, abc)                                         
         end
        
         if token=='chord' then  

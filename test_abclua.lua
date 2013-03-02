@@ -19,7 +19,9 @@ print()
 print("Testing symbol lines")
 require "tests/test_symbols"
 print()
-
+print("Testing lyrics")
+require "tests/test_lyrics"
+print()
 print("Testing repeats")
 require "tests/test_repeats"
 print()

@@ -224,58 +224,61 @@ end
 
 function read_tune_segment(tune_data, song)
     -- read the next token in the note stream    
-    local cross_ref = nil
+  
     local insert = table.insert
     local token_stream = song.token_stream
+    local last_cross_ref = nil
+    local token 
+  
     for i,v in ipairs(tune_data) do
-        
+        token = nil
         if type(v) == 'number' then
             -- insert cross refs, if they are enabled
             if song.parse.cross_ref then
-                 insert(token_stream, {token='cross_ref', at=v, line=song.parse.line})
+                 last_cross_ref =  {at=v, line=song.parse.line, tune_line=song.parse.tune_line, tune=song.parse.tune}
             end
         else
             if v.top_note then                         
                 -- add a note to the token stream                
                 local cnote = parse_note(v.top_note, song.parse.user_macros)                          
-                insert(token_stream, {token='note', note=cnote})                      
+                token =  {token='note', note=cnote}                     
             -- store annotations
             elseif v.free_text then
                 -- could be a standalone chord
                 local chord = parse_chord(v.free_text.text)                                                
                 if chord then
-                    insert(token_stream, {token='chord', chord=chord})
+                    token =  {token='chord', chord=chord}
                 else                    
-                    insert(token_stream, {token='text', text=parse_free_text(v.free_text.text)})
+                    token =  {token='text', text=parse_free_text(v.free_text.text)}
                 end
             
             -- parse inline fields (e.g. [r:hello!])
             elseif v.field then                
-                -- this automatically writes it to the token_stream            
-                parse_field(v.field.contents, song, true)
-            
-            
+                -- this automatically writes it to the token_stream
+                -- not correct for inline fields!
+                token = parse_field(v.field.contents, song, true)
+                
             -- deal with triplet definitions
             elseif v.triplet then                                        
-                insert(token_stream, {token='triplet', triplet=parse_triplet(v.triplet, song)})                            
+                token =  {token='triplet', triplet=parse_triplet(v.triplet, song)}                            
             
             -- voice overlay
             elseif v.overlay then
-                insert(token_stream, {token='overlay', bars=string.len(v.overlay)})
+                token =  {token='overlay', bars=string.len(v.overlay)}
             
             
             -- beam splits
             elseif v.s then
-                insert(token_stream, {token='split'})
+                token =  {token='split'}
             
             
             -- linebreaks
             elseif v.linebreak then
-                insert(token_stream, {token='split_line'})
+                token =  {token='split_line'}
             
             
             elseif v.continue_line then
-                insert(token_stream, {token='continue_line'})
+                token =  {token='continue_line'}
             
                                         
             -- deal with bars and repeat symbols
@@ -283,32 +286,35 @@ function read_tune_segment(tune_data, song)
                 local bar = parse_bar(v.bar)
                 song.parse.measure = song.parse.measure + 1 -- record the measures numbers as written
                 bar.measure = song.parse.measure
-                insert(token_stream, {token='bar', bar=bar})               
+                token =  {token='bar', bar=bar}               
             elseif v.variant then
-                insert(token_stream, {token='variant', variant=parse_variant(v.variant)})               
-            
+                token =  {token='variant', variant=parse_variant(v.variant)}               
             
             
             -- chord groups
             elseif v.chord_begin then            
                 
-                insert(token_stream, {token='chord_begin'})                                
+                token =  {token='chord_begin'}                                
             
             
             elseif v.chord_end then
-                insert(token_stream, {token='chord_end'})                                                
+                token =  {token='chord_end'}                                               
             
             
             elseif v.slur_begin then
-                insert(token_stream, {token='slur_begin'})
+                token =  {token='slur_begin'}
             
             
             elseif v.slur_end then
-                insert(token_stream, {token='slur_end'})
+                token = {token='slur_end'}
             
             end
-            
-            
+                      
+            -- insert token and set the cross reference
+            if token then
+                token.cross_ref = last_cross_ref
+                insert(token_stream, token)
+            end
         end
     end
     
