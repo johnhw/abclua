@@ -25,8 +25,8 @@ function verify_times(str, result, test, event, metric)
     local songs = abclua.parse_abc_multisong(str)          
     local stream = songs[1].voices['default'].stream
     local times = get_times(stream, event, metric)
-    table_print(stream)
-    table_print(times) 
+    -- table_print(stream)
+    -- table_print(times) 
 
     assert(#times==#result)
     for i, v in ipairs(result) do
@@ -39,20 +39,20 @@ end
 function test_bar_times()
 
 
- -- verify_times([[
-    -- X:1
-    -- Q:1/4=30
-    -- K:C
-    -- CDEF | DEFG | ABCD |    
-    -- ]], {4,8,12}, 'Simple bar times', 'bar')
+ verify_times([[
+    X:1
+    Q:1/4=30
+    K:C
+    C | D | E | F | G    
+    ]], {1,2,3,4}, 'Simple bar times', 'bar')
    
    
  verify_times([[
     X:1
     Q:1/4=30
     K:C
-    C|D|:A:|D   
-    ]], {4,8,12,16}, 'Repeated bar times', 'bar')
+    C|D|A|:B|C|D:|D   
+    ]], {1,2,3,4,5,6,7,8,9}, 'Repeated bar times', 'bar')
    
 end
 

@@ -370,10 +370,10 @@ end
 
 function test_midi_generation()
     -- run the test suite
-    tests = {'chords'}
-    -- 'stress_2', 'stress_1', 'accents', 'beatstring', 'chordattack', 'chords', 'drone', 
-    -- 'micro', 'transpose', 'trim', 'linear', 'pitch_bend', 'drum', 'chordname', 'beatmod', 'drummap', 'pedal', 'crescendo',
-    -- 'dynamics', 'grace', 'ornaments', 'portamento', 'cc', 'chordattack_2'}
+    tests = {'chords',
+    'stress_2', 'stress_1', 'accents', 'beatstring', 'chordattack', 'chords', 'drone', 
+    'micro', 'transpose', 'trim', 'linear', 'pitch_bend', 'drum', 'chordname', 'beatmod', 'drummap', 'pedal', 'crescendo',
+    'dynamics', 'grace', 'ornaments', 'portamento', 'cc', 'chordattack_2'}
 
     for i,v in ipairs(tests) do
         print("Testing: "..v)

@@ -15,6 +15,7 @@ function time_stream(stream)
     local event
     local metric_t = 1
     local event_type
+   
     for i=1,#stream do
         event = stream[i]
         event_type = event.event

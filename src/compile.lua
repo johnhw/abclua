@@ -288,7 +288,7 @@ function expand_token_stream(song)
            event.token = nil           
            event.token_index = i
            event.abc = abc
-           opus[#opus+1] = event
+           song.opus[#song.opus+1] = event
                                                         
             if token=='chord' then  
                 v.chord.notes = get_chord_notes(v.chord, {}, context.key)
