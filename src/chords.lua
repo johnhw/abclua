@@ -254,6 +254,7 @@ function voice_chord(notes, octave)
     local root = notes[1]
     table.insert(out_notes, root+base-12)
     table.insert(out_notes, root+base+12)
+    table.insert(out_notes, root+base+24)
     
     -- -- fifth at octave above
     -- if #notes>=3 then
