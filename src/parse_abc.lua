@@ -400,6 +400,8 @@ return abclua
 -- Text string encodings
 -- Make automatic tune reproduce tester
 -- ABCLint -> check abc files for problems
+-- check bar timings (something bad is happening with repeats)
+-- change .token and .event to .tag
 
 -- MIDI error on repeats with chords (doubles up chords)
 -- transposing macros don't work when octave modifiers and ties are applied

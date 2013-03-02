@@ -140,6 +140,7 @@ function insert_midi_chord(event, midi_state)
     -- divide up bar
     local division = (midi_state.bar_length / #pattern)
     local t = midi_state.last_bar_time -- start the pattern at the start of this bar
+   
     
     -- get chord notes (first is the bass note)
     local base_notes = get_chord_notes(event.chord, midi_state.custom_chords, midi_state.key)

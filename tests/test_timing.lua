@@ -19,17 +19,41 @@ function get_times(stream, event, metric)
 end
 
 
+
 function verify_times(str, result, test, event, metric)
     -- verify that the pitches match the expected values   
     local songs = abclua.parse_abc_multisong(str)          
     local stream = songs[1].voices['default'].stream
-    local times = get_times(stream, event, metric)    
-    
+    local times = get_times(stream, event, metric)
+    table_print(stream)
+    table_print(times) 
+
+    assert(#times==#result)
     for i, v in ipairs(result) do
         
         assert(math.abs((times[i])-result[i])<1e-4, test)
     end
     print(test.." passed OK")
+end
+
+function test_bar_times()
+
+
+ -- verify_times([[
+    -- X:1
+    -- Q:1/4=30
+    -- K:C
+    -- CDEF | DEFG | ABCD |    
+    -- ]], {4,8,12}, 'Simple bar times', 'bar')
+   
+   
+ verify_times([[
+    X:1
+    Q:1/4=30
+    K:C
+    C|D|:A:|D   
+    ]], {4,8,12,16}, 'Repeated bar times', 'bar')
+   
 end
 
 function test_times()
@@ -57,6 +81,15 @@ function test_times()
     A/2A>AA/3A   
     ]], {0,0.5,2,2.5,2.5+1/3}, 'Complex time')
  
+ 
+ 
+    verify_times([[
+    X:1
+    Q:1/4=30
+    K:C
+    CDEF |: ABCD :| DEFG |   
+    ]], {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}, 'Repeated bars')
+   
  
    verify_times([[
     X:1
@@ -149,6 +182,6 @@ function test_metric_times()
     
 end   
 
-
+test_bar_times()
 test_times()
 test_metric_times()

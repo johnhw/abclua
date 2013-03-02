@@ -23,7 +23,7 @@ function time_stream(stream)
         
         -- record position of last bar
         if event_type=='bar'  then
-            last_bar = event.t
+            last_bar = event.t      
             measure = measure + 1
             written_measure = event.bar.meeasure
             event.bar.play_measure = measure
