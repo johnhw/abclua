@@ -1,8 +1,8 @@
 -- Functions for dealing with tuplets
 
 function update_triplet_ratio(song)
-    -- compute the current compression ratio
-    -- The product of all active triplets
+    -- Compute the current compression ratio
+    -- which is the product of all active triplets
     local ratio = 1
     for i,v in ipairs(song.context.timing.triplet_state) do
         ratio = ratio / v.ratio
@@ -11,29 +11,33 @@ function update_triplet_ratio(song)
 end
 
 function push_triplet(song, p, q, r)
-    -- push a new triplet onto the stack
+    -- Push a new triplet onto the stack
     table.insert(song.context.timing.triplet_state, {count=r, ratio=p/q})
     update_triplet_ratio(song)
 end
 
 function reset_triplet_state(song)
-    -- reset the triplet state, cancelling all triplets
+    -- Reset the triplet state, cancelling all triplets
     song.context.timing.triplet_state = {}
     update_triplet_ratio(song)
 end
 
 function update_tuplet_state(song)
-    -- a note has occured; change tuplet state
+    -- A note has occured; change tuplet state
     -- update tuplet counters; if back to zero, remove that triplet
     
     local actives = {}
-    for i,v in ipairs(song.context.timing.triplet_state) do
+    local triplet = song.context.timing.triplet_state
+    -- check each triplet
+    for i=1,#triplet do
+        local v = triplet[i]
         v.count = v.count-1
         -- keep only triplets with counters > 0
         if v.count > 0 then
             table.insert(actives, v)
         end
     end    
+    
     song.context.timing.triplet_state = actives
         
     -- update the time compression

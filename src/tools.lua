@@ -1,6 +1,4 @@
-
 local pitch_table = {c=0, d=2, e=4, f=5, g=7, a=9, b=11}
-local pitches = {'c', 'd', 'e', 'f', 'g', 'a', 'b'}
 
 
 function diatonic_transpose_note(original_mapping, shift, new_mapping, inverse_mapping, pitch, accidental)
@@ -18,22 +16,28 @@ function diatonic_transpose_note(original_mapping, shift, new_mapping, inverse_m
             octave = math.floor(((semi)/12))            
         end        
         
+        -- get the octave-wrapped semitone
+        
         semi = semi % 12             
-        local new_accidental, new_pitch                       
-        -- if we don't need an accidental
+        local new_accidental, new_pitch  
+        
+        -- if we don't need an accidental, just look up the pitch
         if inverse_mapping[semi] then
             new_pitch = inverse_mapping[semi]       
             new_accidental = nil                  
         else
-            -- check the next note
+            -- othwerwise check the note above, and see if we can flatten
             new_pitch = inverse_mapping[(semi+1)%12]                     
             t = new_mapping[new_pitch]            
+            -- if not, then try sharpening the note below
             if not t or t==-1 then 
                 -- check the note lower and sharpen it
                 new_pitch = inverse_mapping[(semi-1)%12] 
                 t = new_mapping[new_pitch]
                 if t==0 then new_accidental={num=1, den=1} end
                 if t==-1 then new_accidental={num=0, den=0} end
+                -- if all else fails, we double sharpen the note below
+                -- (this will never happen in a standard scale)
                 if t==1 then new_accidental={num=2, den=1} end
             else
                 -- if we can just flatten that one, use that
@@ -46,13 +50,15 @@ end
 
 
 function diatonic_transpose(tokens, shift)
-    -- Transpose a whole token stream by a given number of semitones    
+    -- Transpose a whole token stream by a given number of semitones 
+    -- Shifts notes; keys; written chords; and grace notes
     local current_key, original_key        
     local mapping, key_struct
     local inverse_mapping = {}
     
     
     for i,token in ipairs(tokens) do
+        -- shift the key signature
         if token.token=='key' then                               
                         
             -- get new root key
@@ -68,7 +74,7 @@ function diatonic_transpose(tokens, shift)
             end                       
         end        
         
-        -- transpose chords
+        -- transpose standalone chords
         if token.token=='chord' then
           token.chord = transpose_chord(token.chord, shift)                        
         end
@@ -125,9 +131,10 @@ function swap_or_insert(t, match, position, default)
 end
 
 function validate_token_stream(tokens)
-    -- Make sure the given token stream is valid
+    -- Make sure the metadata fields in the given token stream are in a valid order
     -- Forces the token stream to begin with X:, followed by T:, followed by the other
-    -- fields, followed by K:, followed by the notes
+    -- fields, followed by K:, followed by the notes. If these fields don't exist in the
+    -- token stream, they are created.
         
     swap_or_insert(tokens, {token='field_text', name='ref'}, 1, {token='field_text', name='ref', content='1', is_field=true})    
     swap_or_insert(tokens, {token='field_text', name='title'}, 2, {token='field_text', name='title', content='untitled', is_field=true})
@@ -163,8 +170,8 @@ end
 
 
 function header_end_index(tokens)
-    -- Return the index of the end of the header
-    -- returns nil if there is only header
+    -- Return the index of the end of the header (first non-metadata token)
+    -- returns #tokens+1 if there is only header
     for i,v in ipairs(tokens) do        
         if not v.is_field then return i end
     end

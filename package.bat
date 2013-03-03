@@ -7,6 +7,8 @@ mkdir dist\tests
 mkdir dist\examples
 mkdir dist\midi
 mkdir dist\out
+mkdir dist\out\songs
+mkdir dist\midi\test_out
 
 copy src\*.* dist\src\*.*
 cd docs

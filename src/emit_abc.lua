@@ -1,4 +1,6 @@
 -- functions for writing out text represenatations of the song token_stream
+
+-- mapping from field names to their one-letter tags in the ABC file
 local field_tags = {key = 'K'
 ,title = 'T'
 ,ref =  'X'
@@ -30,6 +32,9 @@ local field_tags = {key = 'K'
 ,continuation =  '+'
 }
 
+-- the default user macros; occurences of the standard
+-- decorations are replaced with user macros where possible
+-- (e.g. '!fermata!D' will become 'HD' when emitted)
 local default_macros =  invert_table({
       ['~'] = '!roll!',
       ['.'] = '!staccato!',
@@ -76,7 +81,6 @@ function abc_meter(meter)
         num = num .. (meter.num-e) .. ')'
            
     end
-   
     local ret = string.format('M:%s/%s' , num, meter.den..'')
     return ret
     
@@ -122,6 +126,7 @@ function abc_key(key)
         return 'K:none' 
     end
     
+    -- Highland pipe key
     if key.pipe then
         return 'K:'..key.pipe
     end
@@ -176,7 +181,6 @@ function abc_part_string(part_table)
             ret = ret .. '(' .. abc_part_string(v) .. ')'
         end
         
-        
         -- repeats
         if v['repeat'] and string.len(v['repeat'])>0 and (0+v['repeat']) > 1 then
             ret = ret .. v['repeat']
@@ -218,7 +222,7 @@ function abc_lyrics(lyrics)
             next_advance = 1
         end
         
-        -- abc in holds (either syllable holds with _ or bar hold with |)
+        -- lyric holds (either syllable holds with _ or bar hold with |)
         if next_advance  then
             if next_advance=='bar' then 
                 table.insert(lyric_string, '|')
@@ -413,6 +417,8 @@ end
 
 
 function abc_accidental(accidental)
+    -- Return the abc representation of an accidental
+    -- e.g. ^ or ^/2 or __
     local acc = ''
     if accidental then
         local ad = accidental
@@ -450,8 +456,8 @@ function abc_accidental(accidental)
                     end
                 end
                 
-                
-                if (ad.num+0)<0 then
+                -- decide if flat or sharp
+                if tonumber(ad.num)<0 then
                     acc = '_'..acc..'/'..ad.den
                 else
                     acc = '^'..acc..'/'..ad.den
@@ -464,10 +470,10 @@ function abc_accidental(accidental)
 end
 
 function abc_pitch(note_pitch)
-    -- get the string represenation of a pitch table
-    -- pitch; lowercase = +1 octave
+    -- get the string represenation of a pitch, including
+    -- the note name and the octave modifier
+    -- lowercase = +1 octave; other octaves via , and '
     
- 
     -- root note
     local pitch = note_pitch.note
     
@@ -475,23 +481,20 @@ function abc_pitch(note_pitch)
     if note_pitch.octave then
         local octave = note_pitch.octave
         
+        -- uppercase for lowering into first octave
         if octave<1 then
             pitch = string.upper(note_pitch.note)
             octave = octave+1
         end
         
-        
         -- increase octave with '
         if octave>1 then
-            for i=1,octave-1 do
-                pitch = pitch .. "'"
-            end
+            pitch = pitch..string.rep("'", octave-1)
         end 
+        
         -- decrease octave with ,
         if octave<1 then
-            for i=1,(1-octave) do
-                pitch = pitch .. ","
-            end
+            pitch = pitch..string.rep(',', 1-octave)
         end
     end
     
@@ -508,7 +511,6 @@ function abc_duration(note_duration)
 
     local duration 
  
-   
     -- work out the duration form
     -- nothing if fraction is 1/1
     -- just a if fraction is a/1
@@ -650,6 +652,8 @@ end
 
 
 function abc_text_element(text)
+    -- simple text element, with a position (e.g. @, ^ < or >) 
+    -- and some plain text
     return '"' .. (text.position or '').. text.text .. '"'
 end
 

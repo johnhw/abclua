@@ -185,9 +185,12 @@ function insert_note(note, song, token_index, abc)
             song.opus[#song.opus+1] = chord
         end
         
+       -- free text annotations
        if note.text then
-            local chord = {event='text', text=note.text, token_index=token_index}            
-            song.opus[#song.opus+1] = chord
+            for i,v in ipairs(note.text) do
+                local text = {event='text', text=v, token_index=token_index}
+                song.opus[#song.opus+1] = text
+            end
         end
       
      
@@ -196,7 +199,6 @@ function insert_note(note, song, token_index, abc)
             -- rest            (strip out 0-duration y rests)
             if note.play_duration>0 then
                 song.opus[#song.opus+1] = {event='rest', note=note, token_index=token_index, abc=abc}
-                
             end            
         else       
             -- pitched note            

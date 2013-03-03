@@ -41,7 +41,7 @@ Extended features include:
 
 See `tests/test_abc.lua` for examples of these in use.
 
-ABCLua comes with a package which performs most of the operations of abc2midi (chords, drums, accentuation etc.)
+ABCLua comes with a package which performs most of the operations of abc2midi `abc_to_midi.lua` (including chords, drums, accentuation etc.)
 
 
 ### Requires: 
@@ -176,8 +176,8 @@ just a convenience for reading a file and calling parse_abc_multisong() on it.
             tokens = parse_abc_fragment('de>d')
             stream, context = compile_tokens(tokens)
             
-* `precompile_token_stream(tokens, [context])` Adds pitch and duration information to all notes; but does not expand repeats/parts/voices etc. Modifies the token stream in place, adding
-new fields (e.g. **play_pitch** and **play_duration**). 
+* `precompile_token_stream(tokens, [context], [merge])` Adds pitch and duration information to all notes; but does not expand repeats/parts/voices etc. Modifies the token stream in place, adding
+new fields (e.g. **play_pitch** and **play_duration**). If **merge** is true, then symbol lines are merged into the token stream. By default, this is disabled, because mergeing in symbol information changes the token stream such that it will be emitted incorrectly (symbols will be duplicated in the symbol line and in notes). 
 
 
 * `parse_abc_song_iterator(str)` Returns an function which parses and compiles a tune from a songbook each time it is called. Useful for parsing very large ABC files.

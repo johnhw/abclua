@@ -108,7 +108,13 @@ function merge_lyrics(tokens)
     end
             
     -- run through all lyrics
-    for ix,token in ipairs(tokens) do                       
+    for ix,token in ipairs(tokens) do
+    
+        -- clear existing lyric tags (we will see
+        -- every note before the corresponding lyric line)
+        if token.token=='note' then
+            token.note.lyrics = {}
+        end
         
         if token.token=='words' then                
             local lyrics = expand_lyrics(token.lyrics or {})

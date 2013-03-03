@@ -3,15 +3,20 @@
 function parse_symbol_line(symbols)
     -- Parse a symbol defintion line
     -- Returns a table containing each symbol and an advance field
-    -- Advance can be 1 or "bar"    
+    -- Advance can be "note" or "bar"    
     local symbol_list = split(symbols, '%s')
     local all_symbols = {}
     local symbol, advance
+    
     for i,v in ipairs(symbol_list) do       
         symbol = nil
+        -- bar advance; wait for a new measure before aligning future symbols
         if v=='|' then symbol = {type='bar', advance='bar'} end
+        -- spacer; do nothing and align to the following note
         if v=='*' then symbol = {type='spacer', advance='note'} end
+        -- decoration; align to the next note
         if v:match('![^!]+!') then symbol = {type='decoration', decoration=v, advance='note'} end
+        -- chord or annotation; align to the next note
         if v:match('"[^"]+"') then symbol = {type='chord_text', chord_text=v, advance='note'} end        
         if symbol then
             table.insert(all_symbols, symbol)
@@ -41,10 +46,12 @@ function merge_symbol_line(tokens)
         end
         return nil -- ran over end of the token list
     end
-    -- run through all symbols
+    
+    -- run through all tokens, looking for symbol lines
     for ix,token in ipairs(tokens) do                        
         if token.token=='symbol_line' then            
-            local symbols = token.symbol_line or {}                       
+            local symbols = token.symbol_line or {}     
+            
             -- deal with stacked symbols.
             if last_symbol_index==ix-1 then
                 -- last token was also a symbol_line; this is te
@@ -52,7 +59,7 @@ function merge_symbol_line(tokens)
                 token_ptr = last_ptr                
             else
                 -- this is not a stack, or is the first line, so remember
-                -- the alignment position
+                -- the alignment position for future stacking
                 last_ptr = token_ptr 
             end
            
@@ -69,6 +76,7 @@ function merge_symbol_line(tokens)
                 end                
             end 
             last_symbol_index = ix
+            
             -- advance the pointer to this symbol line
             if token_ptr<ix then token_ptr=ix end             
         end

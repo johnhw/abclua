@@ -1,23 +1,16 @@
 -- Grammar for parsing tune definitions
 function expand_macros(song, line)
-    -- expand any macros in a line   
-    local converged = false
-    local iterations = 0
+    -- expand any macros in a line; return the expanded line   
     local expanded_line
     
     -- ignore blank lines
-    if string.len(line)==0 then return nil end
-    expanded_line = apply_macros(song.parse.macros, line)    
-    -- macros changed this line; must now re-parse the line
-    match = abc_body_parser(expanded_line)
-    if not match then
-        warn('Macro expansion produced invalid output '..line..expanded_line)
-        return nil -- if macro expansion broke the parsing, ignore this line
-    end
-    
-    return match    
-    
+    if string.len(line)==0 then return '' end
+    expanded_line = apply_macros(song.parse.macros, line)
+    return expanded_line    
 end
+
+-- pattern to match a metadata field
+local field_pattern = re.compile("[a-zA-Z+] ':' .*")
 
 function parse_abc_line(line, song)
     -- Parse one line of ABC, updating the song
@@ -27,42 +20,47 @@ function parse_abc_line(line, song)
                 
     -- replace stylesheet directives with I: information fields
     line = line:gsub("^%%%%", "I:")    
-    local field_token
-    
+    local field_token    
     
     -- read metadata fields    
-    if song.parse.in_header or string.sub(line,2,2)==':' then        
+    -- e.g. X:1 or T:title
+    
+    -- If still in the header, or the line begins [*]:, then try and
+    -- parse as a metadata field
+    if song.parse.in_header or field_pattern:match(line) then        
         field_token = parse_field(line, song)
         if field_token then
             -- add cross reference
             if song.parse.cross_ref then
                 field_token.cross_ref = {at=1, line=song.parse.line, tune_line=song.parse.tune_line, tune=song.parse.tune, file=song.parse.filename}
             end
-           
-            table.insert(song.token_stream, field_token)
+            song.token_stream[#song.token_stream+1] = field_token
         end
+        
+        -- if we've found the key signature, we're out of the header
         if song.parse.found_key and song.parse.in_header then
             song.parse.in_header = false
-            -- table.insert(song.token_stream, {token='header_end'})
         end    
     end
          
     --
-    -- read tune
+    -- read tune body elements
     --
     if not field_token and not song.parse.in_header then
         local match
         
-        -- make I:linebreak ! work
+        -- make I:linebreak ! work, by subsituting $ for !
+        -- when it is enabled
         if song.parse.linebreaks.exclamation then
             line = line:gsub('!', '$')
         end
         
+        -- expand macros, as required
         if not song.parse.no_expand and (#song.parse.macros>0)  then               
-            match = expand_macros(song, line)                
-        else
-            match = abc_body_parser(line)
+            line = expand_macros(song, line)                
         end
+        
+        match = abc_body_parser(line)
                 
         -- if it was a tune line, then parse it
         -- (if not, it should be a metadata field)
@@ -71,7 +69,7 @@ function parse_abc_line(line, song)
             song.parse.has_notes = true
             
             -- insert linebreaks if there is not a continuation symbol
-            -- (only if <eol> is set in the linebreaks (as it is by default))
+            -- only applies if <eol> is set in the linebreaks (as it is by default)
             if song.parse.linebreaks.eol then
                 if  not match[#match].continuation then
                     table.insert(match, {linebreak=''})    
@@ -80,12 +78,12 @@ function parse_abc_line(line, song)
                 end
             end
             
-            read_tune_segment(match, song)
+            parse_token_sequence(match, song)
         end
     end        
 end    
 
-
+-- pattern to split source into lines
 local line_splitter = re.compile([[
 lines <- (%nl* ({[^%nl]+} %nl*)+) -> {}
 ]])
@@ -149,7 +147,7 @@ function parse_abc(str, options, in_header)
         tune=options.tune or 1, 
         linebreaks={eol=true},
         strict=options.strict or false,
-        filename=options.filename or 'fragment'
+        filename=options.filename or 'fragment',
         }    
     parse_abc_string(song, str)
      
@@ -157,7 +155,7 @@ function parse_abc(str, options, in_header)
 end
     
 function compile_abc(str, options)
-    -- parse an ABC string and compile it
+    -- parse an ABC string and then compile it
     song = parse_abc(str, options) 
     compile_token_stream(song,  get_default_context(), {})    
     return song
@@ -182,6 +180,7 @@ function get_default_context()
     }
 end
     
+-- pattern to match blocks of text separated by blank lines
 local section_matcher = re.compile([[
      abc_tunes <- (section (break+ section) * last_line ?) -> {}
      break <- (([ ] * %nl)  )
@@ -245,6 +244,7 @@ function parse_abc_coroutine(str, options)
     options.line = 1
     options.tune = 1
     
+    -- iterate through blocks
     local iterator = songbook_block_iterator(str, options)
         
     -- set defaults for the whole tune
@@ -261,7 +261,8 @@ function parse_abc_coroutine(str, options)
         return -- no tunes at all
     end
     
-    -- first tune might be a file header
+    -- first tune might be a file header -- in which case we need to store the
+    -- context and metadata
     local first_tune = parse_and_compile(tune_str, options, default_context, default_metadata)
     
     -- if no notes, is a global header for this whole file
@@ -276,14 +277,14 @@ function parse_abc_coroutine(str, options)
     -- return the first tune
     coroutine.yield(first_tune)
     
+    -- track the tune number and source file line
     local tune_number = 2
-    
     local line 
     if first_tune then
         line = first_tune.parse.line
     end
     
-    -- remaining tunes
+    -- iterate through remaining tunes
     tune_str = iterator()
     while tune_str do
         options.tune = tune_number  
@@ -291,7 +292,9 @@ function parse_abc_coroutine(str, options)
         
         -- parse/compile the tune
         local tune = parse_and_compile(tune_str, options, deepcopy(default_context), deepcopy(default_metadata))
-        coroutine.yield(tune)    
+        coroutine.yield(tune)
+
+        -- get the next block from the songbook
         tune_str = iterator()
         
         -- need to keep track of lines across songs for cross referencing
@@ -328,7 +331,10 @@ function parse_abc_file(filename, options)
 end
 
 function parse_abc_fragment(str, options)
-    -- Parse a short abc fragment, and return the token stream table    
+    -- Parse a short abc fragment, and return the token stream.
+    -- options can be:
+    -- no_expand If true, don't expand macros or include files
+    -- cross_ref If true, get line/character cross references and insert into each token
     options = options or {}    
     local song = parse_abc(str, options, options.in_header or false)
     return song.token_stream
@@ -400,10 +406,7 @@ return abclua
 -- Text string encodings
 -- Make automatic tune reproduce tester
 -- ABCLint -> check abc files for problems
--- check bar timings (something bad is happening with repeats)
--- change .token and .event to .tag
 
--- MIDI error on repeats with chords (doubles up chords)
 -- transposing macros don't work when octave modifiers and ties are applied
 
 -- Q:

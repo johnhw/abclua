@@ -199,11 +199,11 @@ function precompile_token_stream(token_stream, context, merge)
     local song = {context=context or get_default_context(), opus={}}
     reset_timing(song)
 
+    merge_lyrics(token_stream)
     
     -- merge in lyrics and symbol lines
     if merge then
         merge_symbol_line(token_stream)
-        merge_lyrics(token_stream)
     end
     
     for i=1,#token_stream do
@@ -261,7 +261,6 @@ function expand_token_stream(song)
     local insert_note = insert_note
     local opus = song.opus
     
-    -- this needs to be more efficient
     local token_stream = copy_array(song.token_stream)
    
     -- merge in lyrics and symbol lines
@@ -283,17 +282,16 @@ function expand_token_stream(song)
         if token == 'note' then
            insert_note(v.note, song, i, abc)
         else
+           
            event = copy_table(v)
            event.event = event.token
            event.token = nil           
            event.token_index = i
            event.abc = abc
            song.opus[#song.opus+1] = event
-                                                        
+
             if token=='chord' then  
                 v.chord.notes = get_chord_notes(v.chord, {}, context.key)
-            
-               
            
             -- deal with triplet definitions
             elseif token=='triplet' then                
@@ -333,25 +331,18 @@ function expand_token_stream(song)
                     end
                 end          
                     
-            
-            
             -- new voice
             elseif token=='voice_change' then
                 start_new_voice(song, v.voice.id, v.voice.specifiers)
-            
             
             elseif token=='voice_def' then
                 -- store any voice specific settings for later
                 song.voice_specifiers[v.voice.id] = v.voice.specifiers
             
-            
             elseif token=='instruction' then
                 if v.directive then
                     apply_directive(song, v.directive.directive, v.directive.arguments)
                 end
-            
-             
-            
             elseif token=='note_length' then
                  context.note_length = v.note_length
                  update_timing(song)
@@ -362,15 +353,10 @@ function expand_token_stream(song)
                 update_timing(song)
                  -- store tempo string in metadata
                 song.metadata.tempo = string.sub(abc_tempo(v.tempo),3)
-       
-            
-            
-            
                 
             elseif token=='parts' then
                 context.part_structure = v.parts
                 context.part_sequence = expand_parts(context.part_structure)      
-            
             
             elseif token=='new_part' then
                 -- can only start a new part if the parts have been defined.
@@ -378,15 +364,11 @@ function expand_token_stream(song)
                     song.in_variant_part = nil -- clear the variant flag
                     start_new_part(song, v.part)    
                 end
-            
-            
             elseif token=='meter' then  
                 context.meter = v.meter
                 update_timing(song)  
                 -- store key string in metadata
                 song.metadata.meter = string.sub(abc_meter(v.meter),3)
-                
-
                 --set the default note length
                 -- if meter.num/meter.den > 0.75 then 1/8
                 -- else 1/16    

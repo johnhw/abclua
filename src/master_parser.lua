@@ -1,4 +1,6 @@
 -- The master grammar and functions for applying it
+
+-- The tune body grammar
 local tune_pattern = [[
 elements <- (
                 (
@@ -33,12 +35,6 @@ free <- ( '"'
          {:text: [^"]* :}               -- Free text within quotes 
          '"' 
         ) -> {}
-
-oldbar <- ( 
-        {:type: (('[') * ('|' / ':') + (']') *) :}  -- The bar symbol
-        ({:variant_range: (<range_set>) :}) ?       -- Optional variant range :|1 or :|2,3
-        ) -> {}
-        
         
 bar <- (    (
                 {:mid_repeat: <mid_repeat> :} /  
@@ -71,7 +67,7 @@ just_colons <- (
                 {} ':' <colons>  {}     -- Two or more colons (alternative mid repeat form)
                 ) -> {}
                 
-plain <- '|'          -- Plain bar
+plain <- '|'                       -- Plain bar
 thickthin <- (  '[' + '|' + )      -- Thick thin bar
 thinthick <- ('|' + ']' + )        -- Thin thick bar
 double <- ('|' ('[' / ']') * '|')  -- Double bar        
@@ -186,7 +182,7 @@ accidental <- (
 duration <- (                       -- Fraction pattern for durations
             {:num: [0-9] + :} ?     -- Numerator (optional)
             {:slashes: '/' +  :} ?  -- A sequence of slashes (optional) e.g. to recognise A//
-            {:den: [0-9]+  :} ?     -- Denominator
+            {:den: [0-9]+  :} ?     -- Denominator (optional)
             )  -> {}
             
 field <- (                          -- Inline field [T:title]
@@ -194,7 +190,7 @@ field <- (                          -- Inline field [T:title]
             {:contents:         
                 [a-zA-Z]            -- One letter tag of the field
                 ':'                 -- Colon
-                [^]%nl] +           -- Everything until ] (nb %nl hack never matches)
+                [^]%nl] +           -- Everything until ] (nb %nl never matches -- just to avoid introducing double ])
             :}
             ']'                     -- Close brackets
         ) -> {}        
@@ -203,6 +199,7 @@ field <- (                          -- Inline field [T:title]
 
 local tune_matcher = re.compile(tune_pattern)
 
+-- match a string with the grammar
 function abc_body_parser(str)
     return tune_matcher:match(str)
 end
@@ -223,15 +220,17 @@ function parse_free_text(text)
 end
 
 
-function read_tune_segment(tune_data, song)
-    -- read the next token in the note stream    
+function parse_token_sequence(tune_data, song)
+    -- read a sequence of tokens as parsed by the grammar
+    -- and clean them up, apply specialised parsing to elements
+    -- and generate the token stream for this line
   
-    local insert = table.insert
     local token_stream = song.token_stream
     local last_cross_ref = nil
     local token 
-  
-    for i,v in ipairs(tune_data) do
+    local v
+    for i=1,#tune_data do
+        v = tune_data[i]
         token = nil
         if type(v) == 'number' then
             -- insert cross refs, if they are enabled
@@ -255,8 +254,6 @@ function read_tune_segment(tune_data, song)
             
             -- parse inline fields (e.g. [r:hello!])
             elseif v.field then                
-                -- this automatically writes it to the token_stream
-                -- not correct for inline fields!
                 token = parse_field(v.field.contents, song, true)
                 
             -- deal with triplet definitions
@@ -267,11 +264,9 @@ function read_tune_segment(tune_data, song)
             elseif v.overlay then
                 token =  {token='overlay', bars=string.len(v.overlay)}
             
-            
             -- beam splits
             elseif v.s then
                 token =  {token='split'}
-            
             
             -- linebreaks
             elseif v.linebreak then
@@ -320,7 +315,7 @@ function read_tune_segment(tune_data, song)
             -- insert token and set the cross reference
             if token then
                 token.cross_ref = last_cross_ref
-                insert(token_stream, token)
+                token_stream[#token_stream+1] = token
             end
         end
     end

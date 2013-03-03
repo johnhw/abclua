@@ -1,8 +1,9 @@
+-- Register standard handlers for I: / %% directives
+
 local grace_matcher = re.compile([[ 
     length <- ({:num: (number) :} '/' {:den: (number) :}) -> {}
     number <- ([0-9]+)
     ]])
-
 
 function directive_set_grace_note_length(song, directive, arguments)
     -- set the length of grace notes
@@ -78,7 +79,7 @@ end
 function directive_linebreak(song, directive, arguments)
     -- set the linebreak symbol
     -- can be list of elements: '$' '!' <EOL>
-    -- or can be '<none>'
+    -- or can be '<none>' as the only argument
     if #arguments==1 and arguments[1]:lower()=='<none>' then 
         song.parse.linebreaks = {}
         return
@@ -94,14 +95,13 @@ function directive_linebreak(song, directive, arguments)
     
 end
 
+-- register the directives
 register_directive('enable-bar-warnings', directive_enable_bar_warnings)
 register_directive('gracenote', directive_set_grace_note_length)
 register_directive('abc-include', directive_abc_include, true)
 register_directive('linebreak', directive_linebreak, true)
 register_directive('broken-ratio', directive_broken_ratio)
-
 register_directive('propagate-accidentals', directive_propagate_accidentals)
-
 register_directive('setbarnb', directive_set_bar_number, true)
 register_directive('measurefirst', directive_set_bar_number, true)
 

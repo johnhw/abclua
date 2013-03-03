@@ -5,12 +5,11 @@ function time_stream(stream)
     -- as the t field in each event
     -- Time advances only on notes or rests
     
-    local t 
+    local t = 0
     local in_chord = false
     local max_duration, max_metric
     local measure = 1
     local written_measure = 1
-    t = 0    
     local last_bar = 0    
     local event
     local metric_t = 1
@@ -19,12 +18,14 @@ function time_stream(stream)
     for i=1,#stream do
         event = stream[i]
         event_type = event.event
+        -- set the time and metric time of this event
         event.t = t
         event.metric_t = metric_t
         
         -- record position of last bar
         if event_type=='bar'  then
             last_bar = event.t      
+            -- advance the play measure counter
             measure = measure + 1
             written_measure = event.bar.meeasure
             event.bar.play_measure = measure
@@ -38,20 +39,25 @@ function time_stream(stream)
         end
         
         local duration = 0
-        -- rests and notes
+        -- rests and notes; these are the only events
+        -- that have a duration, and thus move on time
         if event_type=='rest' or event_type=='note' then
             duration = event.note.play_duration
             if not in_chord then
+                -- if not in a chord, just advance by the given time
                 t = t + duration
                 metric_t = metric_t + event.note.play_bars
             else
                 -- record maximum time in chord; this is how much we will advance by
+                -- at the end of the chord
                 if duration > max_duration then
                     max_duration = duration
                     max_metric = event.note.play_bars
                 end
             end                                    
         end
+        
+        -- set the duration of the event (will be 0 for non-note/rest events)
         event.duration = duration                
         
         -- chord symbols       
@@ -69,9 +75,6 @@ function time_stream(stream)
         end
        
     end
-    
-    -- make sure events are in order
-    --table.sort(stream, function(a,b) return a.t<b.t end)
     
 end
 

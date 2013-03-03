@@ -41,7 +41,7 @@ function nth_note_of_key(key, n)
 end
 
 
--- offsets for the common modes
+-- offsets for the common modes, in semitone offsets from the relative major key
 local mode_offsets = {maj=0, min=3, mix=5, dor=10, phr=8, lyd=7, loc=1}
 
 function get_major_key(key)
@@ -163,6 +163,8 @@ end
 
 function notes_in_key(key)
     -- return the semitone numbers of notes in this key
+    -- as a table of semitones that are present
+    -- e.g 'C' = {0=1, 2=1, 4=1, 5=1, 7=1, 9=1, 11=1} 
     local in_key = {}
     local major = get_major_key('c')
     local key_structure = create_key_structure(key)
@@ -177,7 +179,7 @@ function notes_in_key(key)
 end
 
 function key_semitones(key)
-    -- return each semitone in this key, in order.     
+    -- return each semitone in this key, in order, as a simple array     
     local key_structure = create_key_structure(key)
     local semis = {}
     local k = 0
@@ -192,7 +194,8 @@ end
 
 function create_key_structure(k)
     -- Create a key structure, which lists each note as written (e.g. A or B)
-    -- and maps it to the correct semitone in the interval
+    -- and maps it to the offset from C major, in semitones
+    -- e.g. G major becomes {c=0,d=0,e=0,f=1,g=0,a=0,b=0}
     
     local key_mapping = {}    
     
@@ -262,7 +265,7 @@ function create_key_structure(k)
             end
         end
         
-                        
+                      
     end
     return key_mapping
 end

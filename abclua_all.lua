@@ -78,7 +78,15 @@ function set_property(t, key, value)
     end
 end
 
-function aligned_warning()
+function warn(msg, token)
+    -- print a warning; if a token with a cross reference is provided
+    -- then the corresponding cross reference is included
+    if token and token.cross_ref then
+        local cr = token.cross_ref
+         print(cr.file..':'..cr.line..' ('..cr.at..')  Warning: '..msg)
+    else
+        print("Warning: "..msg)
+    end
 end
 
 function copy_array(orig)
@@ -274,11 +282,6 @@ function is_in(str, tab)
     return false
 end
 
-
-function warn(message)
--- print a warning message
-    print(message)
-end
 
 function find_first_match(t, match)
     -- Find the first element of t, where all of the given field=value pairs match
@@ -1179,6 +1182,7 @@ function voice_chord(notes, octave)
     local root = notes[1]
     table.insert(out_notes, root+base-12)
     table.insert(out_notes, root+base+12)
+    table.insert(out_notes, root+base+24)
     
     -- -- fifth at octave above
     -- if #notes>=3 then
@@ -1224,6 +1228,7 @@ function time_stream(stream)
     local event
     local metric_t = 1
     local event_type
+   
     for i=1,#stream do
         event = stream[i]
         event_type = event.event
@@ -1232,7 +1237,7 @@ function time_stream(stream)
         
         -- record position of last bar
         if event_type=='bar'  then
-            last_bar = event.t
+            last_bar = event.t      
             measure = measure + 1
             written_measure = event.bar.meeasure
             event.bar.play_measure = measure
@@ -2197,6 +2202,9 @@ function parse_field(f, song, inline, at)
      if not match then
         -- in the header, treat lines without a tag as continuations
         if song.parse.in_header then
+            if song.parse.strict then
+                warn("Bare metadata line in header.")
+            end
             field_name = 'continuation' 
             content = f                
         else
@@ -2531,12 +2539,12 @@ function insert_note(note, song, token_index, abc)
         if note.chord then
             local chord = {event='chord', chord=note.chord, token_index=token_index}
             chord.chord.notes = get_chord_notes(chord.chord, {}, song.context.key)
-            table.insert(song.opus, chord)
+            song.opus[#song.opus+1] = chord
         end
         
        if note.text then
             local chord = {event='text', text=note.text, token_index=token_index}            
-            table.insert(song.opus, chord)
+            song.opus[#song.opus+1] = chord
         end
       
      
@@ -3941,15 +3949,15 @@ function reset_timing(song)
 end
 
 
-function reset_bar_time(song)
+function reset_bar_time(v, song)
     -- if warnings are enabled, mark underfull and overfull bars
-    if song.context.bar_warnings then    
+    if song.context.bar_warnings or song.context.strict then    
         if song.context.timing.bar_time>1 then
-            warn('Overfull bar')
+            warn('Overfull bar', v)
         end
         
         if song.context.timing.bar_time<1 then
-            warn('Underfull bar')
+            warn('Underfull bar', v)
         end
     end    
     song.context.timing.bar_time = 0
@@ -4023,7 +4031,7 @@ function precompile_token_stream(token_stream, context, merge)
         
         -- deal with bars and repeat symbols
         if v.token=='bar' then
-            reset_bar_time(song)
+            reset_bar_time(v, song)
             song.context.accidental = {} -- clear any lingering accidentals             
         end
           
@@ -4090,16 +4098,12 @@ function expand_token_stream(song)
            event.token = nil           
            event.token_index = i
            event.abc = abc
-           opus[#opus+1] = event
+           song.opus[#song.opus+1] = event
                                                         
             if token=='chord' then  
                 v.chord.notes = get_chord_notes(v.chord, {}, context.key)
             
-            -- end of header; store metadata so far
-            elseif token=='header_end' then
-                song.header_metadata = deepcopy(song.metadata)
-                song.header_context = deepcopy(context) 
-            
+               
            
             -- deal with triplet definitions
             elseif token=='triplet' then                
@@ -4109,7 +4113,7 @@ function expand_token_stream(song)
             
             -- deal with bars and repeat symbols
             elseif token=='bar' then
-                reset_bar_time(song)
+                reset_bar_time(v, song)
                 apply_repeats(song, v.bar)  
                 context.accidental = {} -- clear any lingering accidentals             
             
@@ -4134,7 +4138,9 @@ function expand_token_stream(song)
                     last = last..' '..v.content
                     song.metadata[v.name][#song.metadata[v.name]]  = last                
                 else
-                    warn("Continuing a field with +: that doesn't exist.")
+                    if song.context.strict then
+                        warn("Continuing a field with +: that doesn't exist.")
+                    end
                 end          
                     
             
@@ -4209,6 +4215,12 @@ function expand_token_stream(song)
                 
                 -- store key string in metadata
                 song.metadata.key = string.sub(abc_key(v.key),3)
+                
+                -- store the header metadata if this is the first key in the file
+                if not song.header_metadata then
+                    song.header_metadata = deepcopy(song.metadata)
+                    song.header_context = deepcopy(context) 
+                end
             end     
         end
   end
@@ -4730,7 +4742,7 @@ function parse_abc(str, options, in_header)
         user_macros=default_user_macros(), 
         measure = options.measure or 1, 
         no_expand=options.no_expand or false, 
-        cross_ref=options.cross_ref or false, 
+        cross_ref=(options.cross_ref or false) or options.strict, 
         line=options.line or 1, 
         tune=options.tune or 1, 
         linebreaks={eol=true},
@@ -4837,6 +4849,9 @@ function parse_abc_coroutine(str, options)
     local default_metadata = {}
     local default_context = get_default_context()
     
+    -- pass on strict warnings to the context
+    default_context.strict = options.strict
+    
     local tune_str 
     tune_str = iterator()
     
@@ -4904,6 +4919,7 @@ function parse_abc_file(filename, options)
     assert(f, "Could not open file "..filename)
     local contents = f:read('*a')
     
+    options = options or {}
     -- store filename for later
     options.filename=filename
     return parse_abc_multisong(contents, options)
@@ -4981,6 +4997,8 @@ version=0.2,
 -- Text string encodings
 -- Make automatic tune reproduce tester
 -- ABCLint -> check abc files for problems
+-- check bar timings (something bad is happening with repeats)
+-- change .token and .event to .tag
 
 -- MIDI error on repeats with chords (doubles up chords)
 -- transposing macros don't work when octave modifiers and ties are applied

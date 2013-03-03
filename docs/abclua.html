@@ -152,6 +152,7 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 <ul>
 <li><code>no_expand</code> if <strong>true</strong>, then don't expand macros or include files; instead pass through references unchanged.</li>
 <li><code>cross_ref</code> if <strong>true</strong>, then insert cross reference tokens into the stream which indicate the line and character at which each parsed event happened.</li>
+<li><code>strict</code> if <strong>true</strong>, then produce warnings for various malformed abc files.</li>
 </ul></li>
 <li><p><code>compile_abc(song)</code> Compile a song. Converts the sequence of tokens in a song into an event stream which is stored in song.stream.</p></li>
 <li><p><code>parse_abc_fragment(str, [options])</code> Parse a fragment of ABC (e.g. 'abc | def'). Returns the token sequence for that fragment.</p>

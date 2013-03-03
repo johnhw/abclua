@@ -88,8 +88,7 @@ end
 function expand_patterns(patterns)
     -- expand a pattern list table into a single event stream
     local result = {}
-    for i,v in ipairs(patterns) do
-        
+    for i,v in ipairs(patterns) do    
         for i=1,v.repeats do
             -- repeated measures (including single repeats!)                            
             append_with_copy(result, v.section)            
