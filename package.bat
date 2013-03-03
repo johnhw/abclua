@@ -31,7 +31,7 @@ copy make_abclua.lua dist\make_abclua.lua
 xcopy /E midi\*.* dist\midi
 xcopy /E examples\*.* dist\examples
 lua squish --minify --gzip
-copy abclua_small.lua.gzipped dist\abclua_all.lua
+copy abclua_small.lua.uglified dist\abclua_all.lua
 cd dist
 zip -r abclua-%ABCLUA_VERSION%.zip .
 cd ..

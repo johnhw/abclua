@@ -69,7 +69,7 @@
 <li>Ratio for broken rhythm can be set with directive <code>%%set-broken-ratio</code></li>
 </ul>
 <p>See <code>tests/test_abc.lua</code> for examples of these in use.</p>
-<p>ABCLua comes with a package which performs most of the operations of abc2midi (chords, drums, accentuation etc.)</p>
+<p>ABCLua comes with a package which performs most of the operations of abc2midi <code>abc_to_midi.lua</code> (including chords, drums, accentuation etc.)</p>
 <h3 id="requires"><a href="#requires">Requires:</a></h3>
 <ul>
 <li><a href="http://www.lua.org">Lua 5.1+</a></li>
@@ -168,7 +168,7 @@ io.write(abclua.abc_from_songs(songs))</code></pre>
 <pre><code>    -- parse the fragment in the context of the first song loaded
     tokens = parse_abc_fragment(&#39;de&gt;d&#39;)
     stream, context = compile_tokens(tokens)</code></pre></li>
-<li><p><code>precompile_token_stream(tokens, [context])</code> Adds pitch and duration information to all notes; but does not expand repeats/parts/voices etc. Modifies the token stream in place, adding new fields (e.g. <strong>play_pitch</strong> and <strong>play_duration</strong>).</p></li>
+<li><p><code>precompile_token_stream(tokens, [context], [merge])</code> Adds pitch and duration information to all notes; but does not expand repeats/parts/voices etc. Modifies the token stream in place, adding new fields (e.g. <strong>play_pitch</strong> and <strong>play_duration</strong>). If <strong>merge</strong> is true, then symbol lines are merged into the token stream. By default, this is disabled, because mergeing in symbol information changes the token stream such that it will be emitted incorrectly (symbols will be duplicated in the symbol line and in notes).</p></li>
 <li><p><code>parse_abc_song_iterator(str)</code> Returns an function which parses and compiles a tune from a songbook each time it is called. Useful for parsing very large ABC files.</p>
 <pre><code>    local content = f:read(&#39;*a&#39;)
     for song in parse_abc_song(iterator) do
