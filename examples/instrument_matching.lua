@@ -5,7 +5,7 @@
 --------------------------------------------------------------------
 
 require "abclua"
-require "examples/whistle_model"
+require "examples/instrument_model"
 
 
 if #arg~=1 then

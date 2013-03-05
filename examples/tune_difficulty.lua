@@ -42,13 +42,14 @@ end
 
 
 function lzw_compress(sequence)
-    -- LZW compresss a sequence of (primitive) values
+    -- LZW compresss a sequence of (primitive) values. Every value
+    -- must be transformable into a unique string.
     local pattern = ''..sequence[1]
     local lzw_table = {}
     local output = {}
     
-    -- this had better never appear in the input sequence
-    local token = 32000
+    -- this had better never appear in the input sequence!
+    local token = 320000
     
     for i=2,#sequence do
         local k = ''..sequence[i]
@@ -81,41 +82,48 @@ function compute_entropy(sequence)
     -- timing information; just computes the entropy of the histogram.
     local hist = {}
     for i,v in ipairs(sequence) do
-        hist[v] = (hist[v] or 0) + 1
+        hist[v] = (hist[v] or 0) + 1        
     end
     
     -- compute normalising sum
     local sum = 0
-    for i,v in ipairs(sequence) do
-        sum = sum + hist[v]
-    end
+    for i,v in pairs(hist) do
+        sum = sum + v
+    end    
     
     -- compute entropy
     local h = 0
     local p
-    for i,v in ipairs(sequence) do
-        p = hist[v] / sum
+    for i,v in pairs(hist) do
+        p = v / sum        
         h = h - p * math.log(p)/math.log(2)
     end
     
     return h 
 end
 
+
+
 function compute_speed_difficulty(melody, rhythm, pitches, durations)
     -- compute difficulty based on change in pitch over duration
-    -- (i.e. time derivative of interval)
+    -- (i.e. time derivative of interval), and the simple speed of the song
     local pitch_rate = 0
+    local rate = 0
     for i,v in ipairs(melody) do
         pitch_rate = pitch_rate + math.abs(melody[i]/durations[i])
+        rate = rate + 1.0/durations[i]
     end
-    return pitch_rate / #melody
+    return pitch_rate / #melody, rate/#melody
 end
 
-function rate_songbook(fname)
-    -- parse the tune
-    local songs = parse_abc_file(fname)
+
+
+function rate_songs(songs)     
+    -- rate each song in the last, adding a .ratings field to the song entry
+    -- the ratings can subsequently be combined to come up with an "average"
+    -- difficulty level for the song
     local meta
-    local ratings = {}
+    local ratings = {}    
     -- read in the metadata
     for i,song in ipairs(songs) do 
         meta = song.header_metadata 
@@ -123,6 +131,10 @@ function rate_songbook(fname)
             melody,rhythm,pitches,durations = code_tune(song.voices['default'].stream)
             
             -- score each of the tune streams
+            -- score by: LZW compression ratio (for pitch, interval, duration and duration interval)
+            -- symbol entropy (for pitch, interval, duration and duration interval)
+            -- speed rating (derivative of interval)
+            
             local h_melody = compute_entropy(melody)
             local lzw_melody = compute_lzw_entropy(melody)
             
@@ -135,22 +147,60 @@ function rate_songbook(fname)
             local h_durations = compute_entropy(durations)
             local lzw_durations = compute_lzw_entropy(durations)
             
-            local rate = compute_speed_difficulty(melody, rhythm, pitches, durations)
+            local interval_rate, rate = compute_speed_difficulty(melody, rhythm, pitches, durations)
+           
             
-            -- combine all of the elements into a numerical score
-            local score = lzw_melody*rate*(h_melody+h_pitches+h_rhythm+h_durations)/100.0
+            local rating = {
+            h_melody = h_melody,
+            h_pitches = h_pitches,
+            h_rhythm = h_rhythm,
+            h_durations = h_durations,
+            rate = rate,
+            lzw_melody = lzw_melody,
+            lzw_pitches = lzw_pitches,
+            lzw_rhythm = lzw_rhythm,
+            lzw_durations = lzw_durations,
+            rate = rate,             
+            interval_rate = interval_rate,
+            score=score, repetition=1/lzw_melody}
             
-            table.insert(ratings, {title=meta.title[1], score=score})            
+            song.rating = rating                        
         end
-    end
-    
-    table.sort(ratings, function(a,b) return a.score<b.score end)
-    for i,v in ipairs(ratings) do
-        print(v.title .. string.rep(' ',64-string.len(v.title))..v.score)
     end
 end
 
 
 
 
-rate_songbook('tests/p_hardy.abc')
+function rank_by_difficulty(songs, score_combiner)
+    -- sort songs by difficulty, given a function to combine the various weighting scores
+    local ranks = {}
+    for i,v in ipairs(songs) do
+        if v.rating then
+            v.score = score_combiner(v.rating)
+            table.insert(ranks, v)
+        end
+    end    
+    table.sort(ranks, function(a,b) return a.score<b.score end)
+        
+    for i,v in ipairs(ranks) do
+        title = v.metadata.title[1]
+        print(title .. string.rep(' ',64-string.len(title))..v.score)
+    end
+    return ranks
+end
+
+local songs = parse_abc_file('tests/p_hardy.abc')
+rate_songs(songs)
+require "examples/whistle"
+d_whistle = get_whistle_fingerings()
+add_whistle_rating(songs, d_whistle)
+rank_by_difficulty(songs, function(ratings) return 
+ratings.whistle_difficulty+
+ratings.whistle_delta+
+500*ratings.whistle_unplayable+
+100*ratings.whistle_halfs +
+5*ratings.rate +
+ratings.lzw_melody*ratings.h_melody*5
+
+end)
