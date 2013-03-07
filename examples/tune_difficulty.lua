@@ -190,17 +190,10 @@ function rank_by_difficulty(songs, score_combiner)
     return ranks
 end
 
-local songs = parse_abc_file('tests/p_hardy.abc')
-rate_songs(songs)
-require "examples/whistle"
-d_whistle = get_whistle_fingerings()
-add_whistle_rating(songs, d_whistle)
-rank_by_difficulty(songs, function(ratings) return 
-ratings.whistle_difficulty+
-ratings.whistle_delta+
-500*ratings.whistle_unplayable+
-100*ratings.whistle_halfs +
-5*ratings.rate +
-ratings.lzw_melody*ratings.h_melody*5
-
-end)
+if #arg~=1 then
+    print("Usage: tune_difficulty <file.abc>")
+else
+    local songs = parse_abc_file(arg[1])
+    rate_songs(songs) 
+    rank_by_difficulty(songs, function(ratings) return  5*ratings.rate + ratings.lzw_melody*ratings.h_melody*5 end)
+end
