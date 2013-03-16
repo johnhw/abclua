@@ -397,6 +397,7 @@ precompile_token_stream = precompile_token_stream,
 parse_abc_song_iterator = parse_abc_song_iterator,
 scan_metadata = scan_metadata,
 compile_abc = compile_abc,
+get_tempo_names = get_tempo_names,
 songbook_block_iterator = songbook_block_iterator,
 version=0.2,
 }
@@ -408,7 +409,7 @@ return abclua
 -- Text string encodings
 -- Make automatic tune reproduce tester
 -- ABCLint -> check abc files for problems
-
+-- Transpose doesn't work with explicit key accidentals
 -- transposing macros don't work when octave modifiers and ties are applied
 
 -- Q:

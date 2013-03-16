@@ -3,8 +3,7 @@ local natural_pitch_table = {c=0, d=2, e=4, f=5, g=7, a=9, b=11}
 
 function get_semitone(key_mapping, pitch, accidental)
     -- return the semitone of a note (0-11) in a given key, with the given accidental
-    local base_pitch = natural_pitch_table[pitch]    
-           
+    local base_pitch = natural_pitch_table[pitch]               
     -- accidentals / keys
     if accidental then   
         if accidental.den==0 then 

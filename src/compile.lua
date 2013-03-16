@@ -1,16 +1,5 @@
 -- Functions from transforming a parsed token stream into a song structure and then an event stream
 
-function get_bpm_from_tempo(tempo)
-    -- return the real bpm of a tempo 
-    local total_note = 0
-    for i,v in ipairs(tempo) do
-        total_note = total_note + (v.num / v.den)
-    end                    
-    
-   
-    local rate = 60.0 / (total_note * tempo.tempo_rate)
-    return rate
-end
 
 function update_timing(song)
     -- Update the base note length (in seconds), given the current L and Q settings

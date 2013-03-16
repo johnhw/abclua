@@ -16,6 +16,18 @@ div <- ({:num: number:} %s * '/' %s * {:den: number:}) -> {}
 number <- ( [0-9] + )
 ]])
 
+function get_bpm_from_tempo(tempo)
+    -- return the real bpm of a tempo 
+    local total_note = 0
+    for i,v in ipairs(tempo) do
+        total_note = total_note + (v.num / v.den)
+    end                    
+       
+    local rate = 60.0 / (total_note * tempo.tempo_rate)
+    return rate
+end
+
+
 -- standard tempo names
 local tempo_names = {
 larghissimo=40,
@@ -38,6 +50,10 @@ andante=88,
 prestissimo=240,
 andantino=96
 }
+
+function get_tempo_names()
+    return tempo_names
+end
 
 function parse_tempo(l)
     -- Parse a tempo string

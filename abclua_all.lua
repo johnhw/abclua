@@ -3411,50 +3411,115 @@ local pitch_table = {c=0, d=2, e=4, f=5, g=7, a=9, b=11}
 function diatonic_transpose_note(original_mapping, shift, new_mapping, inverse_mapping, pitch, accidental)
     -- Transpose a note name (+ accidental) in an original key mapping to a new key mapping which is
     -- shift semitones away    
-        local semi = (get_semitone(original_mapping, pitch, accidental)%12 + shift)
-        
-        -- test for octave shift
+    
         local octave = 0
+        local original_semi = get_semitone(original_mapping, pitch, accidental)                
+        local semi = (original_semi%12) + shift                        
+        -- test for octave shift        
         if semi<0 then
-            octave = math.floor((semi/12))
+            octave = octave + math.floor((semi/12))
          end
                
         if semi>11 then
-            octave = math.floor(((semi)/12))            
+            octave = octave + math.floor(((semi)/12))            
         end        
         
-        -- get the octave-wrapped semitone
-        
+        -- get the octave-wrapped semitone        
         semi = semi % 12             
+        
+        -- work out if this accidental was an "up" (^ or = from a flat)
+        -- or a "down" (_ or = from a sharp)
+        local up         
+        if accidental then
+            if accidental.num>0 then up = true end
+            if accidental.num<0 then up = false end
+            -- natural from flat
+            if accidental.num==0 and original_mapping[pitch]<0 then up = true end
+            -- natural from sharp
+            if accidental.num==0 and original_mapping[pitch]>0 then up = false end                       
+        end
+                    
+        
         local new_accidental, new_pitch  
         
         -- if we don't need an accidental, just look up the pitch
-        if inverse_mapping[semi] then
+        if inverse_mapping[semi] and up==nil then
             new_pitch = inverse_mapping[semi]       
             new_accidental = nil                  
         else
-            -- othwerwise check the note above, and see if we can flatten
-            new_pitch = inverse_mapping[(semi+1)%12]                     
-            t = new_mapping[new_pitch]            
-            -- if not, then try sharpening the note below
-            if not t or t==-1 then 
-                -- check the note lower and sharpen it
-                new_pitch = inverse_mapping[(semi-1)%12] 
+            print(pitch, semi, up)
+            -- was a sharp/natural before
+            if up==true then
+                new_pitch = inverse_mapping[(semi-1)%12]                            
                 t = new_mapping[new_pitch]
                 if t==0 then new_accidental={num=1, den=1} end
                 if t==-1 then new_accidental={num=0, den=0} end
-                -- if all else fails, we double sharpen the note below
-                -- (this will never happen in a standard scale)
                 if t==1 then new_accidental={num=2, den=1} end
-            else
-                -- if we can just flatten that one, use that
+            end
+            
+            -- was a flat before
+            if up==false then
+                new_pitch = inverse_mapping[(semi+1)%12]                 
+                t = new_mapping[new_pitch]
+                table_print(inverse_mapping)
+                print(inverse_mapping,new_pitch,t)
                 if t==0 then new_accidental={num=-1, den=1} end
-                if t==1 then new_accidental={num=0, den=0} end            
-            end            
+                if t==1 then new_accidental={num=0, den=0} end
+                if t==-1 then new_accidental={num=-2, den=1} end
+            end
+            
+            if up==nil then
+                -- othwerwise check the note above, and see if we can flatten
+                new_pitch = inverse_mapping[(semi+1)%12]                     
+                t = new_mapping[new_pitch]            
+                -- if not, then try sharpening the note below
+                if not t or t==-1 then 
+                    -- check the note lower and sharpen it
+                    new_pitch = inverse_mapping[(semi-1)%12] 
+                    
+                    t = new_mapping[new_pitch]
+                    if t==0 then new_accidental={num=1, den=1} end
+                    if t==-1 then new_accidental={num=0, den=0} end
+                    -- if all else fails, we double sharpen the note below
+                    -- (this will never happen in a standard scale)
+                    if t==1 then new_accidental={num=2, den=1} end
+                else
+                    -- if we can just flatten that one, use that
+                    if t==0 then new_accidental={num=-1, den=1} end
+                    if t==1 then new_accidental={num=0, den=0} end            
+                end            
+            end
         end        
         return new_pitch, new_accidental, octave
 end
 
+
+function transpose_key(key, shift)
+    -- create "fake" key without the explicit accidentals        
+    local fake_key = {root=key.root, mode=key.mode}
+    local original_mapping = create_key_structure(fake_key)                                               
+    key.root = transpose_note_name(key.root, shift)
+    -- transpose explicit accidentals
+    
+    -- create "fake" key without the explicit accidentals    
+    fake_key = {root=key.root, mode=key.mode}
+    -- get the semitone mappings
+    new_mapping = create_key_structure(fake_key)
+    local inverse_mapping = {}
+    for i,v in pairs(pitch_table) do                                           
+        local k = v+new_mapping[i]
+        k = k % 12
+        inverse_mapping[k] = i
+    end          
+    
+    -- local new_accidentals ={}
+    -- update all of the accidentals
+    -- for i,v in ipairs(key.accidentals) do               
+        -- table.insert(new_accidentals, {note=note, accidental=accidental})                
+    -- end    
+    -- key.accidentals = new_accidentals    
+    return key
+end
 
 function diatonic_transpose(tokens, shift)
     -- Transpose a whole token stream by a given number of semitones 
@@ -3470,7 +3535,8 @@ function diatonic_transpose(tokens, shift)
                         
             -- get new root key
             original_key = create_key_structure(token.key)
-            token.key.root = transpose_note_name(token.key.root, shift)
+            token.key = transpose_key(token.key, shift)
+            
             current_key = token.key            
             -- work out the semitones in this key
             mapping = create_key_structure(current_key)                                               
@@ -3718,8 +3784,7 @@ local natural_pitch_table = {c=0, d=2, e=4, f=5, g=7, a=9, b=11}
 
 function get_semitone(key_mapping, pitch, accidental)
     -- return the semitone of a note (0-11) in a given key, with the given accidental
-    local base_pitch = natural_pitch_table[pitch]    
-           
+    local base_pitch = natural_pitch_table[pitch]               
     -- accidentals / keys
     if accidental then   
         if accidental.den==0 then 
@@ -3843,17 +3908,6 @@ end
 --
 -- Functions from transforming a parsed token stream into a song structure and then an event stream
 
-function get_bpm_from_tempo(tempo)
-    -- return the real bpm of a tempo 
-    local total_note = 0
-    for i,v in ipairs(tempo) do
-        total_note = total_note + (v.num / v.den)
-    end                    
-    
-   
-    local rate = 60.0 / (total_note * tempo.tempo_rate)
-    return rate
-end
 
 function update_timing(song)
     -- Update the base note length (in seconds), given the current L and Q settings
@@ -4994,6 +5048,7 @@ abc_from_songs = abc_from_songs,
 diatonic_transpose = diatonic_transpose,
 get_note_stream = get_note_stream,
 get_chord_stream = get_chord_stream,
+midi_note_from_note = midi_note_from_note,
 abc_element = abc_element,
 validate_token_stream = validate_token_stream,
 filter_event_stream = filter_event_stream,
@@ -5003,6 +5058,8 @@ printable_note_name = printable_note_name,
 precompile_token_stream = precompile_token_stream,
 parse_abc_song_iterator = parse_abc_song_iterator,
 scan_metadata = scan_metadata,
+compile_abc = compile_abc,
+get_tempo_names = get_tempo_names,
 songbook_block_iterator = songbook_block_iterator,
 version=0.2,
 }
@@ -5013,7 +5070,7 @@ version=0.2,
 -- Text string encodings
 -- Make automatic tune reproduce tester
 -- ABCLint -> check abc files for problems
-
+-- Transpose doesn't work with explicit key accidentals
 -- transposing macros don't work when octave modifiers and ties are applied
 
 -- Q:
@@ -5240,6 +5297,18 @@ div <- ({:num: number:} %s * '/' %s * {:den: number:}) -> {}
 number <- ( [0-9] + )
 ]])
 
+function get_bpm_from_tempo(tempo)
+    -- return the real bpm of a tempo 
+    local total_note = 0
+    for i,v in ipairs(tempo) do
+        total_note = total_note + (v.num / v.den)
+    end                    
+       
+    local rate = 60.0 / (total_note * tempo.tempo_rate)
+    return rate
+end
+
+
 -- standard tempo names
 local tempo_names = {
 larghissimo=40,
@@ -5262,6 +5331,10 @@ andante=88,
 prestissimo=240,
 andantino=96
 }
+
+function get_tempo_names()
+    return tempo_names
+end
 
 function parse_tempo(l)
     -- Parse a tempo string

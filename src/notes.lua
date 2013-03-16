@@ -128,8 +128,10 @@ function expand_grace(song, grace_note)
     -- grace notes have their own separate timing (i.e. no carryover of
     -- broken note state or of triplet state)
     
-    -- preserve the timing state
+    -- preserve the timing state, and the accidental propagation state
+    -- accidentals propagate IN from the surrounding context, but not out again
     local preserved_state = deepcopy(song.context.timing)
+    local preserved_accidentals = deepcopy(song.context.accidentals)
     
     song.context.timing.prev_broken_note = 1
     reset_triplet_state(song)
@@ -143,7 +145,7 @@ function expand_grace(song, grace_note)
     
     -- restore timing state
     song.context.timing = preserved_state
-    
+    song.context.accidentals = preserved_accidentals
     -- insert the grace sequence   
     return grace
 
