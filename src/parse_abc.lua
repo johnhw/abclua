@@ -410,6 +410,7 @@ return abclua
 -- Make automatic tune reproduce tester
 -- ABCLint -> check abc files for problems
 -- Transpose doesn't work with explicit key accidentals
+-- Allow decorations on bar lines; restructure decoration handling
 -- transposing macros don't work when octave modifiers and ties are applied
 
 -- Q:

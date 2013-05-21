@@ -21,11 +21,11 @@ function test_transposed_scales(scale_str, test)
     scale = abclua.parse_abc_fragment(scale_str)
     local start = emit_abc(scale)
     for i=1,12 do
-        diatonic_transpose(scale,1)            
+        diatonic_transpose(scale,1)          
     end
     
     for i=1,12 do
-        diatonic_transpose(scale,-1)                    
+        diatonic_transpose(scale,-1)                   
     end
     
     assert(emit_abc(scale)==start,test)
@@ -36,7 +36,7 @@ test_transposed_scales('[K:C]CDEFGAB', 'C major')
 test_transposed_scales("[K:C]C,,DEFg'a''b'''", 'C major octaves')
 test_transposed_scales('[K:C#]CDEFGAB', 'C# major')
 test_transposed_scales('[K:Gb]GABCDEF', 'Gb major')
-test_transposed_scales('[K:C]_DDEFGA_B', 'C major accidentals')
+test_transposed_scales('[K:C]^D=DFGAB', 'C major accidentals')
 test_transposed_scales('[K:C#]C=DEFGAB', 'C# major accidentals')
 
 
@@ -56,7 +56,7 @@ function check_transpose(str, shift, result, test)
     local fragment = parse_abc_fragment(str)    
     diatonic_transpose(fragment, shift)     
     local abc = emit_abc(fragment)        
-    -- check that the ABC matches
+    -- check that the ABC matches    
     assert(abc==result, test)
     -- check the pitches actually match    
     print(test.." passed OK")       
@@ -72,13 +72,12 @@ function check_unchanged(str, test)
     
     local transpose_sequence = {}
     for i=1,10 do
-        table.insert(transpose_sequence, 1)-- math.random(-12,12))
+        table.insert(transpose_sequence,1)-- math.random(-12,12))
     end
-   print(emit_abc(fragment)) 
+   
     -- apply the transposes forwards
     for i,v in ipairs(transpose_sequence) do        
-        diatonic_transpose(fragment, v)       
-        print(emit_abc(fragment))        
+        diatonic_transpose(fragment, v)          
     end
     
     -- and then backwards     
@@ -87,10 +86,8 @@ function check_unchanged(str, test)
       diatonic_transpose(fragment, -v)      
     end
                
-    print(emit_abc(fragment))
-    local new_pitches = get_pitches(fragment)    
-    table_print(original_pitches)
-    table_print(new_pitches)
+    
+    local new_pitches = get_pitches(fragment)        
     -- check the pitches actually match
     for i,v in ipairs(original_pitches) do        
         assert(original_pitches[i] == new_pitches[i])
@@ -115,12 +112,27 @@ check_unchanged('[K:G]gabcdef', 'G scale unchanged transpose')
 check_unchanged('[K:C#min]abcdefgab', 'C# minor scale')
 check_unchanged('[K:Gdor]abcdefgab', 'G dorian scale')
 check_unchanged('[K:G]^gabcdef', 'G scale accidentals unchanged transpose')
-check_unchanged('[K:G]^gabcdefgab_gab=ff_f', 'G scale multiple accidentals unchanged transpose')
+
+check_unchanged('[K:G]"G"B2 B B_B=B|', 'Liberty bell extract')
+
+check_unchanged('[K:G]^gabcdefgab^gab=ff^f', 'G scale multiple accidentals unchanged transpose')
 check_unchanged('[K:G]^gabc|def|gab_|gab', 'G scale multiple accidentals bars unchanged transpose')
 check_unchanged('[K:Gdor]ab^cd^efgab', 'G dorian scale accidentals')
 check_unchanged('[K:C#min]ab^cd^efgab', 'C# minor scale accidentals')
 
-check_unchanged('[K:G]"G"B2 B B_B=B|', 'Liberty bell extract')
+check_unchanged([[X:12003
+T:Liberty Bell
+T:Monty Python
+R:Jig
+C:John Philip Sousa, 1893
+O:USA
+M:6/8
+L:1/8
+Q:1/8=200
+K:G
+"G"B2 B B_B=B|g2 d d2 B|"A"^c2 a a2 a|"A7"a3 a2 g|"D"f2 a a^ga|"A7"e2 a a^ga|"D7"d2 ^c d2 c|d3 d2:|
+]], 'Liberty bell')
+
 
 check_unchanged([[X:12003
 T:Liberty Bell
@@ -141,10 +153,10 @@ G|:"C"E3 F3|^F3 G3|e2 e e2 _e|e3 e2 G|E3 F3|^F3 G3|"G"f2 f f2 e|f3 f2 e|"G"d3 "G
 "C"e3 "Cdim"_e3|"C"e2 G ^F2 G|1"G"B3 d3|"D7"c2 d A2 c|"G"B2 c A2 B|"G7"G2 A F2 G:|2 "F"A3 f3|"C"e2 c "G"d2 B|"C"c6|c6|
 ]], 'Liberty bell')
 
--- check_unchanged('[K:G exp ^f]abcdefgababcdef', 'Explicit scale')
--- check_unchanged('[K:G exp ^f _d _c]abcdefg', 'Explicit scale 3')
--- check_unchanged('[K:G exp _a _b ^c ^d _e _f ^g]abcdefgababcdef', 'Explicit scale 2')
--- check_unchanged('[K:G exp ^a _d]ab^cdc|efc|ga_b|abc_cde|fag|g_a^g=g|', 'Explicit scale accidentals')
+check_unchanged('[K:G exp ^f]abcdefgababcdef', 'Explicit scale')
+check_unchanged('[K:G exp ^f _d _c]abcdefg', 'Explicit scale 3')
+check_unchanged('[K:G exp _a _b ^c ^d _e _f ^g]abcdefgababcdef', 'Explicit scale 2')
+check_unchanged('[K:G exp ^a _d]ab^cdc|efc|ga_b|abc_cde|fag|g_a^g=g|', 'Explicit scale accidentals')
 
 
 print("Transpose passed OK")

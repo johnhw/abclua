@@ -1,167 +1,177 @@
 local pitch_table = {c=0, d=2, e=4, f=5, g=7, a=9, b=11}
 
+local sharp_table = {
+[0]={'b',1},
+[1]={'c',1},
 
-function diatonic_transpose_note(original_mapping, shift, new_mapping, inverse_mapping, pitch, accidental)
+[3]={'d',1},
+
+[5]={'e',1},
+[6]={'f',1},
+
+[8]={'g',1},
+
+[10]={'a',1},
+
+}
+
+local flat_table = {
+
+[1]={'d',-1},
+
+[3]={'e',-1},
+[4]={'f',-1},
+
+[6]={'g',-1},
+
+[8]={'a',-1},
+
+[10]={'b',-1},
+[11]={'c',-1},
+}
+
+
+local natural_table = {
+[0]={'c',0},
+[2]={'d',0},
+[4]={'e',0},
+[5]={'f',0},
+[7]={'g',0},
+[9]={'a',0},
+[11]={'b',0},
+}
+
+
+function diatonic_transpose_note(pitch, shift, mapping)
     -- Transpose a note name (+ accidental) in an original key mapping to a new key mapping which is
     -- shift semitones away    
     
+        -- determine if this is a flat or sharp key
+        local flat_key = false        
+        for i,v in ipairs(mapping) do
+            if v==-1 then flat_key = true end
+        end
         local octave = 0
         
-        local original_semi = get_semitone(original_mapping, pitch, accidental)                
-        
-        local semi = (original_semi%12) + shift                        
-        -- test for octave shift        
-        if semi<0 then
-            octave = octave + math.floor((semi/12))
-         end
-               
-        if semi>11 then
-            octave = octave + math.floor(((semi)/12))            
-        end        
-        
-        -- get the octave-wrapped semitone        
-        semi = semi % 12             
-        
-        -- work out if this accidental was an "up" (^ or = from a flat)
-        -- or a "down" (_ or = from a sharp)
-        local up     
-       
-        if accidental then
-            if accidental.num>0 then up = true end
-            if accidental.num<0 then up = false end
-            -- natural from flat
-            if accidental.num==0 and original_mapping[pitch]<0 then up = true end
-            -- natural from sharp
-            if accidental.num==0 and original_mapping[pitch]>0 then up = false end 
-            if accidental.num==0 and original_mapping[pitch]==0 then up = 0 end
-        end
-                    
-        
-        local new_accidental, new_pitch  
-        
-        -- if we don't need an accidental, just look up the pitch
-        if inverse_mapping[semi] then
-            new_pitch = inverse_mapping[semi]  
-            new_accidental = nil 
-            if up==0 then
-                new_accidental = {num=0, den=0}
-            end
+        -- get octave shift
+        if shift<0 then
+            octave = -math.floor(-shift/12)
         else
+            octave = math.floor(shift/12)
+        end
         
-            -- was a sharp/natural before
-            if up==true then
-                new_pitch = inverse_mapping[(semi-1)%12]                            
-                t = new_mapping[new_pitch]
-                if t==0 then new_accidental={num=1, den=1} end
-                if t==-1 then new_accidental={num=0, den=0} end
-                if t==1 then new_accidental={num=2, den=1} end
-            end
-            
-            -- was a flat before
-            if up==false then
-                new_pitch = inverse_mapping[(semi+1)%12]                 
-                t = new_mapping[new_pitch]
-                if t==0 then new_accidental={num=-1, den=1} end
-                if t==1 then new_accidental={num=0, den=0} end
-                if t==-1 then new_accidental={num=-2, den=1} end
-            end
-            
-            if up==nil or up==0 then
-                -- othwerwise check the note above, and see if we can flatten
-                new_pitch = inverse_mapping[(semi+1)%12]                     
-                t = new_mapping[new_pitch]            
-                -- if not, then try sharpening the note below
-                if not t or t==-1 then 
-                    -- check the note lower and sharpen it
-                    new_pitch = inverse_mapping[(semi-1)%12] 
-                    
-                    t = new_mapping[new_pitch]
-                    if t==0 then new_accidental={num=1, den=1} end
-                    if t==-1 then new_accidental={num=0, den=0} end
-                    -- if all else fails, we double sharpen the note below
-                    -- (this will never happen in a standard scale)
-                    if t==1 then new_accidental={num=2, den=1} end
-                else
-                    -- if we can just flatten that one, use that
-                    if t==0 then new_accidental={num=-1, den=1} end
-                    if t==1 then new_accidental={num=0, den=0} end            
-                end            
-            end
-        end        
-        return new_pitch, new_accidental, octave
+        semi = (pitch + shift) % 12
+        
+        local sharp_note = sharp_table[semi]
+        local flat_note = flat_table[semi]
+        local natural_note = natural_table[semi]
+        
+        local key_note
+        
+        local accidental
+        
+        if natural_note and mapping[natural_note[1]]==0 then
+            -- cancel natural sign           
+            key_note = natural_note
+        elseif sharp_note and mapping[sharp_note[1]]==1 then
+            -- cancel sharp sign           
+            key_note = sharp_note
+        elseif flat_note and mapping[flat_note[1]]==-1 then
+            -- cancel flat sign           
+            key_note = flat_note
+        else
+            -- choose which accidental to use
+            if natural_note then 
+                key_note = natural_note 
+            elseif flat_key then 
+                key_note = flat_note 
+            else 
+                key_note = sharp_note 
+            end            
+            -- this an accidental; propagate it
+            mapping[key_note[1]] = key_note[2]
+            accidental = {num=key_note[2], den=math.abs(key_note[2])}
+        end
+                        
+        return key_note[1], accidental, octave
 end
 
 
 function transpose_key(key, shift)
+
+    
     -- create "fake" key without the explicit accidentals        
     local fake_key = {root=key.root, mode=key.mode}
-    local original_mapping = create_key_structure(fake_key)                                               
+    local fake_mapping = create_key_structure(fake_key)                                               
+    local real_mapping = create_key_structure(key) 
+    
+            
+           
+    local intervals = {}
+    
+    -- semitone of the root of this key (e.g. c=0, c#=1, d=2, etc.)
+    local root = string.sub(key.root,1,1)
+    local root_semi = pitch_table[root] + real_mapping[root]
+    
+    local scale = {}
+    -- work out what intervals are in this key
+    for i,v in pairs(real_mapping) do
+        local semi = pitch_table[i] + real_mapping[root]
+        local offset = (semi-root_semi) % 12
+        table.insert(scale, {note=i,offset=offset})        
+        print(i, key.root, offset)        
+    end
+    table.sort(scale, function (a,b) return a.offset<b.offset end)
+    local offsets = {}
+    local last =0 
+    
+    for i,v in ipairs(scale) do
+        table.insert(offsets, v.offset-last)
+        last = v.offset
+    end
+    table_print(offsets)
+    
+   
+    
+    -- transpose the root
     key.root = transpose_note_name(key.root, shift)
-    -- transpose explicit accidentals
+    local new_mapping = create_key_structure(key) 
     
-    -- create "fake" key without the explicit accidentals    
-    fake_key = {root=key.root, mode=key.mode}
-    -- get the semitone mappings
-    new_mapping = create_key_structure(fake_key)
-    local inverse_mapping = {}
-    for i,v in pairs(pitch_table) do                                           
-        local k = v+new_mapping[i]
-        k = k % 12
-        inverse_mapping[k] = i
-    end          
     
-    -- local new_accidentals ={}
-    -- update all of the accidentals
-    -- for i,v in ipairs(key.accidentals) do               
-        -- table.insert(new_accidentals, {note=note, accidental=accidental})                
-    -- end    
-    -- key.accidentals = new_accidentals    
+    local new_root = string.sub(key.root,1,1)
+    local new_root_semi = pitch_table[new_root] + real_mapping[new_root]
+    for i,v in pairs(new_mapping) do
+        local semi = pitch_table[i] + new_mapping[new_root]
+        local offset = (semi-new_root_semi) % 12
+        print(offset)
+    end
+    
+    -- table_print(key.accidentals)
+    -- print()
+    table_print(accidentals)
+    --key.accidentals = accidentals
+    
     return key
 end
-
-function update_accidentals(accidentals, pitch,  mode)
-    -- update the accidental table according to the current mode
-    
-    if mode=='not' then
-       -- do nothing
-       return pitch.accidental
-    else
-        local accidental_key 
-        -- in 'octave' mode, accidentals only propagate within an octave
-        -- otherwise, they propagate to all notes of the same pitch class
-        if mode=='octave' then
-           accidental_key = pitch.octave..pitch.note
-        else
-           accidental_key = pitch.note
-        end
-            
-        -- set the appropriate accidental, and return the current
-        -- active one if there is one
-        if accidental then
-            accidentals[accidental_key] = pitch.accidental 
-            return accidental
-        else
-            return accidentals[accidental_key]
-        end
-    end
-end
-    
 
 function diatonic_transpose(tokens, shift)
     -- Transpose a whole token stream by a given number of semitones 
     -- Shifts notes; keys; written chords; and grace notes
+    -- Does not work correctly with propagate-accidentals:octave
     local current_key, original_key        
     local mapping, key_struct
     local inverse_mapping = {}
     
     -- how accidentals are propagated
     local accidental_mode = 'bar'
-    local accidentals = {}
+    local base_mapping = {}
+        
+    precompile_token_stream(tokens)
     
     for i,token in ipairs(tokens) do
         if token.token=='bar' then
             -- clear lingering accidentals
-            accidentals = {}
+            mapping = copy_table(base_mapping)
         end
         
         if token.token=='instruction' and token.directive.directive=='propagate-accidentals' then
@@ -170,23 +180,21 @@ function diatonic_transpose(tokens, shift)
         end
         
         -- shift the key signature
-        if token.token=='key' then                               
+        if token.token=='key' then    
+            -- disable accidental propagation for K:none
             if token.key.none then
                 accidental_mode = 'not'
-            else
-                -- get new root key
-                original_key = create_key_structure(token.key)
-                token.key = transpose_key(token.key, shift)
-                
-                current_key = token.key            
-                -- work out the semitones in this key
-                mapping = create_key_structure(current_key)                                               
-                for i,v in pairs(pitch_table) do                                           
-                    local k = v+mapping[i]
-                    k = k % 12
-                    inverse_mapping[k] = i
-                end                       
             end
+            -- get new root key
+            original_key = create_key_structure(token.key)
+            token.key = transpose_key(token.key, shift)
+            
+            current_key = token.key            
+            -- work out the semitones in this key
+            
+            -- store mapping so we can restore when 
+            base_mapping = create_key_structure(current_key)                                                           
+            mapping = copy_table(base_mapping)
         end        
         
         -- transpose standalone chords
@@ -205,28 +213,33 @@ function diatonic_transpose(tokens, shift)
             -- if we have a pitched note
             if token.note.pitch then        
                 -- transpose the note                
-                local implied_accidental = update_accidentals(accidentals, token.note.pitch,  accidental_mode)  
-                local accidental = token.note.pitch.accidental or implied_accidental
-                pitch,accidental,octave = diatonic_transpose_note(original_key, shift, mapping, inverse_mapping, token.note.pitch.note, token.note.pitch.accidental, accidentals)             
+                pitch,accidental,octave = diatonic_transpose_note(token.note.play_pitch, shift, mapping)             
                 token.note.pitch.note = pitch
                 token.note.pitch.accidental = accidental                    
-                token.note.pitch.octave = token.note.pitch.octave + octave
-               
+                token.note.pitch.octave = token.note.pitch.octave + octave  
+                if accidental_mode=='not' then
+                    -- cancel any accidentals if we are not propagating
+                    mapping = base_mapping
+                end                               
             end
             
             -- apply to grace notes
             if token.note.grace then
                 -- preserve accidental states
-                local temp_accidentals = copy_table(accidentals) 
+                local temp_mapping = copy_table(mapping)
                 for i,v in ipairs(token.note.grace) do
-                    local implied_accidental = update_accidentals(accidentals, token.note.pitch,  accidental_mode)  
-                    local accidental = v.pitch.accidental or implied_accidental
-                    pitch,accidental,octave = diatonic_transpose_note(original_key, shift, mapping, inverse_mapping, v.pitch.note, accidental, accidentals)
+                    pitch,accidental,octave = diatonic_transpose_note(v.play_pitch, shift, mapping) 
+               
                     v.pitch.note = pitch
                     v.pitch.accidental = accidental                
                     v.pitch.octave = v.pitch.octave + octave
+                    if accidental_mode=='not' then
+                        -- cancel any accidentals if we are not propagating
+                        mapping = base_mapping
+                    end
                 end
-                accidentals = temp_accidentals
+                mapping = temp_mapping
+                
             end
             
         end
@@ -274,8 +287,6 @@ function validate_token_stream(tokens)
     if first_note>#tokens then
         first_note = #tokens
     end
-
-
     -- make sure last element before a note is a key  
     local ref = find_first_match(tokens, {token='key'}) 
     if not ref then

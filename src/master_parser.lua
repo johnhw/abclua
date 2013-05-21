@@ -36,7 +36,7 @@ free <- ( '"'
          '"' 
         ) -> {}
         
-bar <- (    (
+bar <- (    ({:decoration: ({decoration} +)->{} :}) ? (
                 {:mid_repeat: <mid_repeat> :} /  
                 {:end_repeat: <end_repeat> :}  / 
                 {:start_repeat: <start_repeat> :} / 
@@ -73,7 +73,7 @@ thinthick <- ('|' + ']' + )        -- Thin thick bar
 double <- ('|' ('[' / ']') * '|')  -- Double bar        
 colons <- (':' +)                  -- colons
         
-variant <- (
+variant <- (  ({:decoration: ({decoration} +)->{} :}) ?
      '['                               -- A part variant (e.g. '| [4 a bc | [5 d e f')
     {:variant_range: <range_set> :}     -- Followed by a numerical range 
            )   -> {}
