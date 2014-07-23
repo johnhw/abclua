@@ -53,14 +53,13 @@ function diatonic_transpose_note(pitch, shift, mapping)
         end
         local octave = 0
         
-        -- get octave shift
-        if shift<0 then
-            octave = -math.floor(-shift/12)
-        else
-            octave = math.floor(shift/12)
-        end
         
-        semi = (pitch + shift) % 12
+        local new_pitch = pitch+shift
+        local old_octave = math.floor(pitch / 12)
+        local new_octave = math.floor(new_pitch / 12)
+        octave = new_octave - old_octave        
+        semi = new_pitch % 12
+        
         
         local sharp_note = sharp_table[semi]
         local flat_note = flat_table[semi]
@@ -119,7 +118,7 @@ function transpose_key(key, shift)
         local semi = pitch_table[i] + real_mapping[root]
         local offset = (semi-root_semi) % 12
         table.insert(scale, {note=i,offset=offset})        
-        print(i, key.root, offset)        
+        --print(i, key.root, offset)        
     end
     table.sort(scale, function (a,b) return a.offset<b.offset end)
     local offsets = {}
@@ -129,7 +128,7 @@ function transpose_key(key, shift)
         table.insert(offsets, v.offset-last)
         last = v.offset
     end
-    table_print(offsets)
+    --table_print(offsets)
     
    
     
@@ -143,12 +142,12 @@ function transpose_key(key, shift)
     for i,v in pairs(new_mapping) do
         local semi = pitch_table[i] + new_mapping[new_root]
         local offset = (semi-new_root_semi) % 12
-        print(offset)
+        --print(offset)
     end
     
     -- table_print(key.accidentals)
     -- print()
-    table_print(accidentals)
+    --table_print(accidentals)
     --key.accidentals = accidentals
     
     return key

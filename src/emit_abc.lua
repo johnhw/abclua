@@ -738,7 +738,7 @@ function abc_note_element(element)
     local static_element = note_elements[element.token]
     
     if static_element then return static_element end
-    
+    	
     if element.token=='chord' and element.chord then
             return  abc_chord(element.chord) 
     end
@@ -755,6 +755,7 @@ function abc_note_element(element)
         return abc_triplet(element.triplet)
     end
     
+
     if element.token=='note' then
         return abc_note(element.note)
     end
