@@ -24,6 +24,7 @@ local names = {[8] = 'daaaa-aaaa-aaaa-aaah',
 function print_rhythm(song)
     local tied = false
     local bars = 0
+	local use_vowels = false
     local last_dash = ''
     for i,v in ipairs(song.voices['default'].stream) do
         if v.event=='note' then
@@ -34,10 +35,13 @@ function print_rhythm(song)
                 -- remove consonant at start on tied notes
                 if tied then name=name:gsub('[bdtk]', '') end
                 tied=false
-                -- use vowels as crude pitch
-                if v.note.play_pitch>=72 then name=name:gsub('a', 'e') end
-                if v.note.play_pitch>=68 then name=name:gsub('a', 'u') end
-                if v.note.play_pitch<=54 then name=name:gsub('a', 'o') end
+				if use_vowels then
+					-- use vowels as crude pitch
+					if v.note.play_pitch>=72 then name=name:gsub('a', 'e') end
+					if v.note.play_pitch>=68 then name=name:gsub('a', 'u') end
+					if v.note.play_pitch<=54 then name=name:gsub('a', 'o') end
+				end
+				
                 if v.note.tie then tied=true end
                 -- only write dashes between long notes
                 if last_dash then io.write(last_dash) end
@@ -55,8 +59,7 @@ function print_rhythm(song)
         if v.event=='bar' then
             last_dash = ''
             -- if tied across a bar, then use a dash instead of a space
-            if tied then io.write('') else io.write(' ') end
-            
+            if tied then io.write('') else io.write(' | ') end            
             -- break line after 6 bars
             bars = bars + 1
             if bars==6 then
@@ -82,6 +85,7 @@ function rhythm(fname)
 end
 
 if #arg~=1 then
+	print(#arg)
     print("Usage: hum_rhythm.lua <file.abc>")
   else
     rhythm(arg[1])

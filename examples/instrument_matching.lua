@@ -11,17 +11,13 @@ require "examples/instrument_model"
 if #arg~=1 then
     print("Usage: instrument_matching <file.abc>")
 else
-    local whistle =  get_whistle_fingerings()
+    local whistle =  make_whistle()
+	
     songs = parse_abc_file(arg[1])
     if songs and songs[1] then
-        stream = compile_tokens(songs[1].token_stream)
-        unplayable, penalty = check_instrument(stream,whistle,0)
-        print("% Original penalty "..penalty.. " unplayable notes "..unplayable)
-        optimal_transpose(songs[1].token_stream, whistle)
-        print(emit_abc(songs[1].token_stream))        
-        stream = compile_tokens(songs[1].token_stream)
-        unplayable, penalty = check_instrument(stream,whistle,0)
-        print("% New penalty "..penalty.. " unplayable notes "..unplayable)
+		tr = optimal_transpose(songs[1], whistle)	
+		
+		print(emit_abc(tr.token_stream))
     else
         print("Could not read " .. arg[1])
     end
